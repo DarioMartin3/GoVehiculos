@@ -1,12 +1,11 @@
-<nav class="fixed top-0 w-full z-50 glass-nav shadow-sm">
+<nav class="fixed top-0 w-full z-50 bg-white shadow-sm">
   <div class="flex justify-between items-center px-8 h-20 w-full max-w-screen-2xl mx-auto">
     <div class="flex items-center gap-12">
       <a href="/index.html" class="text-2xl font-black text-blue-900 italic font-headline">Executive Kinetic</a>
       <div class="hidden md:flex items-center gap-8">
         <a class="text-blue-700 border-b-2 border-blue-700 pb-1 font-headline font-bold tracking-tight" href="#">Rent</a>
         <a class="text-slate-600 font-medium hover:text-blue-600 font-headline tracking-tight transition-colors" href="#">Become a Partner</a>
-        <a class="text-slate-600 font-medium hover:text-blue-600 font-headline tracking-tight transition-colors" href="/dashboard_tecnico.html">Dashboard</a>
-        <a class="text-slate-600 font-medium hover:text-blue-600 font-headline tracking-tight transition-colors" href="/index_registrar_vehiculo.html">Registrar Vehículo</a>
+        <a class="text-slate-600 font-medium hover:text-blue-600 font-headline tracking-tight transition-colors" href="/dashboard_general_tecnico.html">Dashboard</a>
       </div>
     </div>
     <div class="flex items-center gap-4">
@@ -14,10 +13,22 @@
         <span class="material-symbols-outlined text-secondary mr-2">search</span>
         <input class="bg-transparent border-none focus:ring-0 text-sm w-48" placeholder="Search fleet..." type="text"/>
       </div>
-      <a href="/index_back.html" class="border border-primary text-primary px-6 py-2.5 rounded-lg font-bold tracking-tight hover:bg-primary hover:text-on-primary transition-colors duration-200">
+      <div id="nav-dashboard-actions" class="hidden items-center gap-3">
+        <button class="p-2 rounded-full hover:bg-blue-50/50 text-slate-500 relative">
+          <span class="material-symbols-outlined">notifications</span>
+          <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+        </button>
+        <button class="p-2 rounded-full hover:bg-blue-50/50 text-slate-500">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
+        <a href="/perfil_view.html" class="h-8 w-8 rounded-full overflow-hidden border border-slate-200 hover:ring-2 hover:ring-primary transition-all">
+          <img alt="Administrator profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoajUDN_jFtExRiXnRb4Xzbf2RXO8OMEnxflP_NeJXJr12yElfGlBCS8UKBD3hHl8axTQGOtDTtfCDFeaYNzWf-psT2hRQ7ck04UBh_6Denq21vGeM1IGHrM27mybf2KQCGbv5w7w5pq6XHnwj4ZE9ewM2IstU6uY-9U-Ik5jZMJ9DrEedtG4RltlnhoUuTi3EK__4JBPCIsYm4AOO2xlPFP0feqlsm_pIXmx6AaNqwCkKMpNfTfM9ZilGZcJEWUCWQDIbF_WPIn3D"/>
+        </a>
+      </div>
+      <a id="nav-crear-cuenta" href="/index_back.html" class="border border-primary text-primary px-6 py-2.5 rounded-lg font-bold tracking-tight hover:bg-primary hover:text-on-primary transition-colors duration-200">
         Crear Cuenta
       </a>
-      <button data-open-login class="kinetic-gradient text-on-primary px-6 py-2.5 rounded-lg font-bold tracking-tight scale-95 duration-200 ease-in-out hover:scale-100">
+      <button id="nav-sign-up" data-open-login class="kinetic-gradient text-on-primary px-6 py-2.5 rounded-lg font-bold tracking-tight scale-95 duration-200 ease-in-out hover:scale-100">
         Sign Up
       </button>
     </div>
