@@ -10,7 +10,7 @@ services:
       POSTGRES_DB: mydb
     networks: [private-net]
     volumes:
-      - ./db_data:/var/lib/postgresql
+      - db_data:/var/lib/postgresql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
   
   pgadmin:
@@ -24,7 +24,7 @@ services:
     depends_on:
       - db
     volumes:      
-      - ./pgadmin_data:/var/lib/pgadmin
+      - pgadmin_data:/var/lib/pgadmin
       - ./pgadmin/servers.json:/pgadmin4/servers.json
 
   backend:
