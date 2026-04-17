@@ -6,3 +6,4 @@ venv
 dist
 build
 db_data/
+pgadmin_data/
