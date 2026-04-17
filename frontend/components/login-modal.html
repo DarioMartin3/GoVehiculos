@@ -1,0 +1,63 @@
+<div id="login-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-6">
+  <!-- Backdrop -->
+  <div id="login-modal-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+
+  <!-- Modal -->
+  <div class="relative w-full max-w-[400px] bg-surface-container-lowest rounded-xl shadow-2xl overflow-hidden z-10">
+    <!-- Close button -->
+    <button id="login-modal-close" class="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-700 transition-colors">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+
+    <div class="p-8 md:p-10">
+      <!-- Header -->
+      <header class="mb-10 text-center">
+        <span class="inline-block font-headline text-xl font-black italic tracking-tighter text-primary mb-6">Kinetic</span>
+        <h1 class="font-headline text-3xl font-extrabold tracking-tight text-on-background">Welcome Back</h1>
+        <p class="text-on-surface-variant text-sm mt-2 font-medium">Continue your executive journey.</p>
+      </header>
+
+      <!-- Social Login -->
+      <div class="grid grid-cols-2 gap-3 mb-8">
+        <button class="flex items-center justify-center gap-2 py-3 px-4 bg-surface-container-low hover:bg-surface-container-high rounded-lg transition-colors duration-200 group">
+          <img alt="Google" class="w-5 h-5 grayscale group-hover:grayscale-0 transition-all" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARJW4bQJgPoILTRMoiMVsPqFos2crzTulBGoYV0Ty10A9FlKrmxDtIETrX-TWWvcs7qZ7ovAyQ2Ik3_ZFICE3b3xmxwx3m44P9fqY4N-dmQKQw7ATo-rH1JST2cLQ1AR0pPc2MMZCrfyNVSaPEtIWnKypNnZp7Efw3AvQSh7bMUY3GdlgGewAkvQ55oEX2W8CaXsJsa-YG4DoK2qUpMXGBuAzyAZ_43DmacKvSK5v4xHJjOsBXwqbPZ8PVh7VAcBjLVBn3O2TuKpN7"/>
+          <span class="text-xs font-semibold tracking-wide text-on-surface-variant">GOOGLE</span>
+        </button>
+        <button class="flex items-center justify-center gap-2 py-3 px-4 bg-surface-container-low hover:bg-surface-container-high rounded-lg transition-colors duration-200">
+          <span class="material-symbols-outlined text-[20px] text-on-background">ios</span>
+          <span class="text-xs font-semibold tracking-wide text-on-surface-variant">APPLE</span>
+        </button>
+      </div>
+
+      <!-- Divider -->
+      <div class="relative flex items-center mb-8">
+        <div class="flex-grow border-t border-outline-variant/30"></div>
+        <span class="flex-shrink mx-4 text-[10px] font-bold tracking-[0.2em] text-outline uppercase">Or Email</span>
+        <div class="flex-grow border-t border-outline-variant/30"></div>
+      </div>
+
+      <!-- Form -->
+      <form class="space-y-6">
+        <div>
+          <label class="block text-[10px] font-bold tracking-widest text-primary uppercase mb-2 ml-1">Email Address</label>
+          <input class="w-full bg-surface-container-high border-none rounded-lg py-4 px-4 text-on-surface placeholder:text-slate-400 focus:ring-0" placeholder="name@executive.com" type="email"/>
+        </div>
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-[10px] font-bold tracking-widest text-primary uppercase ml-1">Password</label>
+            <a class="text-[10px] font-bold text-on-surface-variant hover:text-primary transition-colors tracking-tight" href="#">FORGOT PASSWORD?</a>
+          </div>
+          <input class="w-full bg-surface-container-high border-none rounded-lg py-4 px-4 text-on-surface placeholder:text-slate-400 focus:ring-0" placeholder="••••••••" type="password"/>
+        </div>
+        <button class="w-full kinetic-gradient text-on-primary font-headline font-bold py-4 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all tracking-tight" type="submit">
+          Sign In
+        </button>
+      </form>
+
+      <p class="mt-8 text-center text-sm text-on-surface-variant font-medium">
+        Don't have an account?
+        <a class="text-primary font-bold hover:underline underline-offset-4 ml-1" href="#">Sign Up</a>
+      </p>
+    </div>
+  </div>
+</div>

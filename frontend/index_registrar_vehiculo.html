@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Registrar Vehículo | Executive Kinetic</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "error-container": "#ffdad6",
+                      "surface-tint": "#2559bd",
+                      "tertiary": "#602400",
+                      "on-secondary": "#ffffff",
+                      "tertiary-fixed-dim": "#ffb692",
+                      "tertiary-container": "#843500",
+                      "surface-container-low": "#f2f4f6",
+                      "on-background": "#191c1e",
+                      "error": "#ba1a1a",
+                      "outline": "#737784",
+                      "secondary-container": "#d7e4ec",
+                      "tertiary-fixed": "#ffdbcb",
+                      "surface-container-high": "#e6e8ea",
+                      "on-primary": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "inverse-on-surface": "#eff1f3",
+                      "secondary-fixed-dim": "#bbc8d0",
+                      "on-tertiary-container": "#ffaa80",
+                      "primary": "#00327d",
+                      "surface-container-highest": "#e0e3e5",
+                      "on-secondary-container": "#5a666d",
+                      "on-secondary-fixed": "#111d23",
+                      "surface-container": "#eceef0",
+                      "primary-container": "#0047ab",
+                      "outline-variant": "#c3c6d5",
+                      "on-secondary-fixed-variant": "#3c494f",
+                      "on-tertiary-fixed": "#341100",
+                      "on-error": "#ffffff",
+                      "inverse-surface": "#2d3133",
+                      "primary-fixed": "#dae2ff",
+                      "secondary-fixed": "#d7e4ec",
+                      "surface-bright": "#f8f9fb",
+                      "on-primary-container": "#a5bdff",
+                      "surface-variant": "#e0e3e5",
+                      "surface": "#f8f9fb",
+                      "on-surface": "#191c1e",
+                      "secondary": "#546067",
+                      "primary-fixed-dim": "#b1c5ff",
+                      "background": "#f8f9fb",
+                      "on-primary-fixed": "#001946",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary-fixed-variant": "#7a3000",
+                      "on-surface-variant": "#434653",
+                      "on-primary-fixed-variant": "#00419e",
+                      "on-tertiary": "#ffffff",
+                      "surface-dim": "#d8dadc",
+                      "inverse-primary": "#b1c5ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "fontFamily": {
+                      "headline": ["Manrope"],
+                      "body": ["Inter"],
+                      "label": ["Inter"]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .kinetic-gradient {
+            background: linear-gradient(135deg, #00327d 0%, #0047ab 100%);
+        }
+        .focus-indicator-active {
+            border-left: 3px solid #00327d;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<div id="header-placeholder"></div>
+<main class="pt-32 pb-24 px-6 max-w-7xl mx-auto">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+<!-- Hero Typography / Editorial Column -->
+<div class="lg:col-span-5 space-y-6">
+<span class="text-xs font-bold tracking-[0.2em] text-primary uppercase font-label">Portal de Socios</span>
+<h1 class="font-headline text-5xl md:text-6xl font-extrabold text-on-background tracking-tighter leading-tight">
+                    Registrar <br/><span class="text-primary-container">Vehículo</span>
+</h1>
+<p class="text-on-surface-variant text-lg leading-relaxed max-w-md">
+                    Integre su flota premium a nuestra red de movilidad ejecutiva. Complete los detalles técnicos para iniciar el proceso de verificación.
+                </p>
+<div class="pt-8 flex flex-col gap-4">
+<div class="flex items-center gap-4 group">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined" data-icon="verified">verified</span>
+</div>
+<div>
+<p class="font-bold text-on-background">Validación Instantánea</p>
+<p class="text-sm text-on-surface-variant">Verificación en tiempo real de patentes.</p>
+</div>
+</div>
+<div class="flex items-center gap-4 group">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+</div>
+<div>
+<p class="font-bold text-on-background">Protocolo de Seguridad</p>
+<p class="text-sm text-on-surface-variant">Encriptación de nivel bancario para sus archivos.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Form Column (The Interactive Layer) -->
+<div class="lg:col-span-7">
+<div class="bg-surface-container-low p-1 lg:p-2 rounded-xl">
+<div class="bg-surface-container-lowest p-8 md:p-12 rounded-lg shadow-sm">
+<form class="space-y-8">
+<!-- Input Sections -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2 group">
+<label class="text-xs font-bold tracking-wider text-outline uppercase font-label" for="patente">Número de Patente</label>
+<div class="relative">
+<input class="w-full bg-surface-container-high border-none rounded-sm px-4 py-4 focus:ring-0 focus:border-none focus-indicator-active transition-all placeholder:text-outline-variant" id="patente" placeholder="ABC-123-DE" type="text"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold tracking-wider text-outline uppercase font-label" for="modelo">Modelo del Vehículo</label>
+<div class="relative">
+<input class="w-full bg-surface-container-high border-none rounded-sm px-4 py-4 focus:ring-0 focus:border-none focus-indicator-active transition-all placeholder:text-outline-variant" id="modelo" placeholder="BMW Series 7 2024" type="text"/>
+</div>
+</div>
+</div>
+<!-- Upload Section -->
+<div class="space-y-4">
+<label class="text-xs font-bold tracking-wider text-outline uppercase font-label">Subir archivos del vehículo</label>
+<div class="border-2 border-dashed border-outline-variant/30 bg-surface-container-low rounded-lg p-10 text-center hover:bg-surface-container-high transition-colors cursor-pointer group">
+<div class="flex flex-col items-center gap-3">
+<div class="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-sm text-primary transition-transform group-hover:-translate-y-1">
+<span class="material-symbols-outlined text-3xl" data-icon="cloud_upload">cloud_upload</span>
+</div>
+<div class="space-y-1">
+<p class="font-bold text-on-background">Arrastra o selecciona tus documentos</p>
+<p class="text-sm text-on-surface-variant">Seguro, Título y Cédula de Registro (PDF, JPG hasta 10MB)</p>
+</div>
+</div>
+</div>
+</div><div class="space-y-4">
+<label class="text-xs font-bold tracking-wider text-outline uppercase font-label">Imágenes del Vehículo</label>
+<div class="border-2 border-dashed border-outline-variant/30 bg-surface-container-low rounded-lg p-10 text-center hover:bg-surface-container-high transition-colors cursor-pointer group">
+<div class="flex flex-col items-center gap-3">
+<div class="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-sm text-primary transition-transform group-hover:-translate-y-1">
+<span class="material-symbols-outlined text-3xl" data-icon="photo_camera">photo_camera</span>
+</div>
+<div class="space-y-1">
+<p class="font-bold text-on-background">Arrastra o selecciona fotos del auto</p>
+<p class="text-sm text-on-surface-variant">Fotos de frente, lateral y trasera (JPG, PNG hasta 5MB)</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Image Preview Card / Decorative -->
+<div class="relative rounded-lg overflow-hidden h-48 group">
+<img alt="Executive Sedan" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Close up detail of a luxury executive sedan front grill and headlight in a minimalist dark studio setting with premium lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkw1Ig5_rGrqIBpwgD8DrdQfQz2TTl9s2TZA31FlcATrXtNfrYJgBlQhjPSeeT1WOu37-CAL36-WxGo3S8dUJcVf6KKG5u_90bXd54S_vfQVh7VjwJRjA_ueL23DkiIOT-KMRnZdiEwfot6VWBR3TeFKSzFme-pF7Lp48NCsy8jISjAsg4LdS4HIC647Upsmjg4QtzcXTuBCKNx65x-wviIf6alaWqOSrW_S7zO1phm5d9yBkqv7gWqUoMK4faEjunRAVcINjGNG40"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent flex items-end p-6">
+<div class="flex items-center gap-3 text-white">
+<span class="material-symbols-outlined" data-icon="info" style="font-variation-settings: 'FILL' 1;">info</span>
+<span class="text-xs font-semibold tracking-wide uppercase">Verifique que la patente coincida con la imagen del vehículo.</span>
+</div>
+</div>
+</div>
+<!-- Submit Button -->
+<div class="pt-4">
+<button class="kinetic-gradient w-full py-5 rounded-lg text-white font-headline font-bold text-lg tracking-tight flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.98] transition-all" type="submit">
+                                    Registrar Vehículo
+                                    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<p class="text-center mt-4 text-xs text-outline font-label">Al registrarse, acepta nuestros términos de servicio y políticas de privacidad para socios de movilidad.</p>
+</div>
+</form>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div id="footer-placeholder"></div>
+<div id="login-modal-placeholder"></div>
+<script src="/components/layout.js"></script>
+</body></html>

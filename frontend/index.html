@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 
-<html lang="es"><head>
+<html class="light" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<title>Executive Kinetic Mobility | Premium Vehicle Rental</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -67,6 +70,7 @@
                     "xl": "0.5rem",
                     "full": "0.75rem"
             },
+            "spacing": {},
             "fontFamily": {
                     "headline": ["Manrope"],
                     "body": ["Inter"],
@@ -83,139 +87,263 @@
         .kinetic-gradient {
             background: linear-gradient(135deg, #00327d 0%, #0047ab 100%);
         }
-        .focus-indicator-input:focus-within {
-            border-left: 2px solid #00327d;
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
         }
     </style>
 </head>
-<body class="bg-surface font-body text-on-surface antialiased min-h-screen flex flex-col">
-<!-- TopNavBar Suppressed as per "Transactional" rule in Shell Visibility & Relevance -->
-<main class="flex-grow flex items-stretch min-h-screen">
-<!-- Editorial Image Section (Left) -->
-<div class="hidden lg:flex lg:w-1/2 relative bg-primary overflow-hidden items-center justify-center p-12">
-<div class="absolute inset-0 z-0">
-<img class="w-full h-full object-cover opacity-60" data-alt="Luxury dark metallic sedan parked in a minimalist concrete architectural space with dramatic cinematic lighting and high contrast shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwTW7H_9WmUb1ng5js73qKdGnGgkxauaBbb3k4Xo_cwVHbTdD-kCqIjOynzSKnH8YtKihNoKgHiLooYZ6dPNjAIkGwCazO_Tn5H96NMObhi9RIF1NQSkS7ITDa0_r9olBzt5igJDk452CVtOd000qpLy_NRsFxiOu1uj2YdVQ9Kl1KUaedzwiBBoeploS3qA6LhSFmIe4_Cjqnd_B7qg3Xm68bW8gpPjaIMbft_h-NUWBFvlUYVQlkuIIerltwlPrt7tvtM2Ya7Fsz"/>
-</div>
-<div class="relative z-10 max-w-lg">
-<span class="inline-block px-3 py-1 mb-6 text-xs font-bold tracking-widest text-on-primary-container bg-primary-container/30 backdrop-blur-md rounded-full uppercase">Executive Kinetic</span>
-<h1 class="font-headline text-5xl font-extrabold text-white leading-tight tracking-tighter mb-6">
-                    Join the vanguard of mobility.
-                </h1>
-<p class="text-on-primary-container text-lg font-medium leading-relaxed opacity-90">
-                    Experience a seamless transition between destinations with our premium fleet and concierge-level service.
+<body class="bg-surface text-on-background font-body antialiased">
+<div id="header-placeholder"></div>
+<!-- Hero Section -->
+<section class="relative pt-32 pb-20 px-8 overflow-hidden">
+<div class="max-w-screen-2xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
+<div class="lg:col-span-7 z-10">
+<span class="inline-block text-primary font-bold tracking-[0.2em] text-xs uppercase mb-4">Mobility Redefined</span>
+<h1 class="text-6xl md:text-8xl font-black font-headline text-on-background leading-[0.9] tracking-tighter mb-8">
+                    Precision <br/><span class="text-primary">Motion.</span>
+</h1>
+<p class="text-lg text-secondary max-w-lg mb-12 leading-relaxed">
+                    Experience a seamless concierge-level vehicle rental service tailored for the modern professional. No lines, no friction, just pure kinetic energy.
                 </p>
-<div class="mt-12 flex gap-8">
-<div class="flex flex-col">
-<span class="text-3xl font-headline font-bold text-white">500+</span>
-<span class="text-sm text-on-primary-container/70">Premium Vehicles</span>
-</div>
-<div class="flex flex-col">
-<span class="text-3xl font-headline font-bold text-white">24/7</span>
-<span class="text-sm text-on-primary-container/70">Concierge Support</span>
-</div>
-</div>
+<!-- Search Bar Card -->
+<div class="bg-surface-container-lowest p-2 rounded-xl shadow-2xl lg:mr-12">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-1">
+<div class="p-4 hover:bg-surface-container-low transition-colors rounded-lg group">
+<label class="block text-[10px] font-bold uppercase tracking-wider text-outline mb-1">Pick-up Location</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="location_on">location_on</span>
+<input class="w-full bg-transparent border-none p-0 focus:ring-0 font-semibold text-on-background" placeholder="San Francisco, CA" type="text"/>
 </div>
 </div>
-<!-- Registration Form Section (Right) -->
-<div class="w-full lg:w-1/2 bg-surface-container-low flex flex-col justify-center items-center p-6 md:p-16">
-<div class="w-full max-w-xl">
-<header class="mb-10">
-<div class="mb-8">
-<span class="font-headline font-black text-2xl text-primary italic">Executive Kinetic</span>
-</div>
-<h2 class="font-headline text-3xl font-extrabold text-on-background tracking-tight">Create Account</h2>
-<p class="text-on-surface-variant mt-2 font-medium">Enter your credentials to begin your journey.</p>
-</header>
-<form class="space-y-6">
-<!-- Identity Selector -->
-<!-- Personal Information Grid -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-<div class="group focus-indicator-input bg-surface-container-high transition-all">
-<label class="block px-4 pt-3 text-[10px] font-bold uppercase tracking-widest text-on-secondary-container" for="first-name">Nombre</label>
-<input class="w-full px-4 pb-3 bg-transparent border-none focus:ring-0 text-on-surface font-medium placeholder-on-surface-variant/40" id="first-name" placeholder="John" type="text"/>
-</div>
-<div class="group focus-indicator-input bg-surface-container-high transition-all">
-<label class="block px-4 pt-3 text-[10px] font-bold uppercase tracking-widest text-on-secondary-container" for="last-name">Apellido</label>
-<input class="w-full px-4 pb-3 bg-transparent border-none focus:ring-0 text-on-surface font-medium placeholder-on-surface-variant/40" id="last-name" placeholder="Doe" type="text"/>
-</div>
-<div class="group focus-indicator-input bg-surface-container-high transition-all">
-<label class="block px-4 pt-3 text-[10px] font-bold uppercase tracking-widest text-on-secondary-container" for="dni">DNI</label>
-<input class="w-full px-4 pb-3 bg-transparent border-none focus:ring-0 text-on-surface font-medium placeholder-on-surface-variant/40" id="dni" placeholder="00.000.000" type="text"/>
-</div>
-<div class="group focus-indicator-input bg-surface-container-high transition-all">
-<label class="block px-4 pt-3 text-[10px] font-bold uppercase tracking-widest text-on-secondary-container" for="phone">Nro de teléfono</label>
-<input class="w-full px-4 pb-3 bg-transparent border-none focus:ring-0 text-on-surface font-medium placeholder-on-surface-variant/40" id="phone" placeholder="+54 9 11 ..." type="tel"/>
+<div class="p-4 border-t md:border-t-0 md:border-l border-surface-container-high hover:bg-surface-container-low transition-colors rounded-lg group">
+<label class="block text-[10px] font-bold uppercase tracking-wider text-outline mb-1">Dates</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="calendar_today">calendar_today</span>
+<span class="font-semibold text-on-background">Oct 24 — Oct 28</span>
 </div>
 </div>
-<!-- Full Width Email -->
-<div class="group focus-indicator-input bg-surface-container-high transition-all">
-<label class="block px-4 pt-3 text-[10px] font-bold uppercase tracking-widest text-on-secondary-container" for="email">Correo</label>
-<input class="w-full px-4 pb-3 bg-transparent border-none focus:ring-0 text-on-surface font-medium placeholder-on-surface-variant/40" id="email" placeholder="email@example.com" type="email"/>
-</div><div class="group focus-indicator-input bg-surface-container-high transition-all">
-<label class="block px-4 pt-3 text-[10px] font-bold uppercase tracking-widest text-on-secondary-container" for="password">Contraseña</label>
-<input class="w-full px-4 pb-3 bg-transparent border-none focus:ring-0 text-on-surface font-medium placeholder-on-surface-variant/40" id="password" placeholder="••••••••" type="password"/>
-</div>
-<div class="group focus-indicator-input bg-surface-container-high transition-all">
-<label class="block px-4 pt-3 text-[10px] font-bold uppercase tracking-widest text-on-secondary-container" for="confirm-password">Confirmar Contraseña</label>
-<input class="w-full px-4 pb-3 bg-transparent border-none focus:ring-0 text-on-surface font-medium placeholder-on-surface-variant/40" id="confirm-password" placeholder="••••••••" type="password"/>
-</div>
-<!-- Documentation Upload Area -->
-<div class="relative group">
-<label class="block mb-2 text-[10px] font-bold uppercase tracking-widest text-on-secondary-container">Documentación</label>
-<div class="w-full h-40 border-2 border-dashed border-outline-variant bg-surface-container-lowest rounded-xl flex flex-col items-center justify-center transition-all group-hover:bg-surface-container cursor-pointer">
-<span class="material-symbols-outlined text-4xl text-primary mb-3" data-icon="cloud_upload">cloud_upload</span>
-<p class="text-sm font-semibold text-on-background">subir imagen de la documentación</p>
-<p class="text-xs text-on-surface-variant mt-1">Formatos aceptados: JPG, PNG (Max. 5MB)</p>
-<input class="absolute inset-0 opacity-0 cursor-pointer" type="file"/>
-</div>
-</div>
-<!-- Action Button -->
-<div class="pt-6">
-<button class="w-full kinetic-gradient text-white py-4 rounded-md font-headline font-bold text-lg flex items-center justify-center gap-2 transform transition-transform active:scale-[0.98]" type="submit">
-                            Complete Registration
-                            <span class="material-symbols-outlined text-xl" data-icon="arrow_forward">arrow_forward</span>
-</button>
-</div>
-<div class="text-center mt-6">
-<p class="text-sm text-on-surface-variant">
-                            Already have an account? 
-                            <a class="text-primary font-bold hover:underline underline-offset-4" href="#">Sign In</a>
-</p>
-</div>
-</form>
-</div>
-</div>
-</main>
-<!-- Footer as per JSON -->
-<footer class="w-full py-12 mt-auto bg-slate-50 dark:bg-slate-950 font-inter text-sm antialiased border-t border-surface-container-high">
-<div class="grid grid-cols-1 md:grid-cols-2 lg:flex justify-between items-start px-12 max-w-screen-2xl mx-auto w-full">
-<div class="mb-8 lg:mb-0">
-<span class="font-manrope font-extrabold text-blue-900 dark:text-white text-xl">Executive Kinetic</span>
-<p class="text-slate-500 dark:text-slate-400 mt-2 max-w-xs">Elevating urban mobility through precision engineering and service.</p>
-</div>
-<div class="flex flex-wrap gap-8 lg:gap-16">
-<div class="flex flex-col gap-3">
-<span class="font-bold text-blue-900 dark:text-blue-100">Product</span>
-<a class="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100" href="#">Fleet</a>
-<a class="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100" href="#">Partner Program</a>
-</div>
-<div class="flex flex-col gap-3">
-<span class="font-bold text-blue-900 dark:text-blue-100">Legal</span>
-<a class="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100" href="#">Privacy Policy</a>
-<a class="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100" href="#">Terms of Service</a>
-</div>
-<div class="flex flex-col gap-3">
-<span class="font-bold text-blue-900 dark:text-blue-100">Support</span>
-<a class="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100" href="#">Contact Us</a>
+<div class="p-2">
+<button class="kinetic-gradient w-full h-full rounded-lg text-on-primary font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined" data-icon="directions_car">directions_car</span>
+                                Find Vehicles
+                            </button>
 </div>
 </div>
 </div>
-<div class="max-w-screen-2xl mx-auto px-12 mt-12 pt-8 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-<span class="text-slate-500 dark:text-slate-400">© 2024 Executive Kinetic Mobility. All rights reserved.</span>
-<div class="flex gap-4">
-<span class="material-symbols-outlined text-slate-400" data-icon="language">language</span>
-<span class="text-slate-500 dark:text-slate-400 font-medium">English (US)</span>
+</div>
+<div class="lg:col-span-5 relative">
+<div class="aspect-[4/5] rounded-2xl overflow-hidden relative shadow-2xl">
+<img alt="Luxury Sedan" class="w-full h-full object-cover" data-alt="Close-up of a sleek dark metallic luxury sedan headlight and grille with dramatic studio lighting and deep blue shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdS1Fdcr70KaT3tiCSAXmSGvxizJxKXmEzZdrcD7xf4iDTzOX3y7it6nyC20ChX10dsChiqpMpPAN4VgdLR3nJLGhtPq_P49uycm0JBkE7Lh2o8cqZyvUL_xQCKlOv8Tc8IhgMqOZ1ZaJtyjN3DQKkvlTzVZ0s1p9LoF3DO-YXa8nISF3XhcC0xJP8x3sKshM5onuD2PiQl8GU8oSe1pDwpDwZmRdjiQ8VtyTff0iO5KEItGda52QJeM8y26Kuki8q5rzuayrAfTXy"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+</div>
+<!-- Floating Badge -->
+<div class="absolute -bottom-6 -left-6 bg-surface-container-lowest p-6 rounded-xl shadow-xl max-w-[200px]">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-tertiary text-fill" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-bold">4.9/5 Rating</span>
+</div>
+<p class="text-xs text-secondary">Trusted by 10k+ executive professionals worldwide.</p>
 </div>
 </div>
-</footer>
+</div>
+</section>
+<!-- Categories: Bento Grid Style -->
+<section class="py-24 px-8 bg-surface-container-low">
+<div class="max-w-screen-2xl mx-auto">
+<div class="flex justify-between items-end mb-12">
+<div>
+<h2 class="text-3xl font-black font-headline text-on-background tracking-tight">The Fleet Collections</h2>
+<p class="text-secondary mt-2">Curated categories for every mission.</p>
+</div>
+<a class="text-primary font-bold flex items-center gap-1 group" href="#">
+                    View Full Fleet
+                    <span class="material-symbols-outlined transition-transform group-hover:translate-x-1" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 h-[500px]">
+<div class="md:col-span-2 relative group overflow-hidden rounded-xl bg-surface-container-lowest">
+<img alt="Luxury Cars" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="interior of a modern luxury electric vehicle with white leather seats and minimalist dashboard design in soft daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDa69GiefuDFZdT-kktpG25zqVj5Wj6HeMXhlNMuHLIF0gFitY6uDZ6qdt7FZhWNlUlIXtfsTYJHKFGOmCL-Wvp6LL-H9MRZlJcUWztBt3WWmHIVY1LvVMQQTGATT6GszCE3w8lzzDzG0BkxuHeJEWs02wY69Ujo1du70krbo55bPaRMvN6W8Foexqf9YgMBo2TDDiTgC7kvyqRsrr-jE99t31hzwkbDD2idY2-nrB9DGU_gDZEL2z6AFyGYCJY0HDSTmAbuPmuRTqO"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-background/80 via-transparent to-transparent p-8 flex flex-col justify-end">
+<span class="text-primary-fixed-dim font-bold tracking-widest text-xs uppercase mb-2">Performance</span>
+<h3 class="text-on-primary text-3xl font-black font-headline">Luxury Sedans</h3>
+</div>
+</div>
+<div class="relative group overflow-hidden rounded-xl bg-surface-container-lowest">
+<img alt="SUVs" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Side profile of a premium silver SUV driving on a winding coastal road at sunset with golden light reflections" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlNODlHuc_KOlD8Dl0jzEcYUd2IP-70WZK_xBp0FGhHZvSFsAJ229vZzGO5-qQfhLx3E8O78xroR09qDdrlYBUccl8efuiM6NP-WhHGSOhGiyYIXEfprmadK9BJHaYlgzwKDaT5ugNEydMb4fDwlkVvFvSJ5xO4FkmZ8y9DVB7cAuSaKLX8l7Ka48gFlhrvw3zlZGEGNIGjFjehhmEnj0VwGDHTai-NOcdfLvgJUTKE_ljYspJe0iHShUTa3MPWt0xu816aSFW6_2w"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-background/80 via-transparent to-transparent p-6 flex flex-col justify-end">
+<h3 class="text-on-primary text-xl font-black font-headline">Executive SUVs</h3>
+</div>
+</div>
+<div class="relative group overflow-hidden rounded-xl bg-surface-container-lowest">
+<img alt="Vans" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Matte black luxury sprinter van parked in a modern industrial setting with dramatic architectural shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnb_SF7XEB5i231oAw3Alx4wf0rlabWR1nVjFdZbWSUEpM-pJlld4UTLo2xiIi5InjsJEH4RUhI0nK0C6vDopePuBDuN9VXPLQWESDUfsMlEAZtwiOukUzhTnulry1Tj61_iVvYcurWFIBepy0JrKdQSWPVaZO9nLLoxSAA3qYKm7Yu9bv5X4qk00Jzq0Ph6NuzDHc52cXveaRdnE2ArDvK9L08UMRpWdAuDagNCdyuS99gsNkhppz_cGy3vUFhOB9TJ1EzTy1VMuL"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-background/80 via-transparent to-transparent p-6 flex flex-col justify-end">
+<h3 class="text-on-primary text-xl font-black font-headline">Kinetic Vans</h3>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Vehicles -->
+<section class="py-24 px-8">
+<div class="max-w-screen-2xl mx-auto">
+<h2 class="text-4xl font-black font-headline text-on-background tracking-tighter mb-16 text-center">Featured Precision</h2>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+<!-- Vehicle Card 1 -->
+<div class="group">
+<div class="aspect-video rounded-xl overflow-hidden bg-surface-container-low mb-6">
+<img alt="Porsche Taycan" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Electric sports car in frozen blue metallic finish parked in front of a glass modern office building" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaAnFdJ11d2Qa3bxCrMdL-hEW8UvCMAeMLTapfdRWCZHvi7faV3mDaL_FZslFx3n4l8kBMOB7azgcnHIuBH7ALSIf-ebddbpo-SlInhktArgSi3j8K2_M_Y3tWwNfvdtAOA-5NNsYxDst_BT9dgdK93rsGxBeCGpzTNdF5Z-wSTb0KZYkt20LA-5iw7ha_myFpc2GItCALse8OcbxTm-91DvBYZ1T0q3hca1GcA7nB4mc4h7PcB-gHWlwPRXw_Q4pbrOUI0HC_LSjy"/>
+</div>
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-2 inline-block">Instant Book</span>
+<h4 class="text-2xl font-black font-headline text-on-background">Porsche Taycan 4S</h4>
+</div>
+<div class="text-right">
+<span class="text-primary text-2xl font-bold font-headline">$349</span>
+<span class="text-secondary text-sm block">/day</span>
+</div>
+</div>
+<div class="flex gap-4 mb-8">
+<div class="flex items-center gap-1 text-secondary text-xs">
+<span class="material-symbols-outlined text-sm" data-icon="electric_car">electric_car</span>
+                            EV
+                        </div>
+<div class="flex items-center gap-1 text-secondary text-xs">
+<span class="material-symbols-outlined text-sm" data-icon="airline_seat_recline_normal">airline_seat_recline_normal</span>
+                            4 Seats
+                        </div>
+<div class="flex items-center gap-1 text-secondary text-xs">
+<span class="material-symbols-outlined text-sm" data-icon="speed">speed</span>
+                            0-60 in 3.8s
+                        </div>
+</div>
+<button class="w-full py-4 border border-outline-variant rounded-lg font-bold text-primary group-hover:bg-primary group-hover:text-on-primary transition-all">
+                        Reserve Experience
+                    </button>
+</div>
+<!-- Vehicle Card 2 -->
+<div class="group">
+<div class="aspect-video rounded-xl overflow-hidden bg-surface-container-low mb-6">
+<img alt="Range Rover" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Modern range rover in carpathian grey finish parked on a cobblestone driveway at twilight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQKRovvmydZUvKClNMi8byQ_mdqlR7yCsGqpUuQ0T4iQ7Z6XBaH6_XaxW6yRr4ttB1P7rtIvr38Z3AVgfrsT4AFrnp7cm-Ta7actu3A5VbFTB-LwWZHU6yFtHeBiS615KtWSkJ2sP-0dVVn55-dVtWotNc2Rc0kFNjFuJWEIATKfl02UzPROT1IaJjHYiuXMqXbjkvNF6ETsuNhetUv8ZUer6V-jsAFV0G4Hu9nw21LiBBY7K2Fs8rmvIUYiKOyjEE42dg0Zu9O1qm"/>
+</div>
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-2 inline-block">Luxury</span>
+<h4 class="text-2xl font-black font-headline text-on-background">Range Rover Autobiography</h4>
+</div>
+<div class="text-right">
+<span class="text-primary text-2xl font-bold font-headline">$420</span>
+<span class="text-secondary text-sm block">/day</span>
+</div>
+</div>
+<div class="flex gap-4 mb-8">
+<div class="flex items-center gap-1 text-secondary text-xs">
+<span class="material-symbols-outlined text-sm" data-icon="settings">settings</span>
+                            Auto
+                        </div>
+<div class="flex items-center gap-1 text-secondary text-xs">
+<span class="material-symbols-outlined text-sm" data-icon="airline_seat_recline_normal">airline_seat_recline_normal</span>
+                            5 Seats
+                        </div>
+<div class="flex items-center gap-1 text-secondary text-xs">
+<span class="material-symbols-outlined text-sm" data-icon="luggage">luggage</span>
+                            Large
+                        </div>
+</div>
+<button class="w-full py-4 border border-outline-variant rounded-lg font-bold text-primary group-hover:bg-primary group-hover:text-on-primary transition-all">
+                        Reserve Experience
+                    </button>
+</div>
+<!-- Vehicle Card 3 -->
+<div class="group">
+<div class="aspect-video rounded-xl overflow-hidden bg-surface-container-low mb-6">
+<img alt="Audi RS e-tron GT" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="High performance electric sedan in kemora gray parked in a minimal white garage with overhead linear lights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbafxIcCGJijXPMz9La7FrHjSFwuie0bxODp4C4p4lSme56al6QNIaoWs1w7kTKclCSfRBz6v5pIwdHUBevpaZcFXioHrGd_PRTj51vp-3gJkDCe6DgImXjb2vex4HjjNzGNU_VqC3g8KKw33aKzVnTE3zviBwETX9CqDgZGr_7FFPJ4o1dc8yU_R--6_1vu20w3RaQm17NjkUeg7EONtZ521cMTxsTTznDvCG99z0_UylE9zbsqfoshTnwZgX38Tkd1LIY_ql9crM"/>
+</div>
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-2 inline-block">Top Pick</span>
+<h4 class="text-2xl font-black font-headline text-on-background">Audi RS e-tron GT</h4>
+</div>
+<div class="text-right">
+<span class="text-primary text-2xl font-bold font-headline">$395</span>
+<span class="text-secondary text-sm block">/day</span>
+</div>
+</div>
+<div class="flex gap-4 mb-8">
+<div class="flex items-center gap-1 text-secondary text-xs">
+<span class="material-symbols-outlined text-sm" data-icon="bolt">bolt</span>
+                            637 HP
+                        </div>
+<div class="flex items-center gap-1 text-secondary text-xs">
+<span class="material-symbols-outlined text-sm" data-icon="airline_seat_recline_normal">airline_seat_recline_normal</span>
+                            4 Seats
+                        </div>
+<div class="flex items-center gap-1 text-secondary text-xs">
+<span class="material-symbols-outlined text-sm" data-icon="location_on">location_on</span>
+                            Airports
+                        </div>
+</div>
+<button class="w-full py-4 border border-outline-variant rounded-lg font-bold text-primary group-hover:bg-primary group-hover:text-on-primary transition-all">
+                        Reserve Experience
+                    </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Why Choose Us: Editorial Layout -->
+<section class="py-24 px-8 bg-primary overflow-hidden">
+<div class="max-w-screen-2xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
+<div class="order-2 lg:order-1">
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-4">
+<div class="bg-primary-container h-48 rounded-xl overflow-hidden">
+<img alt="Concierge" class="w-full h-full object-cover opacity-60" data-alt="Professional chauffeur in a sharp dark suit opening a luxury car door in a busy urban city center" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8jEPo1RZSRqdRIkC7JEqou4Nlog4d2IP7iXf4J1dNg4cIkjr8fePqFqd_lJ0lRdKez7UkSpIAr8OugYzwh6SZ-q0hVwXk8xv8jdvqsYDbh097NKtjcwj1LWWZatQ5U0GuTiepMpVbmBnRJnI1KuMeEaI70GFk2mMEynxem7FjvSs8M4RJhFUpHf-SflR_BUmKvep43a_3Uy8ezvknPQyO7Cdv3Pj_TvKkt1mGXjWKoZDxW20MzrzAIYc9RUPPIoekMxXzlS5VwQ6C"/>
+</div>
+<div class="bg-on-primary-container h-64 rounded-xl flex items-center justify-center p-8">
+<span class="text-primary font-black text-6xl">24/7</span>
+</div>
+</div>
+<div class="space-y-4 pt-12">
+<div class="bg-tertiary-fixed h-64 rounded-xl flex flex-col justify-end p-8">
+<span class="text-tertiary font-bold text-xl leading-tight">Bespoke Delivery Services</span>
+</div>
+<div class="bg-primary-container h-48 rounded-xl overflow-hidden">
+<img alt="Keyless Entry" class="w-full h-full object-cover opacity-60" data-alt="Close-up of a high-tech smart car key fob resting on a minimal concrete surface with soft dramatic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdgwqnagKY_i1x6H1saLppc4dPj_7xb5POVTsgQxu4PwkO5to2ibljITyUf0C6yBJFKt84p7auoNiy34EM-x_vTiCFq6RTcNqaYErDnasWYYJYI25ckiH6z1IbV8BCo7i7zojGOAq0PZjeSHkt4kTxmvdaWxj5o7JuWDDU7wrS8vkWQmZN1nBN2hSkuab7bMq4xY8hvh7U5Irl14uczHE4LZNvI2Wb_iYfZHx6Hyw4G67eZClQnML5gzDrO7iL5zWgXTIl9e5QH-fA"/>
+</div>
+</div>
+</div>
+</div>
+<div class="order-1 lg:order-2 text-on-primary">
+<span class="text-on-primary-container font-bold tracking-widest text-xs uppercase mb-6 block">The Kinetic Advantage</span>
+<h2 class="text-5xl font-black font-headline mb-8 leading-[1.1] tracking-tight">Elegance in <br/>Execution.</h2>
+<div class="space-y-8">
+<div class="flex gap-6">
+<span class="material-symbols-outlined text-4xl text-on-primary-container" data-icon="verified_user">verified_user</span>
+<div>
+<h4 class="font-bold text-xl mb-2">Total Insurance Coverage</h4>
+<p class="text-on-primary-container/80 text-sm leading-relaxed">Comprehensive protection integrated into every rental, ensuring your focus remains on the journey, not the liabilities.</p>
+</div>
+</div>
+<div class="flex gap-6">
+<span class="material-symbols-outlined text-4xl text-on-primary-container" data-icon="distance">distance</span>
+<div>
+<h4 class="font-bold text-xl mb-2">Unlimited Range</h4>
+<p class="text-on-primary-container/80 text-sm leading-relaxed">We believe in unbounded mobility. All our executive rentals come with unlimited mileage as a standard baseline.</p>
+</div>
+</div>
+<div class="flex gap-6">
+<span class="material-symbols-outlined text-4xl text-on-primary-container" data-icon="support_agent">support_agent</span>
+<div>
+<h4 class="font-bold text-xl mb-2">Concierge Support</h4>
+<p class="text-on-primary-container/80 text-sm leading-relaxed">A dedicated mobility officer is assigned to your booking from reservation to return, handling all logistical needs.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<div id="footer-placeholder"></div>
+<div id="login-modal-placeholder"></div>
+<script src="/components/layout.js"></script>
 </body></html>
