@@ -1,0 +1,9 @@
+{
+    "Servers": {                                                                                                               "1": {      
+        "Name": "GoVehiculos DB",                                                                                                "Group": "Servers",      
+        "Host": "db",      
+        "Port": 5432,
+        "MaintenanceDB": "mydb",                                                                                                 "Username": "user",     
+        "SSLMode": "prefer"                                                                                                    }                    
+    }  
+  } 
