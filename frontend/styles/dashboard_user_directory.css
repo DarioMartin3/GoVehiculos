@@ -1,0 +1,13 @@
+.editorial-asymmetry {
+  padding-top: 6rem;
+  padding-bottom: 2rem;
+}
+
+.glass-header {
+  background: rgba(248, 249, 251, 0.7);
+  backdrop-filter: blur(20px);
+}
+
+.kinetic-button {
+  background: linear-gradient(135deg, #00327d 0%, #0047ab 100%);
+}
