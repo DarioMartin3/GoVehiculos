@@ -45,7 +45,6 @@ async function handleRegisterSubmit(event) {
         telefono,
         dni,
         pais,
-        estado_persona: 1,
         password,
         rol: "cliente",
         estado_usuario: 1,

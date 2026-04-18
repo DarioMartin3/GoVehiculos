@@ -6,8 +6,8 @@ class PersonaRepository:
         # Inserta persona y devuelve el id recién creado (RETURNING id).
         cursor.execute(
             """
-            INSERT INTO persona (nombre, apellido, email, telefono, dni, pais, estado)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO persona (nombre, apellido, email, telefono, dni, pais)
+            VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING id
             """,
             (
@@ -17,7 +17,6 @@ class PersonaRepository:
                 persona.telefono,
                 persona.dni,
                 persona.pais,
-                persona.estado,
             ),
         )
         return cursor.fetchone()[0]

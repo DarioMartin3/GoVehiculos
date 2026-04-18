@@ -67,7 +67,6 @@ class AuthService:
                             telefono=payload.telefono,
                             dni=payload.dni,
                             pais=payload.pais,
-                            estado=payload.estado_persona,
                         ),
                     )
 
@@ -102,7 +101,7 @@ class AuthService:
     def translate_register_error(error: Exception) -> str:
         # Traduce errores técnicos de PostgreSQL a mensajes claros.
         if isinstance(error, psycopg2.errors.ForeignKeyViolation):
-            return "El pais o estado enviado no existe en la base de datos"
+            return "El pais enviado no existe en la base de datos"
         if isinstance(error, psycopg2.errors.UniqueViolation):
             return "Ya existe un usuario con esos datos"
         return "No se pudo registrar el usuario"

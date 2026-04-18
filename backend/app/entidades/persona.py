@@ -11,4 +11,3 @@ class Persona:
     telefono: str | None = None
     dni: str | None = None
     pais: int | None = None
-    estado: int | None = None

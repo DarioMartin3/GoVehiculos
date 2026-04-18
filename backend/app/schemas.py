@@ -31,7 +31,6 @@ class RegisterUserRequest(BaseModel):
     telefono: str | None = None
     dni: str | None = None
     pais: int | None = None
-    estado_persona: int | None = None
     password: str
     rol: str
     estado_usuario: int | None = 1
