@@ -164,7 +164,7 @@ function applyAuthenticatedHeaderState(current) {
   const btnCrear = document.getElementById('nav-crear-cuenta');
   const btnSignUp = document.getElementById('nav-sign-up');
   const dashActions = document.getElementById('nav-dashboard-actions');
-  const dashboardLink = document.querySelector('a[href="/dashboard_general_tecnico.html"]');
+  const btnDashboard = document.getElementById('nav-dashboard');
   const btnSocio = document.getElementById('nav-socio');
 
   if (token) {
@@ -172,14 +172,28 @@ function applyAuthenticatedHeaderState(current) {
     if (btnSignUp) btnSignUp.classList.add('hidden');
   }
 
-  // Ocultar Dashboard para roles cliente y socio
-  if (dashboardLink && userRole && ['cliente', 'socio'].includes(userRole)) {
-    dashboardLink.classList.add('hidden');
-  }
+  // Si NO está logueado (rol = null), ocultar "Conviertete en Socio" y Dashboard
+  if (!token || !userRole) {
+    if (btnDashboard) btnDashboard.classList.add('hidden');
+    if (btnSocio) btnSocio.classList.add('hidden');
+  } else {
+    // Si está logueado, aplicar lógica de visibilidad según rol
+    
+    // Normalizar el rol para evitar problemas de mayúsculas o espacios
+    const rolSeguro = userRole ? userRole.toLowerCase().trim() : '';
+    // Ocultar Dashboard para roles cliente y socio
+    if (btnDashboard && ['cliente', 'socio'].includes(rolSeguro)) {
+      btnDashboard.classList.add('hidden');
+    } else if (btnDashboard) {
+      btnDashboard.classList.remove('hidden');
+    }
 
-  // Ocultar "Conviertete en Socio" para todos EXCEPTO cliente
-  if (btnSocio && userRole && userRole !== 'cliente') {
-    btnSocio.classList.add('hidden');
+    // Ocultar "Conviertete en Socio" para todos EXCEPTO cliente
+    if (btnSocio && rolSeguro !== 'cliente') {
+      btnSocio.classList.add('hidden');
+    } else if (btnSocio) {
+      btnSocio.classList.remove('hidden');
+    }
   }
 
   if (showDashboardActions && dashActions) {
