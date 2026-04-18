@@ -84,6 +84,18 @@ function initLoginModal() {
   });
 }
 
+function initLogout() {
+  document.querySelectorAll('[data-logout-link]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      sessionStorage.clear();
+      window.location.href = '/index.html';
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await Promise.all([
     loadComponent('header-placeholder', '/components/header.html'),
@@ -93,6 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   ]);
   initLoginModal();
   initAuth();
+  initLogout();
 
   const current = window.location.pathname.split('/').pop() || 'index.html';
 
