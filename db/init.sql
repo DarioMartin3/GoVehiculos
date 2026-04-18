@@ -3,6 +3,11 @@ CREATE TABLE pais (
     nombre TEXT NOT NULL
 );
 
+CREATE TABLE rol (
+    id SERIAL PRIMARY KEY,
+    nombre TEXT NOT NULL
+);
+
 CREATE TABLE estado (
     id SERIAL PRIMARY KEY,
     nombre TEXT NOT NULL
@@ -15,18 +20,17 @@ CREATE TABLE persona (
     telefono TEXT,
     dni TEXT,
     pais INT,
-    estado INT,
     FOREIGN KEY (pais) REFERENCES pais(id),
-    FOREIGN KEY (estado) REFERENCES estado(id)
 );
 
 CREATE TABLE usuario (
     id SERIAL PRIMARY KEY,
     persona_id INT,
     password TEXT,
-    rol TEXT,
+    rol_id INT,
     estado INT,
-    FOREIGN KEY (persona_id) REFERENCES persona(id)
+    FOREIGN KEY (persona_id) REFERENCES persona(id),
+    FOREIGN KEY (rol_id) REFERENCES rol(id)
 );
 
 CREATE TABLE marca (
@@ -128,6 +132,15 @@ CREATE TABLE horario_operador (
     hora_inicio TIME,
     hora_fin TIME,
     FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+);
+
+INSERT INTO rol (nombre)
+SELECT seed.nombre
+FROM (VALUES ('Cliente'), ('Socio'), ('Administrador'), ('Operador'), ('Soporte')) AS seed(nombre)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM rol existing
+    WHERE existing.nombre = seed.nombre
 );
 
 INSERT INTO estado (nombre)

@@ -45,11 +45,13 @@ async function handleLoginSubmit(event) {
 
     localStorage.setItem('auth_token', data.access_token);
     localStorage.setItem('auth_user', JSON.stringify(data.user));
-    setLoginMessage('Sesión iniciada. Redirigiendo...');
+    setLoginMessage('Sesión iniciada.');
 
     const modal = document.getElementById('login-modal');
     if (modal) modal.classList.add('hidden');
-    window.location.href = '/dashboard_general_tecnico.html';
+
+    const current = window.location.pathname.split('/').pop() || 'index.html';
+    syncAuthenticatedUiAfterLogin(current);
   } catch (error) {
     setLoginMessage('No se pudo conectar con el backend.', true);
   }
@@ -96,6 +98,41 @@ function initLogout() {
   });
 }
 
+function applyAuthenticatedHeaderState(current) {
+  const token = localStorage.getItem('auth_token');
+  const dashboardPages = [
+    'dashboard_general_tecnico.html',
+    'dashboard_user_directory.html',
+    'deshboard_vehiculos.html',
+    'dashboard_tecnico.html',
+    'crear_rol_empleado.html',
+    'perfil_view.html',
+  ];
+  const showDashboardActions = dashboardPages.includes(current) || (current === 'index.html' && token);
+
+  const btnCrear = document.getElementById('nav-crear-cuenta');
+  const btnSignUp = document.getElementById('nav-sign-up');
+  const dashActions = document.getElementById('nav-dashboard-actions');
+
+  if (token) {
+    if (btnCrear) btnCrear.classList.add('hidden');
+    if (btnSignUp) btnSignUp.classList.add('hidden');
+  }
+
+  if (showDashboardActions && dashActions) {
+    dashActions.classList.remove('hidden');
+    dashActions.classList.add('flex');
+    const footerPlaceholder = document.getElementById('footer-placeholder');
+    if (footerPlaceholder && dashboardPages.includes(current)) {
+      footerPlaceholder.classList.add('ml-64');
+    }
+  }
+}
+
+function syncAuthenticatedUiAfterLogin(current) {
+  applyAuthenticatedHeaderState(current);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await Promise.all([
     loadComponent('header-placeholder', '/components/header.html'),
@@ -124,31 +161,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     addUserBtn.classList.remove('hidden');
   }
 
-  const dashboardPages = [
-    'dashboard_general_tecnico.html',
-    'dashboard_user_directory.html',
-    'deshboard_vehiculos.html',
-    'dashboard_tecnico.html',
-    'crear_rol_empleado.html',
-    'perfil_view.html',
-  ];
-  const token = localStorage.getItem('auth_token');
-  const showDashboardActions = dashboardPages.includes(current) || (current === 'index.html' && token);
-  if (showDashboardActions) {
-    const btnCrear = document.getElementById('nav-crear-cuenta');
-    const btnSignUp = document.getElementById('nav-sign-up');
-    if (btnCrear) btnCrear.classList.add('hidden');
-    if (btnSignUp) btnSignUp.classList.add('hidden');
-    const dashActions = document.getElementById('nav-dashboard-actions');
-    if (dashActions) dashActions.classList.replace('hidden', 'flex');
-    const footerPlaceholder = document.getElementById('footer-placeholder');
-    if (footerPlaceholder) footerPlaceholder.classList.add('ml-64');
-  }
-
-  if (token) {
-    const btnCrear = document.getElementById('nav-crear-cuenta');
-    const btnSignUp = document.getElementById('nav-sign-up');
-    if (btnCrear) btnCrear.classList.add('hidden');
-    if (btnSignUp) btnSignUp.classList.add('hidden');
-  }
+  applyAuthenticatedHeaderState(current);
 });
