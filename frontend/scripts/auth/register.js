@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8000";
+const registerApiBaseUrl = typeof API_BASE_URL !== "undefined" ? API_BASE_URL : "http://localhost:8000";
 
 function setMessage(text, isError = false) {
     const message = document.getElementById("register-message");
@@ -52,7 +52,7 @@ async function handleRegisterSubmit(event) {
     try {
         setMessage("Registrando usuario...");
 
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        const response = await fetch(`${registerApiBaseUrl}/auth/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
