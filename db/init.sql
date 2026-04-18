@@ -20,7 +20,7 @@ CREATE TABLE persona (
     telefono TEXT,
     dni TEXT,
     pais INT,
-    FOREIGN KEY (pais) REFERENCES pais(id),
+    FOREIGN KEY (pais) REFERENCES pais(id)
 );
 
 CREATE TABLE usuario (
