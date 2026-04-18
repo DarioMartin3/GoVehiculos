@@ -98,8 +98,59 @@ function initLogout() {
   });
 }
 
+function getAuthUser() {
+  const authUserStr = localStorage.getItem('auth_user');
+  if (!authUserStr) return null;
+
+  try {
+    return JSON.parse(authUserStr);
+  } catch (e) {
+    return null;
+  }
+}
+
+function applySidebarAdminOnlyLinks() {
+  const authUser = getAuthUser();
+  const role = (authUser?.rol || '').toString().trim().toLowerCase();
+  const isAdmin = role === 'administrador' || role === 'admin';
+
+  const sidebarDashboardLink = document.querySelector(
+    '#sidebar-placeholder a[href="/dashboard_general_tecnico.html"]'
+  );
+  const sidebarUsersLink = document.querySelector(
+    '#sidebar-placeholder a[href="/dashboard_user_directory.html"]'
+  );
+
+  if (sidebarDashboardLink) {
+    sidebarDashboardLink.classList.toggle('hidden', !isAdmin);
+  }
+  if (sidebarUsersLink) {
+    sidebarUsersLink.classList.toggle('hidden', !isAdmin);
+  }
+}
+
+function applySidebarUserName() {
+  const sidebarUserName = document.getElementById('sidebar-user-name');
+  if (!sidebarUserName) return;
+
+  const authUser = getAuthUser();
+  const fullName = [authUser?.nombre, authUser?.apellido]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+
+  if (fullName) {
+    sidebarUserName.textContent = fullName;
+  }
+}
+
 function applyAuthenticatedHeaderState(current) {
   const token = localStorage.getItem('auth_token');
+  const authUser = getAuthUser();
+
+  // Obtener el rol del usuario
+  const userRole = authUser?.rol || null;
+  
   const dashboardPages = [
     'dashboard_general_tecnico.html',
     'dashboard_user_directory.html',
@@ -113,10 +164,22 @@ function applyAuthenticatedHeaderState(current) {
   const btnCrear = document.getElementById('nav-crear-cuenta');
   const btnSignUp = document.getElementById('nav-sign-up');
   const dashActions = document.getElementById('nav-dashboard-actions');
+  const dashboardLink = document.querySelector('a[href="/dashboard_general_tecnico.html"]');
+  const btnSocio = document.getElementById('nav-socio');
 
   if (token) {
     if (btnCrear) btnCrear.classList.add('hidden');
     if (btnSignUp) btnSignUp.classList.add('hidden');
+  }
+
+  // Ocultar Dashboard para roles cliente y socio
+  if (dashboardLink && userRole && ['cliente', 'socio'].includes(userRole)) {
+    dashboardLink.classList.add('hidden');
+  }
+
+  // Ocultar "Conviertete en Socio" para todos EXCEPTO cliente
+  if (btnSocio && userRole && userRole !== 'cliente') {
+    btnSocio.classList.add('hidden');
   }
 
   if (showDashboardActions && dashActions) {
@@ -131,6 +194,8 @@ function applyAuthenticatedHeaderState(current) {
 
 function syncAuthenticatedUiAfterLogin(current) {
   applyAuthenticatedHeaderState(current);
+  applySidebarUserName();
+  applySidebarAdminOnlyLinks();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -162,4 +227,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   applyAuthenticatedHeaderState(current);
+  applySidebarUserName();
+  applySidebarAdminOnlyLinks();
 });
