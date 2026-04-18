@@ -13,25 +13,26 @@
       <!-- Header -->
       <header class="mb-10 text-center">
         <span class="inline-block font-headline text-xl font-black italic tracking-tighter text-primary mb-6">GoVehiculos</span>
-        <h1 class="font-headline text-3xl font-extrabold tracking-tight text-on-background">Bienenido de nuevo</h1>
+        <h1 class="font-headline text-3xl font-extrabold tracking-tight text-on-background">Bienvenido de nuevo</h1>
       </header>
 
       <!-- Form -->
-      <form class="space-y-6">
+      <form class="space-y-6" id="login-form">
         <div>
           <label class="block text-[10px] font-bold tracking-widest text-primary uppercase mb-2 ml-1">Email</label>
-          <input class="w-full bg-surface-container-high border-none rounded-lg py-4 px-4 text-on-surface placeholder:text-slate-400 focus:ring-0" placeholder="name@gmail.com" type="email"/>
+          <input id="login-email" class="w-full bg-surface-container-high border-none rounded-lg py-4 px-4 text-on-surface placeholder:text-slate-400 focus:ring-0" placeholder="name@gmail.com" type="email"/>
         </div>
         <div>
           <div class="flex justify-between items-center mb-2">
             <label class="block text-[10px] font-bold tracking-widest text-primary uppercase ml-1">Contraseña</label>
             <a class="text-[10px] font-bold text-on-surface-variant hover:text-primary transition-colors tracking-tight" href="#">Olvidaste tu contraseña?</a>
           </div>
-          <input class="w-full bg-surface-container-high border-none rounded-lg py-4 px-4 text-on-surface placeholder:text-slate-400 focus:ring-0" placeholder="••••••••" type="password"/>
+          <input id="login-password" class="w-full bg-surface-container-high border-none rounded-lg py-4 px-4 text-on-surface placeholder:text-slate-400 focus:ring-0" placeholder="••••••••" type="password"/>
         </div>
         <button class="w-full kinetic-gradient text-on-primary font-headline font-bold py-4 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all tracking-tight" type="submit">
           Iniciar Sesión
         </button>
+        <p class="text-sm font-semibold text-center" id="login-message"></p>
       </form>
 
       <p class="mt-8 text-center text-sm text-on-surface-variant font-medium">

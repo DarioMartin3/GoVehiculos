@@ -7,7 +7,6 @@ CREATE TABLE estado (
     id SERIAL PRIMARY KEY,
     nombre TEXT NOT NULL
 );
-
 CREATE TABLE persona (
     id SERIAL PRIMARY KEY,
     nombre TEXT,
@@ -129,4 +128,22 @@ CREATE TABLE horario_operador (
     hora_inicio TIME,
     hora_fin TIME,
     FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+);
+
+INSERT INTO estado (nombre)
+SELECT seed.nombre
+FROM (VALUES ('Activo'), ('Inactivo'), ('Pendiente'), ('Rechazado')) AS seed(nombre)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM estado existing
+    WHERE existing.nombre = seed.nombre
+);
+
+INSERT INTO pais (nombre)
+SELECT seed.nombre
+FROM (VALUES ('Argentina'), ('Chile'), ('Uruguay'), ('Paraguay'), ('Brasil')) AS seed(nombre)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM pais existing
+    WHERE existing.nombre = seed.nombre
 );

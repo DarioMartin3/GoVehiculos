@@ -6,6 +6,61 @@ async function loadComponent(id, path) {
   el.innerHTML = html;
 }
 
+const API_BASE_URL = 'http://localhost:8000';
+
+function setLoginMessage(text, isError = false) {
+  const message = document.getElementById('login-message');
+  if (!message) return;
+  message.textContent = text;
+  message.classList.toggle('text-error', isError);
+  message.classList.toggle('text-primary', !isError);
+}
+
+async function handleLoginSubmit(event) {
+  event.preventDefault();
+
+  const email = document.getElementById('login-email')?.value.trim() || '';
+  const password = document.getElementById('login-password')?.value || '';
+
+  if (!email || !password) {
+    setLoginMessage('Completá email y contraseña.', true);
+    return;
+  }
+
+  try {
+    setLoginMessage('Iniciando sesión...');
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      setLoginMessage(data.detail || 'No se pudo iniciar sesión.', true);
+      return;
+    }
+
+    localStorage.setItem('auth_token', data.access_token);
+    localStorage.setItem('auth_user', JSON.stringify(data.user));
+    setLoginMessage('Sesión iniciada. Redirigiendo...');
+
+    const modal = document.getElementById('login-modal');
+    if (modal) modal.classList.add('hidden');
+    window.location.href = '/dashboard_general_tecnico.html';
+  } catch (error) {
+    setLoginMessage('No se pudo conectar con el backend.', true);
+  }
+}
+
+function initAuth() {
+  const loginForm = document.getElementById('login-form');
+  if (!loginForm) return;
+  loginForm.addEventListener('submit', handleLoginSubmit);
+}
+
 function initLoginModal() {
   const modal = document.getElementById('login-modal');
   const backdrop = document.getElementById('login-modal-backdrop');
@@ -37,6 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadComponent('login-modal-placeholder', '/components/login-modal.html'),
   ]);
   initLoginModal();
+  initAuth();
 
   const current = window.location.pathname.split('/').pop() || 'index.html';
 
@@ -72,5 +128,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (dashActions) dashActions.classList.replace('hidden', 'flex');
     const footerPlaceholder = document.getElementById('footer-placeholder');
     if (footerPlaceholder) footerPlaceholder.classList.add('ml-64');
+  }
+
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    const btnCrear = document.getElementById('nav-crear-cuenta');
+    const btnSignUp = document.getElementById('nav-sign-up');
+    if (btnCrear) btnCrear.classList.add('hidden');
+    if (btnSignUp) btnSignUp.classList.add('hidden');
   }
 });
