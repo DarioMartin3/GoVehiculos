@@ -132,7 +132,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     'crear_rol_empleado.html',
     'perfil_view.html',
   ];
-  if (dashboardPages.includes(current)) {
+  const token = localStorage.getItem('auth_token');
+  const showDashboardActions = dashboardPages.includes(current) || (current === 'index.html' && token);
+  if (showDashboardActions) {
     const btnCrear = document.getElementById('nav-crear-cuenta');
     const btnSignUp = document.getElementById('nav-sign-up');
     if (btnCrear) btnCrear.classList.add('hidden');
@@ -143,7 +145,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (footerPlaceholder) footerPlaceholder.classList.add('ml-64');
   }
 
-  const token = localStorage.getItem('auth_token');
   if (token) {
     const btnCrear = document.getElementById('nav-crear-cuenta');
     const btnSignUp = document.getElementById('nav-sign-up');
