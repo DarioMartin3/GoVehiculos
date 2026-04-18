@@ -25,9 +25,11 @@ async function handleRegisterSubmit(event) {
     const email = document.getElementById("email")?.value.trim() || "";
     const password = document.getElementById("password")?.value || "";
     const confirmPassword = document.getElementById("confirm-password")?.value || "";
+    const paisValue = document.getElementById("pais")?.value || "";
+    const pais = paisValue ? Number.parseInt(paisValue, 10) : null;
 
-    if (!nombre || !apellido || !email || !password) {
-        setMessage("Completá nombre, apellido, correo y contraseña.", true);
+    if (!nombre || !apellido || !email || !password || !pais || !telefono || !dni) {
+        setMessage("Completá todos los campos requeridos.", true);
         return;
     }
 
@@ -42,7 +44,7 @@ async function handleRegisterSubmit(event) {
         email,
         telefono,
         dni,
-        pais: null,
+        pais,
         estado_persona: 1,
         password,
         rol: "cliente",
