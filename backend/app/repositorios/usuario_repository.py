@@ -242,14 +242,14 @@ class UsuarioRepository:
 
     def get_users_directory(self) -> list[dict]:
         query_with_rol_text = """
-            SELECT u.id, p.email, u.rol, u.estado, p.nombre, p.apellido, pa.nombre AS pais
+            SELECT u.id, p.email, u.rol, u.estado, p.nombre, p.apellido, p.telefono, pa.nombre AS pais
             FROM usuario u
             INNER JOIN persona p ON p.id = u.persona_id
             LEFT JOIN pais pa ON pa.id = p.pais
             ORDER BY p.apellido ASC, p.nombre ASC
         """
         query_with_rol_fk = """
-            SELECT u.id, p.email, r.nombre AS rol, u.estado, p.nombre, p.apellido, pa.nombre AS pais
+            SELECT u.id, p.email, r.nombre AS rol, u.estado, p.nombre, p.apellido, p.telefono, pa.nombre AS pais
             FROM usuario u
             INNER JOIN persona p ON p.id = u.persona_id
             LEFT JOIN rol r ON r.id = u.rol_id
@@ -274,7 +274,8 @@ class UsuarioRepository:
                 'estado': row[3],
                 'nombre': row[4],
                 'apellido': row[5],
-                'pais': row[6],
+                'telefono': row[6],
+                'pais': row[7],
             })
         return users
 

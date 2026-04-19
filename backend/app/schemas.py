@@ -74,6 +74,7 @@ class DirectoryUserResponse(BaseModel):
     rol: str | None = None
     nombre: str | None = None
     apellido: str | None = None
+    telefono: str | None = None
     estado: int | None = None
     pais: str | None = None
 

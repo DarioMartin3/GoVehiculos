@@ -113,6 +113,7 @@ function applySidebarAdminOnlyLinks() {
   const authUser = getAuthUser();
   const role = (authUser?.rol || '').toString().trim().toLowerCase();
   const isAdmin = role === 'administrador' || role === 'admin';
+  const isSocio = role === 'socio';
 
   const sidebarDashboardLink = document.querySelector(
     '#sidebar-placeholder a[href="/dashboard_general_tecnico.html"]'
@@ -134,6 +135,9 @@ function applySidebarAdminOnlyLinks() {
   }
   if (sidebarTuVehiculoLink) {
     sidebarTuVehiculoLink.classList.toggle('hidden', !isAdmin);
+  }
+  if (sidebarTuVehiculoLink) {
+    sidebarTuVehiculoLink.classList.toggle('hidden', !isSocio);
   }
 
 }
@@ -572,6 +576,8 @@ async function fetchUserDirectory() {
 }
 
 let userDirectoryCache = [];
+let editingDirectoryUserId = null;
+let directoryEditSubmitting = false;
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -682,57 +688,189 @@ function initUserDirectoryFilters() {
   resetButton.dataset.boundFilters = '1';
 }
 
-function buildDirectoryUserPayloadFromRow(row) {
-  const columns = row.querySelectorAll('td');
-  const fullName = columns[0]?.querySelector('p.font-headline')?.textContent || '';
-  const nameParts = fullName.trim().split(/\s+/).filter(Boolean);
-  const role = columns[1]?.querySelector('p.text-sm')?.textContent || '';
-  const country = columns[1]?.querySelector('p.text-xs')?.textContent || '';
-  const statusLabel = columns[2]?.textContent?.trim().toLowerCase() || '';
-  const email = columns[0]?.querySelector('p.text-xs')?.textContent || '';
+function setDirectoryEditModalMessage(text, isError = false) {
+  const message = document.getElementById('user-edit-form-message');
+  if (!message) return;
 
-  return {
-    email: email.trim(),
-    nombre: nameParts.shift() || '',
-    apellido: nameParts.join(' '),
-    pais: country && country !== '-' ? country : null,
-    rol: role && role !== '-' ? role : null,
-    estado: statusLabel === 'activo' ? 1 : statusLabel === 'inactivo' ? 2 : statusLabel === 'en validacion' ? 3 : statusLabel === 'rechazado' ? 4 : 0,
-  };
+  message.textContent = text;
+  message.classList.toggle('text-error', isError);
+  message.classList.toggle('text-primary', !isError);
 }
 
-async function promptDirectoryUserEdit(row) {
-  const current = buildDirectoryUserPayloadFromRow(row);
+function setDirectoryEditSubmittingState(isSubmitting) {
+  directoryEditSubmitting = isSubmitting;
+
+  const saveButton = document.getElementById('user-edit-save');
+  const cancelButton = document.getElementById('user-edit-cancel');
+  const closeButton = document.getElementById('user-edit-modal-close');
+
+  if (saveButton) {
+    saveButton.disabled = isSubmitting;
+    saveButton.classList.toggle('opacity-60', isSubmitting);
+    saveButton.classList.toggle('cursor-not-allowed', isSubmitting);
+    saveButton.textContent = isSubmitting ? 'Guardando...' : 'Guardar cambios';
+  }
+  if (cancelButton) cancelButton.disabled = isSubmitting;
+  if (closeButton) closeButton.disabled = isSubmitting;
+}
+
+function isValidDirectoryEditEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isValidDirectoryEditPhone(phone) {
+  if (!phone) return true;
+  return /^[0-9+\-\s()]{7,20}$/.test(phone);
+}
+
+async function ensureDirectoryEditCountries() {
+  const paisSelect = document.getElementById('edit-user-pais');
+  if (!paisSelect) return;
+  if (paisSelect.dataset.loadedCountries === '1') return;
+
   const countries = await fetchCountries();
-  const currentCountry = countries.find((country) => country.nombre === current.pais);
-  const currentCountryId = currentCountry ? String(currentCountry.id) : '';
+  paisSelect.innerHTML = '<option value="">Seleccionar pais</option>';
+  countries.forEach((country) => {
+    const option = document.createElement('option');
+    option.value = String(country.id);
+    option.textContent = country.nombre;
+    paisSelect.appendChild(option);
+  });
+  paisSelect.dataset.loadedCountries = '1';
+}
 
-  const email = window.prompt('Email', current.email || '');
-  if (email === null) return null;
+function openDirectoryEditModal(userId) {
+  const modal = document.getElementById('user-edit-modal');
+  if (!modal) return;
 
-  const nombre = window.prompt('Nombre', current.nombre || '');
-  if (nombre === null) return null;
+  const user = userDirectoryCache.find((item) => Number(item.id) === Number(userId));
+  if (!user) {
+    window.alert('No se encontró el usuario para editar.');
+    return;
+  }
 
-  const apellido = window.prompt('Apellido', current.apellido || '');
-  if (apellido === null) return null;
+  editingDirectoryUserId = Number(userId);
 
-  const pais = window.prompt('Pais (escribí el id de la tabla de países)', currentCountryId);
-  if (pais === null) return null;
+  const email = document.getElementById('edit-user-email');
+  const rol = document.getElementById('edit-user-rol');
+  const nombre = document.getElementById('edit-user-nombre');
+  const apellido = document.getElementById('edit-user-apellido');
+  const telefono = document.getElementById('edit-user-telefono');
+  const pais = document.getElementById('edit-user-pais');
+  const estado = document.getElementById('edit-user-estado');
 
-  const rol = window.prompt('Rol', current.rol || '');
-  if (rol === null) return null;
+  if (email) email.value = user.email || '';
+  if (rol) rol.value = (user.rol || '').toString().trim().toLowerCase();
+  if (nombre) nombre.value = user.nombre || '';
+  if (apellido) apellido.value = user.apellido || '';
+  if (telefono) telefono.value = user.telefono || '';
+  if (estado) estado.value = String(user.estado ?? '1');
 
-  const estado = window.prompt('Estado (1 activo, 0 inactivo)', String(current.estado));
-  if (estado === null) return null;
+  ensureDirectoryEditCountries().then(() => {
+    const countries = Array.from(pais?.options || []);
+    const countryOption = countries.find((option) => option.textContent === (user.pais || ''));
+    if (pais) pais.value = countryOption ? countryOption.value : '';
+  });
 
-  return {
-    email: email.trim(),
-    nombre: nombre.trim(),
-    apellido: apellido.trim(),
-    pais: pais.trim() ? parseInt(pais, 10) : null,
-    rol: rol.trim(),
-    estado: estado.trim() ? parseInt(estado, 10) : null,
+  setDirectoryEditSubmittingState(false);
+  setDirectoryEditModalMessage('');
+  modal.classList.remove('hidden');
+}
+
+function closeDirectoryEditModal(force = false) {
+  if (directoryEditSubmitting && !force) return;
+
+  const modal = document.getElementById('user-edit-modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  editingDirectoryUserId = null;
+  setDirectoryEditSubmittingState(false);
+  setDirectoryEditModalMessage('');
+}
+
+async function submitDirectoryEditModal(event) {
+  event.preventDefault();
+
+  if (directoryEditSubmitting) return;
+
+  if (!editingDirectoryUserId) {
+    setDirectoryEditModalMessage('No se encontró el usuario a editar.', true);
+    return;
+  }
+
+  const email = document.getElementById('edit-user-email')?.value.trim() || '';
+  const rol = document.getElementById('edit-user-rol')?.value.trim() || '';
+  const nombre = document.getElementById('edit-user-nombre')?.value.trim() || '';
+  const apellido = document.getElementById('edit-user-apellido')?.value.trim() || '';
+  const telefono = document.getElementById('edit-user-telefono')?.value.trim() || '';
+  const paisValue = document.getElementById('edit-user-pais')?.value || '';
+  const estadoValue = document.getElementById('edit-user-estado')?.value || '';
+
+  if (!email || !rol || !nombre || !apellido || !estadoValue) {
+    setDirectoryEditModalMessage('Completá los campos obligatorios.', true);
+    return;
+  }
+
+  if (!isValidDirectoryEditEmail(email)) {
+    setDirectoryEditModalMessage('Ingresá un email válido.', true);
+    return;
+  }
+
+  if (!isValidDirectoryEditPhone(telefono)) {
+    setDirectoryEditModalMessage('Ingresá un teléfono válido (solo números, espacios, +, -, paréntesis).', true);
+    return;
+  }
+
+  const parsedPais = paisValue ? parseInt(paisValue, 10) : null;
+  const parsedEstado = parseInt(estadoValue, 10);
+  if (Number.isNaN(parsedEstado)) {
+    setDirectoryEditModalMessage('El estado seleccionado no es válido.', true);
+    return;
+  }
+  if (paisValue && Number.isNaN(parsedPais)) {
+    setDirectoryEditModalMessage('El país seleccionado no es válido.', true);
+    return;
+  }
+
+  const payload = {
+    email,
+    rol,
+    nombre,
+    apellido,
+    telefono: telefono || null,
+    pais: parsedPais,
+    estado: parsedEstado,
   };
+
+  try {
+    setDirectoryEditSubmittingState(true);
+    setDirectoryEditModalMessage('Guardando cambios...');
+    await saveDirectoryUser(editingDirectoryUserId, payload);
+    closeDirectoryEditModal(true);
+    await initUserDirectoryPage('dashboard_user_directory.html');
+  } catch (error) {
+    setDirectoryEditModalMessage(error.message || 'No se pudo actualizar el usuario.', true);
+  } finally {
+    setDirectoryEditSubmittingState(false);
+  }
+}
+
+function initDirectoryEditModal() {
+  const modal = document.getElementById('user-edit-modal');
+  const closeBtn = document.getElementById('user-edit-modal-close');
+  const cancelBtn = document.getElementById('user-edit-cancel');
+  const backdrop = document.getElementById('user-edit-modal-backdrop');
+  const form = document.getElementById('user-edit-form');
+
+  if (!modal || !closeBtn || !cancelBtn || !backdrop || !form) return;
+  if (modal.dataset.boundModal === '1') return;
+
+  closeBtn.addEventListener('click', closeDirectoryEditModal);
+  cancelBtn.addEventListener('click', closeDirectoryEditModal);
+  backdrop.addEventListener('click', closeDirectoryEditModal);
+  form.addEventListener('submit', submitDirectoryEditModal);
+
+  modal.dataset.boundModal = '1';
 }
 
 async function saveDirectoryUser(userId, payload) {
@@ -796,14 +934,11 @@ async function handleDirectoryAction(event) {
   if (!userId) return;
 
   const action = button.dataset.userAction;
-  const row = button.closest('tr');
-  if (!row) return;
 
   try {
     if (action === 'edit') {
-      const payload = await promptDirectoryUserEdit(row);
-      if (!payload) return;
-      await saveDirectoryUser(userId, payload);
+      openDirectoryEditModal(userId);
+      return;
     }
 
     if (action === 'delete') {
@@ -895,6 +1030,7 @@ async function initUserDirectoryPage(current) {
   if (!tbody) return;
 
   initUserDirectoryFilters();
+  initDirectoryEditModal();
 
   if (!tbody.dataset.boundActions) {
     tbody.addEventListener('click', handleDirectoryAction);

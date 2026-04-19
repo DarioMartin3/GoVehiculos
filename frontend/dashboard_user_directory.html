@@ -193,6 +193,69 @@ Restaurar filtros
 </div>
 </div>
 </main>
+
+<div id="user-edit-modal" class="fixed inset-0 z-50 hidden">
+<div id="user-edit-modal-backdrop" class="absolute inset-0 bg-black/40"></div>
+<div class="absolute inset-0 flex items-center justify-center p-4">
+<div class="w-full max-w-3xl bg-surface-container-lowest rounded-xl shadow-xl overflow-hidden">
+<div class="px-6 py-4 border-b border-outline-variant/20 flex items-center justify-between">
+<h3 class="font-headline text-xl font-bold text-on-surface">Editar usuario</h3>
+<button id="user-edit-modal-close" class="p-2 rounded-lg hover:bg-surface-container" type="button" title="Cerrar">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+<form id="user-edit-form" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+<div>
+<label class="block text-xs font-bold uppercase tracking-widest text-secondary mb-1">Email</label>
+<input id="edit-user-email" class="w-full bg-surface-container-low border-none rounded-lg text-sm py-2.5" type="email" required />
+</div>
+<div>
+<label class="block text-xs font-bold uppercase tracking-widest text-secondary mb-1">Rol</label>
+<select id="edit-user-rol" class="w-full bg-surface-container-low border-none rounded-lg text-sm py-2.5" required>
+<option value="administrador">Administrador</option>
+<option value="socio">Socio</option>
+<option value="cliente">Cliente</option>
+<option value="operador">Operador</option>
+<option value="soporte">Soporte</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold uppercase tracking-widest text-secondary mb-1">Nombre</label>
+<input id="edit-user-nombre" class="w-full bg-surface-container-low border-none rounded-lg text-sm py-2.5" type="text" required />
+</div>
+<div>
+<label class="block text-xs font-bold uppercase tracking-widest text-secondary mb-1">Apellido</label>
+<input id="edit-user-apellido" class="w-full bg-surface-container-low border-none rounded-lg text-sm py-2.5" type="text" required />
+</div>
+<div>
+<label class="block text-xs font-bold uppercase tracking-widest text-secondary mb-1">Telefono</label>
+<input id="edit-user-telefono" class="w-full bg-surface-container-low border-none rounded-lg text-sm py-2.5" type="text" />
+</div>
+<div>
+<label class="block text-xs font-bold uppercase tracking-widest text-secondary mb-1">Pais</label>
+<select id="edit-user-pais" class="w-full bg-surface-container-low border-none rounded-lg text-sm py-2.5"></select>
+</div>
+<div>
+<label class="block text-xs font-bold uppercase tracking-widest text-secondary mb-1">Estado</label>
+<select id="edit-user-estado" class="w-full bg-surface-container-low border-none rounded-lg text-sm py-2.5" required>
+<option value="1">Activo</option>
+<option value="2">Inactivo</option>
+<option value="3">En validacion</option>
+<option value="4">Rechazado</option>
+</select>
+</div>
+<div class="md:col-span-2">
+<p id="user-edit-form-message" class="text-sm font-semibold"></p>
+</div>
+<div class="md:col-span-2 flex justify-end gap-3 pt-2">
+<button id="user-edit-cancel" class="px-4 py-2.5 rounded-lg bg-surface-container text-on-surface font-semibold" type="button">Cancelar</button>
+<button id="user-edit-save" class="px-4 py-2.5 rounded-lg bg-primary text-white font-semibold" type="submit">Guardar cambios</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+
 <div id="footer-placeholder"></div>
 <div id="login-modal-placeholder"></div>
 <script src="/components/layout.js"></script>
