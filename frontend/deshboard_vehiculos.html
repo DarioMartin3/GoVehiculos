@@ -87,85 +87,73 @@
 <!-- Header Section -->
 <section class="mb-10 flex justify-between items-end">
 <div>
-<h1 class="text-4xl font-extrabold tracking-tight text-on-background mb-2">Fleet Management</h1>
-<p class="text-on-surface-variant body-md font-medium">Manage your premium vehicle inventory and status.</p>
+<h1 class="text-4xl font-extrabold tracking-tight text-on-background mb-2">Gestión de Flota</h1>
+<p class="text-on-surface-variant body-md font-medium">Manejar el inventario de vehículos y su estado.</p>
 </div>
 <a href="/index_registrar_vehiculo.html" class="bg-gradient-to-br from-primary to-primary-container text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 shadow-sm hover:opacity-90 active:scale-95 transition-all">
 <span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
-                Register New Vehicle
+                Registrar Nuevo Vehículo
             </a>
 </section>
 <!-- Quick Stats -->
 <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 <div class="bg-surface-container-lowest p-6 rounded-xl border-l-4 border-primary">
-<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Available Today</p>
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Vehiculos totales</p>
 <div class="flex items-baseline gap-2">
-<span class="text-3xl font-headline font-bold text-on-surface">18</span>
-<span class="text-[10px] text-green-600 font-bold">Vehicles</span>
+<span id="stats-total-vehicles" class="text-3xl font-headline font-bold text-on-surface">0</span>
 </div>
 </div>
 <div class="bg-surface-container-lowest p-6 rounded-xl border-l-4 border-tertiary">
-<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">In Maintenance</p>
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Activos</p>
 <div class="flex items-baseline gap-2">
-<span class="text-3xl font-headline font-bold text-on-surface">2</span>
-<span class="text-[10px] text-tertiary font-bold">Vehicles</span>
+<span id="stats-active-vehicles" class="text-3xl font-headline font-bold text-on-surface">0</span>
 </div>
 </div>
 <div class="bg-surface-container-lowest p-6 rounded-xl border-l-4 border-secondary">
-<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Fleet Utilization</p>
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Vehiculos de Socios</p>
 <div class="flex items-baseline gap-2">
-<span class="text-3xl font-headline font-bold text-on-surface">92.4%</span>
-<span class="text-[10px] text-blue-500 font-bold">Optimal</span>
+<span id="stats-maintenance-vehicles" class="text-3xl font-headline font-bold text-on-surface">0</span>
 </div>
 </div>
 </section>
 <!-- Filters Grid -->
 <section class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8 bg-surface-container-low p-6 rounded-xl">
 <div class="space-y-2">
-<label class="block text-xs font-bold uppercase tracking-widest text-secondary">Vehicle Category</label>
-<select class="w-full bg-surface-container-lowest border-none rounded-lg text-sm py-2.5 focus:ring-2 focus:ring-primary">
-<option>All Categories</option>
-<option>Luxury</option>
-<option>SUV</option>
-<option>Electric</option>
-</select>
-</div>
-<div class="space-y-2">
-<label class="block text-xs font-bold uppercase tracking-widest text-secondary">Availability Status</label>
-<select class="w-full bg-surface-container-lowest border-none rounded-lg text-sm py-2.5 focus:ring-2 focus:ring-primary">
-<option>All Statuses</option>
-<option>Available</option>
-<option>Rented</option>
-<option>Maintenance</option>
-</select>
-</div>
-<div class="space-y-2">
-<label class="block text-xs font-bold uppercase tracking-widest text-secondary">Pricing Range</label>
-<select class="w-full bg-surface-container-lowest border-none rounded-lg text-sm py-2.5 focus:ring-2 focus:ring-primary">
-<option>Any Price</option>
-<option>$0 - $200 / day</option>
-<option>$200 - $500 / day</option>
-<option>$500+ / day</option>
+<label class="block text-xs font-bold uppercase tracking-widest text-secondary">Marca</label>
+<select id="vehicle-brand-filter" class="w-full bg-surface-container-lowest border-none rounded-lg text-sm py-2.5 focus:ring-2 focus:ring-primary">
+<option value="all">Todas</option>
 </select>
 </div>
 <div class="space-y-2">
 <label class="block text-xs font-bold uppercase tracking-widest text-secondary">Estado</label>
-<select class="w-full bg-surface-container-lowest border-none rounded-lg text-sm py-2.5 focus:ring-2 focus:ring-primary">
-<option>Todos</option>
-<option>Activo</option>
-<option>Inactivo</option>
-<option>Baja</option>
+<select id="vehicle-status-filter" class="w-full bg-surface-container-lowest border-none rounded-lg text-sm py-2.5 focus:ring-2 focus:ring-primary">
+<option value="all">Todos</option>
+<option value="activo">Activo</option>
+<option value="inactivo">Inactivo</option>
+<option value="en validacion">En validacion</option>
+<option value="rechazado">Rechazado</option>
+<option value="alquilado">Alquilado</option>
+<option value="en taller">En Taller</option>
 </select>
 </div>
+<div class="space-y-2">
+<label class="block text-xs font-bold uppercase tracking-widest text-secondary">Año</label>
+<select id="vehicle-year-filter" class="w-full bg-surface-container-lowest border-none rounded-lg text-sm py-2.5 focus:ring-2 focus:ring-primary">
+<option value="all">Todos</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-bold uppercase tracking-widest text-secondary">Patente o modelo</label>
+<div class="flex items-center bg-surface-container-lowest rounded-lg px-4 py-2.5 group transition-all focus-within:ring-2 ring-primary/20">
+<span class="material-symbols-outlined text-slate-400 text-lg mr-2">search</span>
+<input id="vehicle-search-input" class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400" placeholder="Buscar..." type="text"/>
+</div>
+</div>
 <div class="flex items-end">
-<button class="w-full bg-secondary-container text-on-secondary-container py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
+<button id="reset-vehicle-filters-btn" class="w-full bg-secondary-container text-on-secondary-container py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
 <span class="material-symbols-outlined text-lg" data-icon="filter_list">filter_list</span>
                     Reset Filters
                 </button>
-</div>
-<div class="col-span-5 flex items-center bg-surface-container-lowest rounded-lg px-4 py-2 mt-2 group transition-all focus-within:ring-2 ring-primary/20">
-<span class="material-symbols-outlined text-slate-400 text-lg mr-2">search</span>
-<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400" placeholder="Search by model or plate..." type="text"/>
 </div>
 </section>
 <!-- Data Table Card -->
@@ -173,189 +161,20 @@
 <table class="w-full text-left border-collapse">
 <thead>
 <tr class="bg-surface-container-low text-secondary uppercase text-[10px] font-extrabold tracking-widest">
-<th class="px-6 py-4">Vehicle Details</th>
-<th class="px-6 py-4 text-center">License Plate</th>
-<th class="px-6 py-4">Category</th>
-<th class="px-6 py-4">Daily Rate</th>
+<th class="px-6 py-4">Modelo</th>
+<th class="px-6 py-4 text-center">Patente</th>
+<th class="px-6 py-4">Marca</th>
+<th class="px-6 py-4">Año</th>
 <th class="px-6 py-4">Status</th>
-<th class="px-6 py-4 text-right">Actions</th>
 </tr>
 </thead>
-<tbody class="divide-y divide-surface-container">
-<!-- Row 1 -->
-<tr class="hover:bg-surface-bright transition-colors group">
-<td class="px-6 py-5">
-<div class="flex items-center gap-4">
-<div class="w-16 h-10 rounded bg-slate-200 overflow-hidden shrink-0">
-<img alt="Porsche 911" class="w-full h-full object-cover" data-alt="sleek silver porsche 911 sports car on a clean asphalt road with high-end editorial lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBThVhvUw6q8K6Cxy1sOJIjInwyZaLyHMG-Bl07I1Sk9Yb0eA7319aRpWumrwa6nSGBIQlpSXFSPSCZMsE-I5glCdEPQB7CxCsXcm9daV1AWgt7D7tyC2MWX7olait492x2L2Vzvn0qvOVIp-yckJ4ZkV4JvKF_JPDJOL0hCySUP0Jt5wz-gBstoWajU-WDNPsqMs9-f_sIoAJ3BGyO3YfVrdXozH_jI6KEdVP_fpQf1RJ6qGTtcYIstZxcsb-0wWGpGDFREM5I0YtN"/>
-</div>
-<div>
-<span class="block text-sm font-bold text-on-surface">Porsche 911 Carrera S</span>
-<span class="block text-xs text-secondary">V6 Engine • Automatic</span>
-</div>
-</div>
-</td>
-<td class="px-6 py-5 text-center">
-<span class="bg-surface-container px-2 py-1 rounded font-mono text-xs text-on-surface-variant font-bold">EK-77-PR</span>
-</td>
-<td class="px-6 py-5">
-<span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-tertiary-fixed text-on-tertiary-fixed">Luxury</span>
-</td>
-<td class="px-6 py-5">
-<span class="text-sm font-bold text-primary">$450.00</span>
-</td>
-<td class="px-6 py-5">
-<div class="flex items-center gap-2 text-green-600">
-<span class="w-2 h-2 rounded-full bg-green-500"></span>
-<span class="text-xs font-semibold">Available</span>
-</div>
-</td>
-<td class="px-6 py-5 text-right">
-<div class="flex justify-end gap-2">
-<button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded transition-all">
-<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
-</button>
-<button class="p-1.5 text-secondary hover:text-error hover:bg-error-container rounded transition-all">
-<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
-</button>
-</div>
-</td>
-</tr>
-<!-- Row 2 -->
-<tr class="hover:bg-surface-bright transition-colors group">
-<td class="px-6 py-5">
-<div class="flex items-center gap-4">
-<div class="w-16 h-10 rounded bg-slate-200 overflow-hidden shrink-0">
-<img alt="Tesla Model S" class="w-full h-full object-cover" data-alt="midnight blue tesla model s electric car parked in a modern minimalist garage with soft ambient neon lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDP4JiD_xMvDTMVdazH2lCj0VanCd-JtmZJLs79Up9YeVgGKAYvErQXCiT5aNvgKE8a-SmskhFCEjU0oyZblFFfuu-f4qQUr65lEbW36qLfA10zFy1dNi-y3_71h0G-T_5vYgq50zOfo_7GtYwk0vh0ZR0JpGVpSO-Ag9yO4yN5_KOLH6IllPO2UCByus5JdO-yL0WWTFJGE0k8zskX05aZ2M1gvHFsMxMFBTZbpL37KCv8HoYPy9OzuNi4y6Sa_EmmoPSj5vl_sRdy"/>
-</div>
-<div>
-<span class="block text-sm font-bold text-on-surface">Tesla Model S Plaid</span>
-<span class="block text-xs text-secondary">Electric • Autopilot</span>
-</div>
-</div>
-</td>
-<td class="px-6 py-5 text-center">
-<span class="bg-surface-container px-2 py-1 rounded font-mono text-xs text-on-surface-variant font-bold">EK-01-EL</span>
-</td>
-<td class="px-6 py-5">
-<span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary-fixed text-on-secondary-fixed">Electric</span>
-</td>
-<td class="px-6 py-5">
-<span class="text-sm font-bold text-primary">$320.00</span>
-</td>
-<td class="px-6 py-5">
-<div class="flex items-center gap-2 text-blue-600">
-<span class="w-2 h-2 rounded-full bg-blue-500"></span>
-<span class="text-xs font-semibold">Rented</span>
-</div>
-</td>
-<td class="px-6 py-5 text-right">
-<div class="flex justify-end gap-2">
-<button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded transition-all">
-<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
-</button>
-<button class="p-1.5 text-secondary hover:text-error hover:bg-error-container rounded transition-all">
-<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
-</button>
-</div>
-</td>
-</tr>
-<!-- Row 3 -->
-<tr class="hover:bg-surface-bright transition-colors group">
-<td class="px-6 py-5">
-<div class="flex items-center gap-4">
-<div class="w-16 h-10 rounded bg-slate-200 overflow-hidden shrink-0">
-<img alt="Range Rover Vogue" class="w-full h-full object-cover" data-alt="black range rover suv in front of a modern glass skyscraper during dusk with dramatic city lights reflection" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSRb8i8UTc-DGVHVwznua5dFYjxalPEHC00TAOk_X3NB0cDa2Gy42Xq96BCiYaz1X1m9Uev_sHoDofG_peV3bPKYyY_XJpBqyujvL_11Ci4D_Rh8zzg76xtO9Gdlj3QOkkYdWuA7BywVjXmU8C_CdIBLzPAVE1XLrIFOJpehMAOZcTqSIRKGfIAF8-My5w-hZtziRga_1QjHnThRReP3niYAcGKm2C4FRWE-8sZefP4-rQIf-DcQs7U2RNFmtVSTFsXsgfnBcvhGFV"/>
-</div>
-<div>
-<span class="block text-sm font-bold text-on-surface">Range Rover Vogue</span>
-<span class="block text-xs text-secondary">V8 Turbo • All-Wheel Drive</span>
-</div>
-</div>
-</td>
-<td class="px-6 py-5 text-center">
-<span class="bg-surface-container px-2 py-1 rounded font-mono text-xs text-on-surface-variant font-bold">EK-55-RR</span>
-</td>
-<td class="px-6 py-5">
-<span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-outline-variant/30 text-on-surface-variant">SUV</span>
-</td>
-<td class="px-6 py-5">
-<span class="text-sm font-bold text-primary">$385.00</span>
-</td>
-<td class="px-6 py-5">
-<div class="flex items-center gap-2 text-amber-600">
-<span class="w-2 h-2 rounded-full bg-amber-500"></span>
-<span class="text-xs font-semibold">Maintenance</span>
-</div>
-</td>
-<td class="px-6 py-5 text-right">
-<div class="flex justify-end gap-2">
-<button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded transition-all">
-<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
-</button>
-<button class="p-1.5 text-secondary hover:text-error hover:bg-error-container rounded transition-all">
-<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
-</button>
-</div>
-</td>
-</tr>
-<!-- Row 4 -->
-<tr class="hover:bg-surface-bright transition-colors group">
-<td class="px-6 py-5">
-<div class="flex items-center gap-4">
-<div class="w-16 h-10 rounded bg-slate-200 overflow-hidden shrink-0">
-<img alt="Mercedes S-Class" class="w-full h-full object-cover" data-alt="white mercedes benz s-class sedan parked in front of a luxury hotel at night with warm golden light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH2FNLNyeZXWr-xCODYhhVKNxgSZ5vqrq8SrQvUkEtf0_NVTC9614mGnspiV43tqcq6kstLf8m4HELsOvd9mTbwcMnlDNyL6PHfKG6N1Cb8Zonera_nGXKBh5QU0Uu_ehVUvzva7p1xuwJMW-M4MfIR_HbQfcjgf7mG5z4DsR0pVXbnGGp4X2lAx3px1ECBCWCmq37-bQp1juv55TSFXGIanN9r-kddvK8bRXoZayyseEU_Qvbq8g9CWCm4P0RW8jCnbPXHssqFKkf"/>
-</div>
-<div>
-<span class="block text-sm font-bold text-on-surface">Mercedes-Benz S-Class</span>
-<span class="block text-xs text-secondary">Executive Package • Chauffeur</span>
-</div>
-</div>
-</td>
-<td class="px-6 py-5 text-center">
-<span class="bg-surface-container px-2 py-1 rounded font-mono text-xs text-on-surface-variant font-bold">EK-22-MB</span>
-</td>
-<td class="px-6 py-5">
-<span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-tertiary-fixed text-on-tertiary-fixed">Luxury</span>
-</td>
-<td class="px-6 py-5">
-<span class="text-sm font-bold text-primary">$510.00</span>
-</td>
-<td class="px-6 py-5">
-<div class="flex items-center gap-2 text-green-600">
-<span class="w-2 h-2 rounded-full bg-green-500"></span>
-<span class="text-xs font-semibold">Available</span>
-</div>
-</td>
-<td class="px-6 py-5 text-right">
-<div class="flex justify-end gap-2">
-<button class="p-1.5 text-secondary hover:text-primary hover:bg-primary-fixed rounded transition-all">
-<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
-</button>
-<button class="p-1.5 text-secondary hover:text-error hover:bg-error-container rounded transition-all">
-<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
-</button>
-</div>
-</td>
-</tr>
+<tbody id="vehicles-table-body" class="divide-y divide-surface-container">
 </tbody>
 </table>
 <!-- Pagination -->
 <div class="px-8 py-6 bg-surface-container-low/20 flex justify-between items-center border-t border-outline-variant/5">
-<p class="text-xs text-slate-500 font-medium">Showing 1 to 4 of 24 vehicles</p>
-<div class="flex gap-1">
-<button class="px-3 py-1.5 rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors text-slate-600">
-<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
-</button>
-<button class="px-4 py-1.5 rounded-lg bg-primary text-white font-bold text-xs shadow-md">1</button>
-<button class="px-4 py-1.5 rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors text-slate-600 text-xs font-semibold">2</button>
-<button class="px-4 py-1.5 rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors text-slate-600 text-xs font-semibold">3</button>
-<span class="px-2 py-1.5 text-slate-400 text-xs">...</span>
-<button class="px-4 py-1.5 rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors text-slate-600 text-xs font-semibold">6</button>
-<button class="px-3 py-1.5 rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors text-slate-600">
-<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
-</button>
-</div>
+<p id="vehicles-summary-label" class="text-xs text-slate-500 font-medium">Mostrando 0 vehículos</p>
+<div></div>
 </div>
 </div>
 </main>

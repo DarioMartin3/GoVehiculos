@@ -150,3 +150,44 @@ class VehiculoRepository:
             "modelo_nombre": row[7],
             "marca_nombre": row[8],
         }
+
+    def list_vehicles(self, usuario_id: int | None = None) -> list[dict]:
+        query = """
+            SELECT v.id, v.usuario_id, v.patente, v.anio, v.fecha_ingreso,
+                   ev.nombre AS estado_vehiculo,
+                   m.id AS modelo_id, m.nombre AS modelo_nombre, ma.nombre AS marca_nombre
+            FROM vehiculo v
+            INNER JOIN modelo m ON m.id = v.modelo
+            INNER JOIN marca ma ON ma.id = m.marca_id
+            LEFT JOIN estado_vehiculo ev ON ev.id = v.estado_vehiculo
+        """
+        params: tuple[object, ...] = ()
+
+        if usuario_id is not None:
+            query += " WHERE v.usuario_id = %s"
+            params = (usuario_id,)
+
+        query += " ORDER BY v.fecha_ingreso DESC, v.id DESC"
+
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(query, params)
+                rows = cursor.fetchall()
+
+        vehicles: list[dict] = []
+        for row in rows:
+            vehicles.append(
+                {
+                    "id": row[0],
+                    "usuario_id": row[1],
+                    "patente": row[2],
+                    "anio": row[3],
+                    "fecha_ingreso": row[4].isoformat() if row[4] else None,
+                    "estado_vehiculo": row[5],
+                    "modelo_id": row[6],
+                    "modelo_nombre": row[7],
+                    "marca_nombre": row[8],
+                }
+            )
+
+        return vehicles

@@ -17,6 +17,24 @@ class VehiculoService:
     def list_modelos(self, marca_id: int | None = None) -> list[dict]:
         return self.vehiculo_repository.get_modelos(marca_id)
 
+    def list_vehicles(self, token: str) -> list[dict]:
+        payload = decode_access_token(token)
+        user_id_raw = payload.get("sub")
+        role = (payload.get("rol") or "").strip().lower()
+
+        try:
+            usuario_id = int(user_id_raw)
+        except (TypeError, ValueError) as error:
+            raise ValueError("Token inválido") from error
+
+        if role in {"administrador", "admin", "operador", "soporte"}:
+            return self.vehiculo_repository.list_vehicles()
+
+        if role == "socio":
+            return self.vehiculo_repository.list_vehicles(usuario_id=usuario_id)
+
+        raise ValueError("Permiso denegado")
+
     def register_vehicle(self, token: str, patente: str, modelo_id: int, anio: int) -> dict:
         payload = decode_access_token(token)
         user_id_raw = payload.get("sub")

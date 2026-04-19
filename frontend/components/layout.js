@@ -623,6 +623,7 @@ async function fetchUserDirectory() {
 let userDirectoryCache = [];
 let editingDirectoryUserId = null;
 let directoryEditSubmitting = false;
+let vehicleDashboardCache = [];
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -1104,6 +1105,256 @@ async function initUserDirectoryPage(current) {
   }
 }
 
+function normalizeVehicleText(value) {
+  return (value || '').toString().trim().toLowerCase();
+}
+
+function getVehicleStatusBadge(statusRaw) {
+  const status = normalizeVehicleText(statusRaw);
+  if (status === 'activo') {
+    return { label: 'Activo', className: 'bg-green-50 text-green-700' };
+  }
+  if (status === 'inactivo') {
+    return { label: 'Inactivo', className: 'bg-surface-container text-slate-500' };
+  }
+  if (status === 'en validacion') {
+    return { label: 'En validacion', className: 'bg-tertiary-fixed text-tertiary' };
+  }
+  if (status === 'rechazado') {
+    return { label: 'Rechazado', className: 'bg-red-50 text-red-700' };
+  }
+  if (status === 'alquilado') {
+    return { label: 'Alquilado', className: 'bg-blue-50 text-blue-700' };
+  }
+  if (status === 'en taller') {
+    return { label: 'En Taller', className: 'bg-amber-50 text-amber-700' };
+  }
+  return { label: statusRaw || 'Sin estado', className: 'bg-surface-container text-slate-600' };
+}
+
+async function fetchVehicleDashboard() {
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
+    throw new Error('Debes iniciar sesión para ver vehículos.');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/vehiculos`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || 'No se pudo cargar el dashboard de vehículos.');
+  }
+
+  return data;
+}
+
+function updateVehicleDashboardStats(vehicles) {
+  const totalEl = document.getElementById('stats-total-vehicles');
+  const activeEl = document.getElementById('stats-active-vehicles');
+  const maintenanceEl = document.getElementById('stats-maintenance-vehicles');
+
+  if (!totalEl && !activeEl && !maintenanceEl) return;
+
+  const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
+  const total = safeVehicles.length;
+  const active = safeVehicles.filter((vehicle) => normalizeVehicleText(vehicle.estado_vehiculo) === 'activo').length;
+  const maintenance = safeVehicles.filter((vehicle) => normalizeVehicleText(vehicle.estado_vehiculo) === 'en taller').length;
+
+  if (totalEl) totalEl.textContent = String(total);
+  if (activeEl) activeEl.textContent = String(active);
+  if (maintenanceEl) maintenanceEl.textContent = String(maintenance);
+}
+
+function populateVehicleFilterOptions(vehicles) {
+  const brandFilter = document.getElementById('vehicle-brand-filter');
+  const yearFilter = document.getElementById('vehicle-year-filter');
+  if (!brandFilter || !yearFilter) return;
+
+  const selectedBrand = brandFilter.value || 'all';
+  const selectedYear = yearFilter.value || 'all';
+
+  const brands = [...new Set((vehicles || []).map((vehicle) => (vehicle.marca_nombre || '').trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b));
+  const years = [...new Set((vehicles || []).map((vehicle) => String(vehicle.anio || '').trim()).filter(Boolean))]
+    .sort((a, b) => Number(b) - Number(a));
+
+  brandFilter.innerHTML = '<option value="all">Todas</option>';
+  brands.forEach((brand) => {
+    const option = document.createElement('option');
+    option.value = normalizeVehicleText(brand);
+    option.textContent = brand;
+    brandFilter.appendChild(option);
+  });
+
+  yearFilter.innerHTML = '<option value="all">Todos</option>';
+  years.forEach((year) => {
+    const option = document.createElement('option');
+    option.value = year;
+    option.textContent = year;
+    yearFilter.appendChild(option);
+  });
+
+  brandFilter.value = Array.from(brandFilter.options).some((option) => option.value === selectedBrand)
+    ? selectedBrand
+    : 'all';
+  yearFilter.value = Array.from(yearFilter.options).some((option) => option.value === selectedYear)
+    ? selectedYear
+    : 'all';
+}
+
+function renderVehicleDashboard(vehicles) {
+  const tbody = document.getElementById('vehicles-table-body');
+  const summaryLabel = document.getElementById('vehicles-summary-label');
+  if (!tbody) return;
+
+  if (!vehicles || vehicles.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="px-6 py-10 text-center text-slate-500 font-medium">No hay vehículos para mostrar.</td>
+      </tr>
+    `;
+    if (summaryLabel) summaryLabel.textContent = 'Mostrando 0 vehículos';
+    return;
+  }
+
+  tbody.innerHTML = vehicles.map((vehicle) => {
+    const status = getVehicleStatusBadge(vehicle.estado_vehiculo);
+    return `
+      <tr class="hover:bg-surface-bright transition-colors group">
+        <td class="px-6 py-5">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-primary-fixed text-primary flex items-center justify-center font-bold text-xs">
+              ${escapeHtml((vehicle.modelo_nombre || 'M').charAt(0).toUpperCase())}
+            </div>
+            <div>
+              <span class="block text-sm font-bold text-on-surface">${escapeHtml(vehicle.modelo_nombre || '-')}</span>
+              <span class="block text-xs text-secondary">ID #${escapeHtml(vehicle.id)}</span>
+            </div>
+          </div>
+        </td>
+        <td class="px-6 py-5 text-center">
+          <span class="bg-surface-container px-2 py-1 rounded font-mono text-xs text-on-surface-variant font-bold">${escapeHtml(vehicle.patente || '-')}</span>
+        </td>
+        <td class="px-6 py-5">
+          <span class="text-sm font-semibold text-on-surface">${escapeHtml(vehicle.marca_nombre || '-')}</span>
+        </td>
+        <td class="px-6 py-5">
+          <span class="text-sm font-semibold text-on-surface">${escapeHtml(vehicle.anio || '-')}</span>
+        </td>
+        <td class="px-6 py-5">
+          <span class="px-3 py-1 ${status.className} text-[10px] font-bold uppercase tracking-wider rounded-full">${escapeHtml(status.label)}</span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  if (summaryLabel) {
+    const total = vehicles.length;
+    summaryLabel.textContent = `Mostrando ${total} vehículo${total === 1 ? '' : 's'}`;
+  }
+}
+
+function applyVehicleDashboardFilters() {
+  const brandFilter = document.getElementById('vehicle-brand-filter');
+  const statusFilter = document.getElementById('vehicle-status-filter');
+  const yearFilter = document.getElementById('vehicle-year-filter');
+  const searchInput = document.getElementById('vehicle-search-input');
+
+  const selectedBrand = normalizeVehicleText(brandFilter?.value || 'all');
+  const selectedStatus = normalizeVehicleText(statusFilter?.value || 'all');
+  const selectedYear = (yearFilter?.value || 'all').toString().trim();
+  const searchTerm = normalizeVehicleText(searchInput?.value || '');
+
+  const filteredVehicles = vehicleDashboardCache.filter((vehicle) => {
+    const vehicleBrand = normalizeVehicleText(vehicle.marca_nombre);
+    const vehicleStatus = normalizeVehicleText(vehicle.estado_vehiculo);
+    const vehicleYear = String(vehicle.anio || '').trim();
+
+    const matchesBrand = selectedBrand === 'all' || vehicleBrand === selectedBrand;
+    const matchesStatus = selectedStatus === 'all' || vehicleStatus === selectedStatus;
+    const matchesYear = selectedYear === 'all' || vehicleYear === selectedYear;
+
+    const searchableText = [
+      vehicle.patente,
+      vehicle.modelo_nombre,
+      vehicle.marca_nombre,
+      vehicle.estado_vehiculo,
+      vehicle.anio,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    const matchesSearch = !searchTerm || searchableText.includes(searchTerm);
+    return matchesBrand && matchesStatus && matchesYear && matchesSearch;
+  });
+
+  renderVehicleDashboard(filteredVehicles);
+}
+
+function initVehicleDashboardFilters() {
+  const brandFilter = document.getElementById('vehicle-brand-filter');
+  const statusFilter = document.getElementById('vehicle-status-filter');
+  const yearFilter = document.getElementById('vehicle-year-filter');
+  const searchInput = document.getElementById('vehicle-search-input');
+  const resetButton = document.getElementById('reset-vehicle-filters-btn');
+
+  if (!brandFilter || !statusFilter || !yearFilter || !searchInput || !resetButton) return;
+  if (resetButton.dataset.boundFilters === '1') return;
+
+  brandFilter.addEventListener('change', applyVehicleDashboardFilters);
+  statusFilter.addEventListener('change', applyVehicleDashboardFilters);
+  yearFilter.addEventListener('change', applyVehicleDashboardFilters);
+  searchInput.addEventListener('input', applyVehicleDashboardFilters);
+
+  resetButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    brandFilter.value = 'all';
+    statusFilter.value = 'all';
+    yearFilter.value = 'all';
+    searchInput.value = '';
+    applyVehicleDashboardFilters();
+  });
+
+  resetButton.dataset.boundFilters = '1';
+}
+
+async function initVehicleDashboardPage(current) {
+  if (current !== 'deshboard_vehiculos.html') return;
+
+  const tbody = document.getElementById('vehicles-table-body');
+  if (!tbody) return;
+
+  initVehicleDashboardFilters();
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="5" class="px-6 py-10 text-center text-slate-500 font-medium">Cargando vehículos...</td>
+    </tr>
+  `;
+
+  try {
+    const vehicles = await fetchVehicleDashboard();
+    vehicleDashboardCache = Array.isArray(vehicles) ? vehicles : [];
+    updateVehicleDashboardStats(vehicleDashboardCache);
+    populateVehicleFilterOptions(vehicleDashboardCache);
+    applyVehicleDashboardFilters();
+  } catch (error) {
+    vehicleDashboardCache = [];
+    updateVehicleDashboardStats([]);
+    populateVehicleFilterOptions([]);
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="px-6 py-10 text-center text-error font-semibold">${escapeHtml(error.message || 'No se pudo cargar el dashboard de vehículos.')}</td>
+      </tr>
+    `;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await Promise.all([
     loadComponent('header-placeholder', '/components/header.html'),
@@ -1144,4 +1395,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   initPasswordChange(current);
   await initProfileEdit(current);
   await initUserDirectoryPage(current);
+  await initVehicleDashboardPage(current);
 });
