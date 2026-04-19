@@ -4,7 +4,7 @@ import hashlib
 import hmac
 import os
 
-from jose import jwt
+from jose import JWTError, jwt
 
 from app.core.config import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
 
@@ -53,3 +53,11 @@ def create_access_token(subject: str, extra_claims: dict | None = None) -> str:
     if extra_claims:
         payload.update(extra_claims)
     return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+
+
+def decode_access_token(token: str) -> dict:
+    """Decodifica y valida un JWT de acceso."""
+    try:
+        return jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+    except JWTError as error:
+        raise ValueError("Token inválido") from error

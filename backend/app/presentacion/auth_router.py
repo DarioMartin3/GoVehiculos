@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Header, HTTPException, status
 
 from app.schemas import (
+    ChangePasswordRequest,
     LoginRequest,
     LoginResponse,
+    ProfileResponse,
     RegisterUserRequest,
     RegisterUserResponse,
     UserResponse,
@@ -44,3 +46,42 @@ def register(payload: RegisterUserRequest):
         "persona_id": result["persona_id"],
         "user": UserResponse(**result["user"]),
     }
+
+
+@router.get("/profile", response_model=ProfileResponse)
+def profile(authorization: str | None = Header(default=None)):
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token requerido")
+
+    token = authorization.split(" ", 1)[1].strip()
+
+    try:
+        result = AuthService().get_profile(token)
+    except ValueError as error:
+        message = str(error)
+        if message == "Usuario no encontrado":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=message) from error
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=message) from error
+
+    return ProfileResponse(**result)
+
+
+@router.post("/change-password")
+@router.post("/change_password")
+def change_password(payload: ChangePasswordRequest, authorization: str | None = Header(default=None)):
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token requerido")
+
+    token = authorization.split(" ", 1)[1].strip()
+
+    try:
+        AuthService().change_password(token, payload.current_password, payload.new_password)
+    except ValueError as error:
+        message = str(error)
+        if message == "Usuario no encontrado":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=message) from error
+        if message == "Token inválido":
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=message) from error
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message) from error
+
+    return {"message": "Contraseña actualizada correctamente"}
