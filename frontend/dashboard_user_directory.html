@@ -102,29 +102,19 @@
 <div class="col-span-1 bg-surface-container-lowest p-6 rounded-xl border-l-4 border-primary">
 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Usuarios totales</p>
 <div class="flex items-baseline gap-2">
-<span class="text-3xl font-headline font-bold text-on-surface">1,284</span>
-<span class="text-[10px] text-green-600 font-bold">+12%</span>
+<span id="stats-total-users" class="text-3xl font-headline font-bold text-on-surface">0</span>
 </div>
 </div>
 <div class="col-span-1 bg-surface-container-lowest p-6 rounded-xl border-l-4 border-tertiary">
-<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Usuarios activos</p>
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Clientes</p>
 <div class="flex items-baseline gap-2">
-<span class="text-3xl font-headline font-bold text-on-surface">412</span>
-<span class="text-[10px] text-primary font-bold">Stable</span>
+<span id="stats-client-users" class="text-3xl font-headline font-bold text-on-surface">0</span>
 </div>
 </div>
 <div class="col-span-1 bg-surface-container-lowest p-6 rounded-xl border-l-4 border-secondary">
-<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Invitaciones pendientes</p>
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Socios</p>
 <div class="flex items-baseline gap-2">
-<span class="text-3xl font-headline font-bold text-on-surface">18</span>
-<span class="text-[10px] text-tertiary font-bold">-2</span>
-</div>
-</div>
-<div class="col-span-1 bg-surface-container-lowest p-6 rounded-xl border-l-4 border-on-secondary-container">
-<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">System Health</p>
-<div class="flex items-baseline gap-2">
-<span class="text-3xl font-headline font-bold text-on-surface">99.9%</span>
-<span class="text-[10px] text-blue-500 font-bold">Optimal</span>
+<span id="stats-partner-users" class="text-3xl font-headline font-bold text-on-surface">0</span>
 </div>
 </div>
 </div>
@@ -132,37 +122,34 @@
 <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 bg-surface-container-low p-6 rounded-xl">
 <div class="space-y-2">
 <label class="block text-xs font-bold uppercase tracking-widest text-secondary">Rol</label>
-<select class="w-full bg-surface-container-lowest border-none rounded-lg text-sm py-2.5 focus:ring-2 focus:ring-primary">
-<option>Todos los roles</option>
-<option>Administrador</option>
-<option>Técnico</option>
-<option>Cliente</option>
+<select id="user-role-filter" class="w-full bg-surface-container-lowest border-none rounded-lg text-sm py-2.5 focus:ring-2 focus:ring-primary">
+<option value="all">Todos los roles</option>
+<option value="administrador">Administrador</option>
+<option value="socio">Socio</option>
+<option value="cliente">Cliente</option>
+<option value="operador">Operador</option>
+<option value="soporte">Soporte</option>
 </select>
 </div>
 <div class="space-y-2">
 <label class="block text-xs font-bold uppercase tracking-widest text-secondary">Estado</label>
-<select class="w-full bg-surface-container-lowest border-none rounded-lg text-sm py-2.5 focus:ring-2 focus:ring-primary">
-<option>Todos</option>
-<option>Activo</option>
-<option>Inactivo</option>
-<option>Pendiente</option>
+<select id="user-status-filter" class="w-full bg-surface-container-lowest border-none rounded-lg text-sm py-2.5 focus:ring-2 focus:ring-primary">
+<option value="all">Todos</option>
+<option value="1">Activo</option>
+<option value="2">Inactivo</option>
+<option value="3">En validacion</option>
+<option value="4">Rechazado</option>
 </select>
 </div>
 <div class="flex items-end">
-<button class="w-full bg-secondary-container text-on-secondary-container py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
+<button id="reset-user-filters-btn" class="w-full bg-secondary-container text-on-secondary-container py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
 <span class="material-symbols-outlined text-lg">filter_list</span>
 Restaurar filtros
 </button>
 </div>
-<div class="flex items-end">
-<button class="w-full flex items-center justify-center gap-2 px-6 py-2.5 bg-surface-container-lowest text-slate-700 font-semibold text-sm rounded-lg hover:bg-surface-container transition-colors shadow-sm">
-<span class="material-symbols-outlined text-lg">download</span>
-Export CSV
-</button>
-</div>
 <div class="col-span-4 flex items-center bg-surface-container-lowest rounded-lg px-4 py-2 mt-2 group transition-all focus-within:ring-2 ring-primary/20">
 <span class="material-symbols-outlined text-slate-400 text-lg mr-2">search</span>
-<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400" placeholder="Buscar usuario..." type="text"/>
+<input id="user-search-input" class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400" placeholder="Buscar usuario..." type="text"/>
 </div>
 </section>
 <!-- Precision Data Table -->

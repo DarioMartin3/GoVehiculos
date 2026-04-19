@@ -571,6 +571,8 @@ async function fetchUserDirectory() {
   return data;
 }
 
+let userDirectoryCache = [];
+
 function escapeHtml(value) {
   return String(value ?? '')
     .replaceAll('&', '&amp;')
@@ -598,6 +600,86 @@ function getUserDirectoryStatusLabel(estado) {
   }
 
   return { label: 'Pendiente', className: 'bg-tertiary-fixed text-tertiary' };
+}
+
+function updateUserDirectoryStats(users) {
+  const totalEl = document.getElementById('stats-total-users');
+  const clientEl = document.getElementById('stats-client-users');
+  const partnerEl = document.getElementById('stats-partner-users');
+
+  if (!totalEl && !clientEl && !partnerEl) return;
+
+  const safeUsers = Array.isArray(users) ? users : [];
+  const total = safeUsers.length;
+  const clients = safeUsers.filter((user) => (user.rol || '').toString().trim().toLowerCase() === 'cliente').length;
+  const partners = safeUsers.filter((user) => (user.rol || '').toString().trim().toLowerCase() === 'socio').length;
+
+  if (totalEl) totalEl.textContent = String(total);
+  if (clientEl) clientEl.textContent = String(clients);
+  if (partnerEl) partnerEl.textContent = String(partners);
+}
+
+function normalizeUserRole(value) {
+  return (value || '').toString().trim().toLowerCase();
+}
+
+function applyUserDirectoryFilters() {
+  const roleFilter = document.getElementById('user-role-filter');
+  const statusFilter = document.getElementById('user-status-filter');
+  const searchInput = document.getElementById('user-search-input');
+
+  const selectedRole = normalizeUserRole(roleFilter?.value || 'all');
+  const selectedStatus = (statusFilter?.value || 'all').toString().trim().toLowerCase();
+  const searchTerm = (searchInput?.value || '').toString().trim().toLowerCase();
+
+  const filteredUsers = userDirectoryCache.filter((user) => {
+    const userRole = normalizeUserRole(user.rol);
+    const userStatus = (user.estado ?? '').toString().trim().toLowerCase();
+
+    const matchesRole = selectedRole === 'all' || userRole === selectedRole;
+    const matchesStatus = selectedStatus === 'all' || userStatus === selectedStatus;
+
+    const searchableText = [
+      user.nombre,
+      user.apellido,
+      user.email,
+      user.rol,
+      user.pais,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    const matchesSearch = !searchTerm || searchableText.includes(searchTerm);
+
+    return matchesRole && matchesStatus && matchesSearch;
+  });
+
+  renderUserDirectory(filteredUsers);
+}
+
+function initUserDirectoryFilters() {
+  const roleFilter = document.getElementById('user-role-filter');
+  const statusFilter = document.getElementById('user-status-filter');
+  const searchInput = document.getElementById('user-search-input');
+  const resetButton = document.getElementById('reset-user-filters-btn');
+
+  if (!roleFilter || !statusFilter || !searchInput || !resetButton) return;
+  if (resetButton.dataset.boundFilters === '1') return;
+
+  roleFilter.addEventListener('change', applyUserDirectoryFilters);
+  statusFilter.addEventListener('change', applyUserDirectoryFilters);
+  searchInput.addEventListener('input', applyUserDirectoryFilters);
+
+  resetButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    roleFilter.value = 'all';
+    statusFilter.value = 'all';
+    searchInput.value = '';
+    applyUserDirectoryFilters();
+  });
+
+  resetButton.dataset.boundFilters = '1';
 }
 
 function buildDirectoryUserPayloadFromRow(row) {
@@ -812,6 +894,8 @@ async function initUserDirectoryPage(current) {
   const tbody = document.getElementById('users-table-body');
   if (!tbody) return;
 
+  initUserDirectoryFilters();
+
   if (!tbody.dataset.boundActions) {
     tbody.addEventListener('click', handleDirectoryAction);
     tbody.dataset.boundActions = '1';
@@ -825,8 +909,12 @@ async function initUserDirectoryPage(current) {
 
   try {
     const users = await fetchUserDirectory();
-    renderUserDirectory(users);
+    userDirectoryCache = Array.isArray(users) ? users : [];
+    updateUserDirectoryStats(users);
+    applyUserDirectoryFilters();
   } catch (error) {
+    userDirectoryCache = [];
+    updateUserDirectoryStats([]);
     tbody.innerHTML = `
       <tr>
         <td colspan="4" class="px-8 py-10 text-center text-error font-semibold">${escapeHtml(error.message || 'No se pudo cargar el directorio.')}</td>
