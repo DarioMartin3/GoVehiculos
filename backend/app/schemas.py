@@ -65,3 +65,25 @@ class UpdateProfileRequest(BaseModel):
     email: EmailStr | None = None
     telefono: str | None = None
     pais: int | None = None
+
+
+class DirectoryUserResponse(BaseModel):
+    # Datos para el directorio de usuarios.
+    id: int
+    email: EmailStr
+    rol: str | None = None
+    nombre: str | None = None
+    apellido: str | None = None
+    estado: int | None = None
+    pais: str | None = None
+
+
+class DirectoryUserUpdateRequest(BaseModel):
+    # Actualización de usuario desde el directorio administrativo.
+    email: EmailStr | None = None
+    nombre: str | None = None
+    apellido: str | None = None
+    telefono: str | None = None
+    pais: int | None = None
+    rol: str | None = None
+    estado: int | None = None

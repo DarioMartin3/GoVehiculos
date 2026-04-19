@@ -551,6 +551,290 @@ async function initProfileEdit(current) {
   });
 }
 
+async function fetchUserDirectory() {
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
+    throw new Error('Debes iniciar sesión para ver el directorio.');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/auth/users`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || 'No se pudo cargar el directorio de usuarios.');
+  }
+
+  return data;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function getUserDirectoryStatusLabel(estado) {
+  if (estado === 1 || estado === '1') {
+    return { label: 'Activo', className: 'bg-green-50 text-green-700' };
+  }
+
+  if (estado === 2 || estado === '2') {
+    return { label: 'Inactivo', className: 'bg-surface-container text-slate-500' };
+  }
+
+  if (estado === 3 || estado === '3') {
+    return { label: 'En validacion', className: 'bg-tertiary-fixed text-tertiary' };
+  }
+
+  if (estado === 4 || estado === '4') {
+    return { label: 'Rechazado', className: 'bg-red-50 text-red-700' };
+  }
+
+  return { label: 'Pendiente', className: 'bg-tertiary-fixed text-tertiary' };
+}
+
+function buildDirectoryUserPayloadFromRow(row) {
+  const columns = row.querySelectorAll('td');
+  const fullName = columns[0]?.querySelector('p.font-headline')?.textContent || '';
+  const nameParts = fullName.trim().split(/\s+/).filter(Boolean);
+  const role = columns[1]?.querySelector('p.text-sm')?.textContent || '';
+  const country = columns[1]?.querySelector('p.text-xs')?.textContent || '';
+  const statusLabel = columns[2]?.textContent?.trim().toLowerCase() || '';
+  const email = columns[0]?.querySelector('p.text-xs')?.textContent || '';
+
+  return {
+    email: email.trim(),
+    nombre: nameParts.shift() || '',
+    apellido: nameParts.join(' '),
+    pais: country && country !== '-' ? country : null,
+    rol: role && role !== '-' ? role : null,
+    estado: statusLabel === 'activo' ? 1 : statusLabel === 'inactivo' ? 2 : statusLabel === 'en validacion' ? 3 : statusLabel === 'rechazado' ? 4 : 0,
+  };
+}
+
+async function promptDirectoryUserEdit(row) {
+  const current = buildDirectoryUserPayloadFromRow(row);
+  const countries = await fetchCountries();
+  const currentCountry = countries.find((country) => country.nombre === current.pais);
+  const currentCountryId = currentCountry ? String(currentCountry.id) : '';
+
+  const email = window.prompt('Email', current.email || '');
+  if (email === null) return null;
+
+  const nombre = window.prompt('Nombre', current.nombre || '');
+  if (nombre === null) return null;
+
+  const apellido = window.prompt('Apellido', current.apellido || '');
+  if (apellido === null) return null;
+
+  const pais = window.prompt('Pais (escribí el id de la tabla de países)', currentCountryId);
+  if (pais === null) return null;
+
+  const rol = window.prompt('Rol', current.rol || '');
+  if (rol === null) return null;
+
+  const estado = window.prompt('Estado (1 activo, 0 inactivo)', String(current.estado));
+  if (estado === null) return null;
+
+  return {
+    email: email.trim(),
+    nombre: nombre.trim(),
+    apellido: apellido.trim(),
+    pais: pais.trim() ? parseInt(pais, 10) : null,
+    rol: rol.trim(),
+    estado: estado.trim() ? parseInt(estado, 10) : null,
+  };
+}
+
+async function saveDirectoryUser(userId, payload) {
+  const token = localStorage.getItem('auth_token');
+  const response = await fetch(`${API_BASE_URL}/auth/users/${userId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || 'No se pudo actualizar el usuario.');
+  }
+
+  return data;
+}
+
+async function deactivateDirectoryUser(userId) {
+  const token = localStorage.getItem('auth_token');
+  const response = await fetch(`${API_BASE_URL}/auth/users/${userId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || 'No se pudo dar de baja al usuario.');
+  }
+
+  return data;
+}
+
+async function activateDirectoryUser(userId) {
+  const token = localStorage.getItem('auth_token');
+  const response = await fetch(`${API_BASE_URL}/auth/users/${userId}/activate`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || 'No se pudo activar al usuario.');
+  }
+
+  return data;
+}
+
+async function handleDirectoryAction(event) {
+  const button = event.target.closest('button[data-user-action]');
+  if (!button) return;
+
+  const userId = parseInt(button.dataset.userId, 10);
+  if (!userId) return;
+
+  const action = button.dataset.userAction;
+  const row = button.closest('tr');
+  if (!row) return;
+
+  try {
+    if (action === 'edit') {
+      const payload = await promptDirectoryUserEdit(row);
+      if (!payload) return;
+      await saveDirectoryUser(userId, payload);
+    }
+
+    if (action === 'delete') {
+      const confirmed = window.confirm('Esta acción hará una baja lógica y dejará el usuario inactivo. ¿Continuar?');
+      if (!confirmed) return;
+      await deactivateDirectoryUser(userId);
+    }
+
+    if (action === 'activate') {
+      const confirmed = window.confirm('Este usuario volverá a estado activo. ¿Continuar?');
+      if (!confirmed) return;
+      await activateDirectoryUser(userId);
+    }
+
+    await initUserDirectoryPage('dashboard_user_directory.html');
+  } catch (error) {
+    window.alert(error.message || 'No se pudo completar la acción.');
+  }
+}
+
+function renderUserDirectory(users) {
+  const tbody = document.getElementById('users-table-body');
+  if (!tbody) return;
+
+  if (!users || users.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" class="px-8 py-10 text-center text-slate-500 font-medium">No hay usuarios para mostrar.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = users.map((user) => {
+    const fullName = [user.nombre, user.apellido].filter(Boolean).join(' ').trim() || 'Sin nombre';
+    const initials = [user.nombre, user.apellido]
+      .filter(Boolean)
+      .map(part => part.trim().charAt(0).toUpperCase())
+      .join('') || '?';
+    const status = getUserDirectoryStatusLabel(user.estado);
+    const isInactive = user.estado === 2 || user.estado === '2';
+    const actionButtonHtml = isInactive
+      ? `
+            <button class="p-2 text-slate-400 hover:text-primary transition-colors hover:bg-primary-fixed rounded-lg" type="button" data-user-action="activate" data-user-id="${user.id}" title="Activar usuario">
+              <span class="material-symbols-outlined text-lg">check_circle</span>
+            </button>
+        `
+      : `
+            <button class="p-2 text-slate-400 hover:text-error transition-colors hover:bg-error-container rounded-lg" type="button" data-user-action="delete" data-user-id="${user.id}" title="Dar de baja">
+              <span class="material-symbols-outlined text-lg">delete</span>
+            </button>
+        `;
+
+    return `
+      <tr class="hover:bg-surface-container-low/30 transition-colors group" data-user-id="${user.id}">
+        <td class="px-8 py-6">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-primary-fixed text-primary flex items-center justify-center font-bold ring-2 ring-primary/5">${escapeHtml(initials)}</div>
+            <div>
+              <p class="font-headline font-bold text-on-surface">${escapeHtml(fullName)}</p>
+              <p class="text-xs text-slate-500">${escapeHtml(user.email)}</p>
+            </div>
+          </div>
+        </td>
+        <td class="px-6 py-6">
+          <p class="text-sm font-semibold text-on-surface">${escapeHtml(user.rol || '-')}</p>
+          <p class="text-xs text-slate-500">${escapeHtml(user.pais || '-')}</p>
+        </td>
+        <td class="px-6 py-6">
+          <span class="px-3 py-1 ${status.className} text-[10px] font-bold uppercase tracking-wider rounded-full">${status.label}</span>
+        </td>
+        <td class="px-6 py-6 text-right">
+          <div class="flex justify-end gap-2">
+            <button class="p-2 text-slate-400 hover:text-primary transition-colors hover:bg-primary-fixed rounded-lg" type="button" data-user-action="edit" data-user-id="${user.id}" title="Editar usuario">
+              <span class="material-symbols-outlined text-lg">edit</span>
+            </button>
+            ${actionButtonHtml}
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function initUserDirectoryPage(current) {
+  if (current !== 'dashboard_user_directory.html') return;
+
+  const tbody = document.getElementById('users-table-body');
+  if (!tbody) return;
+
+  if (!tbody.dataset.boundActions) {
+    tbody.addEventListener('click', handleDirectoryAction);
+    tbody.dataset.boundActions = '1';
+  }
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="4" class="px-8 py-10 text-center text-slate-500 font-medium">Cargando usuarios...</td>
+    </tr>
+  `;
+
+  try {
+    const users = await fetchUserDirectory();
+    renderUserDirectory(users);
+  } catch (error) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" class="px-8 py-10 text-center text-error font-semibold">${escapeHtml(error.message || 'No se pudo cargar el directorio.')}</td>
+      </tr>
+    `;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await Promise.all([
     loadComponent('header-placeholder', '/components/header.html'),
@@ -585,4 +869,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   await initProfilePage(current);
   initPasswordChange(current);
   await initProfileEdit(current);
+  await initUserDirectoryPage(current);
 });

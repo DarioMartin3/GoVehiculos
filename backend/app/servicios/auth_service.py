@@ -164,6 +164,67 @@ class AuthService:
 
         return profile
 
+    def list_users_directory(self, token: str) -> list[dict]:
+        payload = decode_access_token(token)
+        role = (payload.get("rol") or "").strip().lower()
+        if role not in {"administrador", "admin"}:
+            raise ValueError("Permiso denegado")
+
+        return self.usuario_repository.get_users_directory()
+
+    def update_directory_user(self, token: str, user_id: int, data: dict) -> dict:
+        payload = decode_access_token(token)
+        role = (payload.get("rol") or "").strip().lower()
+        if role not in {"administrador", "admin"}:
+            raise ValueError("Permiso denegado")
+
+        if data.get('email'):
+            existing_user = self.usuario_repository.get_by_email(data['email'])
+            if existing_user and existing_user.id != user_id:
+                raise ValueError("El email ya está registrado")
+
+        updated = self.usuario_repository.update_user_directory_by_id(user_id, data)
+        if not updated:
+            raise ValueError("Usuario no encontrado")
+
+        item = self.usuario_repository.get_user_directory_item_by_id(user_id)
+        if not item:
+            raise ValueError("Usuario no encontrado")
+
+        return item
+
+    def deactivate_directory_user(self, token: str, user_id: int) -> dict:
+        payload = decode_access_token(token)
+        role = (payload.get("rol") or "").strip().lower()
+        if role not in {"administrador", "admin"}:
+            raise ValueError("Permiso denegado")
+
+        updated = self.usuario_repository.deactivate_user_by_id(user_id)
+        if not updated:
+            raise ValueError("Usuario no encontrado")
+
+        item = self.usuario_repository.get_user_directory_item_by_id(user_id)
+        if not item:
+            raise ValueError("Usuario no encontrado")
+
+        return item
+
+    def activate_directory_user(self, token: str, user_id: int) -> dict:
+        payload = decode_access_token(token)
+        role = (payload.get("rol") or "").strip().lower()
+        if role not in {"administrador", "admin"}:
+            raise ValueError("Permiso denegado")
+
+        updated = self.usuario_repository.activate_user_by_id(user_id)
+        if not updated:
+            raise ValueError("Usuario no encontrado")
+
+        item = self.usuario_repository.get_user_directory_item_by_id(user_id)
+        if not item:
+            raise ValueError("Usuario no encontrado")
+
+        return item
+
     @staticmethod
     def translate_register_error(error: Exception) -> str:
         # Traduce errores técnicos de PostgreSQL a mensajes claros.

@@ -2,6 +2,8 @@ from fastapi import APIRouter, Header, HTTPException, status
 
 from app.schemas import (
     ChangePasswordRequest,
+    DirectoryUserResponse,
+    DirectoryUserUpdateRequest,
     LoginRequest,
     LoginResponse,
     ProfileResponse,
@@ -106,6 +108,92 @@ def update_profile(payload: UpdateProfileRequest, authorization: str | None = He
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message) from error
 
     return ProfileResponse(**result)
+
+
+@router.get("/users", response_model=list[DirectoryUserResponse])
+def list_users_directory(authorization: str | None = Header(default=None)):
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token requerido")
+
+    token = authorization.split(" ", 1)[1].strip()
+
+    try:
+        result = AuthService().list_users_directory(token)
+    except ValueError as error:
+        message = str(error)
+        if message == "Permiso denegado":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=message) from error
+        if message == "Token inválido":
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=message) from error
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message) from error
+
+    return [DirectoryUserResponse(**item) for item in result]
+
+
+@router.put("/users/{user_id}", response_model=DirectoryUserResponse)
+def update_directory_user(user_id: int, payload: DirectoryUserUpdateRequest, authorization: str | None = Header(default=None)):
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token requerido")
+
+    token = authorization.split(" ", 1)[1].strip()
+
+    try:
+        result = AuthService().update_directory_user(token, user_id, payload.model_dump(exclude_unset=True))
+    except ValueError as error:
+        message = str(error)
+        if message == "Permiso denegado":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=message) from error
+        if message == "Usuario no encontrado":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=message) from error
+        if message == "Token inválido":
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=message) from error
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message) from error
+
+    return DirectoryUserResponse(**result)
+
+
+@router.delete("/users/{user_id}", response_model=DirectoryUserResponse)
+def deactivate_directory_user(user_id: int, authorization: str | None = Header(default=None)):
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token requerido")
+
+    token = authorization.split(" ", 1)[1].strip()
+
+    try:
+        result = AuthService().deactivate_directory_user(token, user_id)
+    except ValueError as error:
+        message = str(error)
+        if message == "Permiso denegado":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=message) from error
+        if message == "Usuario no encontrado":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=message) from error
+        if message == "Token inválido":
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=message) from error
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message) from error
+
+    return DirectoryUserResponse(**result)
+
+
+@router.post("/users/{user_id}/activate", response_model=DirectoryUserResponse)
+def activate_directory_user(user_id: int, authorization: str | None = Header(default=None)):
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token requerido")
+
+    token = authorization.split(" ", 1)[1].strip()
+
+    try:
+        result = AuthService().activate_directory_user(token, user_id)
+    except ValueError as error:
+        message = str(error)
+        if message == "Permiso denegado":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=message) from error
+        if message == "Usuario no encontrado":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=message) from error
+        if message == "Token inválido":
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=message) from error
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message) from error
+
+    return DirectoryUserResponse(**result)
 
 
 @router.get("/paises")
