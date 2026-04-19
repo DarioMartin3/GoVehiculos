@@ -88,3 +88,33 @@ class DirectoryUserUpdateRequest(BaseModel):
     pais: int | None = None
     rol: str | None = None
     estado: int | None = None
+
+
+class VehicleBrandResponse(BaseModel):
+    id: int
+    nombre: str
+
+
+class VehicleModelResponse(BaseModel):
+    id: int
+    nombre: str
+    marca_id: int
+    marca_nombre: str
+
+
+class VehicleCreateRequest(BaseModel):
+    patente: str
+    modelo_id: int
+    anio: int
+
+
+class VehicleResponse(BaseModel):
+    id: int
+    usuario_id: int
+    patente: str
+    anio: int
+    fecha_ingreso: str | None = None
+    estado_vehiculo: str | None = None
+    modelo_id: int
+    modelo_nombre: str
+    marca_nombre: str

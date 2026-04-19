@@ -117,20 +117,35 @@
 <div class="lg:col-span-7">
 <div class="bg-surface-container-low p-1 lg:p-2 rounded-xl">
 <div class="bg-surface-container-lowest p-8 md:p-12 rounded-lg shadow-sm">
-<form class="space-y-8">
+<form id="vehicle-register-form" class="space-y-8">
+<div id="vehicle-register-message" class="text-sm font-semibold"></div>
 <!-- Input Sections -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 <div class="space-y-2 group">
 <label class="text-xs font-bold tracking-wider text-outline uppercase font-label" for="patente">Número de Patente</label>
 <div class="relative">
-<input class="w-full bg-surface-container-high border-none rounded-sm px-4 py-4 focus:ring-0 focus:border-none focus-indicator-active transition-all placeholder:text-outline-variant" id="patente" placeholder="ABC-123-DE" type="text"/>
+<input class="w-full bg-surface-container-high border-none rounded-sm px-4 py-4 focus:ring-0 focus:border-none focus-indicator-active transition-all placeholder:text-outline-variant" id="patente" placeholder="ABC-123" type="text" maxlength="15"/>
 </div>
 </div>
 <div class="space-y-2">
-<label class="text-xs font-bold tracking-wider text-outline uppercase font-label" for="modelo">Modelo del Vehículo</label>
+<label class="text-xs font-bold tracking-wider text-outline uppercase font-label" for="anio">Año del Vehículo</label>
 <div class="relative">
-<input class="w-full bg-surface-container-high border-none rounded-sm px-4 py-4 focus:ring-0 focus:border-none focus-indicator-active transition-all placeholder:text-outline-variant" id="modelo" placeholder="BMW Series 7 2024" type="text"/>
+<input class="w-full bg-surface-container-high border-none rounded-sm px-4 py-4 focus:ring-0 focus:border-none focus-indicator-active transition-all placeholder:text-outline-variant" id="anio" placeholder="2024" type="number" min="1980" max="2035"/>
 </div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="text-xs font-bold tracking-wider text-outline uppercase font-label" for="marca">Marca del Vehículo</label>
+<select class="w-full bg-surface-container-high border-none rounded-sm px-4 py-4 focus:ring-0 focus:border-none focus-indicator-active transition-all" id="marca">
+<option value="">Seleccionar marca</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold tracking-wider text-outline uppercase font-label" for="modelo">Modelo del Vehículo</label>
+<select class="w-full bg-surface-container-high border-none rounded-sm px-4 py-4 focus:ring-0 focus:border-none focus-indicator-active transition-all" id="modelo" disabled>
+<option value="">Seleccionar modelo</option>
+</select>
 </div>
 </div>
 <!-- Upload Section -->
@@ -173,7 +188,7 @@
 </div>
 <!-- Submit Button -->
 <div class="pt-4">
-<button class="kinetic-gradient w-full py-5 rounded-lg text-white font-headline font-bold text-lg tracking-tight flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.98] transition-all" type="submit">
+<button id="vehicle-register-submit" class="kinetic-gradient w-full py-5 rounded-lg text-white font-headline font-bold text-lg tracking-tight flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.98] transition-all" type="submit">
                                     Registrar Vehículo
                                     <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
 </button>
@@ -188,4 +203,5 @@
 <div id="footer-placeholder"></div>
 <div id="login-modal-placeholder"></div>
 <script src="/components/layout.js"></script>
+<script src="/scripts/vehicles/register_vehicle.js"></script>
 </body></html>
