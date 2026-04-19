@@ -94,10 +94,16 @@
 <section class="bg-surface-container-low p-8 rounded-xl">
 <div class="flex justify-between items-center mb-10">
 <h2 class="text-2xl font-bold font-headline">Informacion Personal</h2>
-<button class="flex items-center gap-2 text-primary font-semibold hover:opacity-80 transition-opacity">
+<div class="flex items-center gap-3">
+<button id="edit-profile-btn" class="flex items-center gap-2 text-primary font-semibold hover:opacity-80 transition-opacity">
 <span class="material-symbols-outlined text-sm">edit</span>
 <span class="font-label text-sm">Editar</span>
 </button>
+<button id="cancel-profile-btn" class="hidden flex items-center gap-2 text-error font-semibold hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-sm">close</span>
+<span class="font-label text-sm">Cancelar</span>
+</button>
+</div>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 <!-- Name Field -->
@@ -124,24 +130,36 @@
 <!-- Email Field -->
 <div class="flex flex-col gap-2">
 <label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">Email</label>
-<div class="bg-surface-container-high p-4 rounded-lg focus-indicator-active">
+<div id="profile-email-display" class="bg-surface-container-high p-4 rounded-lg focus-indicator-active">
 <p id="profile-email" class="text-on-surface font-medium">-</p>
 </div>
+<input id="profile-email-input" type="email" placeholder="correo@ejemplo.com" class="hidden w-full bg-surface-container-high border-none focus:ring-2 focus:ring-primary rounded-lg text-on-surface py-3 px-4 transition-colors placeholder:text-slate-400"/>
 </div>
 <!-- Phone Field -->
 <div class="flex flex-col gap-2">
 <label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">Numero de Telefono</label>
-<div class="bg-surface-container-high p-4 rounded-lg focus-indicator-active">
+<div id="profile-telefono-display" class="bg-surface-container-high p-4 rounded-lg focus-indicator-active">
 <p id="profile-telefono" class="text-on-surface font-medium">-</p>
 </div>
+<input id="profile-telefono-input" type="tel" placeholder="+34 692 881 229" class="hidden w-full bg-surface-container-high border-none focus:ring-2 focus:ring-primary rounded-lg text-on-surface py-3 px-4 transition-colors placeholder:text-slate-400"/>
 </div>
 <!-- Country Field -->
 <div class="flex flex-col gap-2">
 <label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">Pais</label>
-<div class="bg-surface-container-high p-4 rounded-lg focus-indicator-active">
+<div id="profile-pais-display" class="bg-surface-container-high p-4 rounded-lg focus-indicator-active">
 <p id="profile-pais" class="text-on-surface font-medium">-</p>
 </div>
+<select id="profile-pais-input" class="hidden w-full bg-surface-container-high border-none focus:ring-2 focus:ring-primary rounded-lg text-on-surface py-3 px-4 transition-colors">
+<option value="">Selecciona un país</option>
+</select>
 </div>
+</div>
+<p id="profile-edit-message" class="mt-4 text-sm font-semibold text-primary"></p>
+<div id="profile-save-actions" class="hidden mt-8 flex justify-end gap-3">
+<button id="save-profile-btn" class="kinetic-gradient text-white px-8 py-3 rounded-lg font-bold text-sm flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-sm">
+<span class="material-symbols-outlined text-base">save</span>
+Guardar Cambios
+</button>
 </div>
 </section>
 <!-- Security / Change Password Section -->
