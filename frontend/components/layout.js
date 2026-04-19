@@ -623,7 +623,12 @@ async function fetchUserDirectory() {
 let userDirectoryCache = [];
 let editingDirectoryUserId = null;
 let directoryEditSubmitting = false;
+const toastTimeoutByScope = {};
+const confirmResolverByScope = {};
 let vehicleDashboardCache = [];
+let editingVehicleId = null;
+let vehicleEditSubmitting = false;
+let vehicleEditModelsCache = [];
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -734,6 +739,97 @@ function initUserDirectoryFilters() {
   resetButton.dataset.boundFilters = '1';
 }
 
+function showScopedToast(scope, message, type = 'info') {
+  const toast = document.getElementById(`${scope}-toast`);
+  if (!toast) return;
+
+  const timeoutId = toastTimeoutByScope[scope];
+  if (timeoutId) {
+    clearTimeout(timeoutId);
+    delete toastTimeoutByScope[scope];
+  }
+
+  toast.textContent = message;
+  toast.classList.remove('hidden', 'bg-green-600', 'bg-red-600', 'bg-slate-800', 'text-white');
+  toast.classList.add('text-white');
+
+  if (type === 'success') {
+    toast.classList.add('bg-green-600');
+  } else if (type === 'error') {
+    toast.classList.add('bg-red-600');
+  } else {
+    toast.classList.add('bg-slate-800');
+  }
+
+  toastTimeoutByScope[scope] = setTimeout(() => {
+    toast.classList.add('hidden');
+    delete toastTimeoutByScope[scope];
+  }, 2600);
+}
+
+function closeScopedConfirmModal(scope, confirmed) {
+  const modal = document.getElementById(`${scope}-confirm-modal`);
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+
+  const resolver = confirmResolverByScope[scope];
+  if (resolver) {
+    resolver(Boolean(confirmed));
+    delete confirmResolverByScope[scope];
+  }
+}
+
+function openScopedConfirmModal(scope, message, confirmText = 'Confirmar') {
+  const modal = document.getElementById(`${scope}-confirm-modal`);
+  const messageEl = document.getElementById(`${scope}-confirm-message`);
+  const acceptBtn = document.getElementById(`${scope}-confirm-accept`);
+
+  if (!modal || !messageEl || !acceptBtn) {
+    return Promise.resolve(window.confirm(message));
+  }
+
+  messageEl.textContent = message;
+  acceptBtn.textContent = confirmText;
+  modal.classList.remove('hidden');
+
+  return new Promise((resolve) => {
+    confirmResolverByScope[scope] = resolve;
+  });
+}
+
+function initScopedConfirmModal(scope) {
+  const modal = document.getElementById(`${scope}-confirm-modal`);
+  const backdrop = document.getElementById(`${scope}-confirm-backdrop`);
+  const cancelBtn = document.getElementById(`${scope}-confirm-cancel`);
+  const acceptBtn = document.getElementById(`${scope}-confirm-accept`);
+
+  if (!modal || !backdrop || !cancelBtn || !acceptBtn) return;
+  if (modal.dataset.boundConfirmModal === '1') return;
+
+  backdrop.addEventListener('click', () => closeScopedConfirmModal(scope, false));
+  cancelBtn.addEventListener('click', () => closeScopedConfirmModal(scope, false));
+  acceptBtn.addEventListener('click', () => closeScopedConfirmModal(scope, true));
+
+  modal.dataset.boundConfirmModal = '1';
+}
+
+function showUserToast(message, type = 'info') {
+  showScopedToast('user', message, type);
+}
+
+function closeUserConfirmModal(confirmed) {
+  closeScopedConfirmModal('user', confirmed);
+}
+
+function openUserConfirmModal(message, confirmText = 'Confirmar') {
+  return openScopedConfirmModal('user', message, confirmText);
+}
+
+function initUserConfirmModal() {
+  initScopedConfirmModal('user');
+}
+
 function setDirectoryEditModalMessage(text, isError = false) {
   const message = document.getElementById('user-edit-form-message');
   if (!message) return;
@@ -791,7 +887,7 @@ function openDirectoryEditModal(userId) {
 
   const user = userDirectoryCache.find((item) => Number(item.id) === Number(userId));
   if (!user) {
-    window.alert('No se encontró el usuario para editar.');
+    showUserToast('No se encontró el usuario para editar.', 'error');
     return;
   }
 
@@ -893,9 +989,11 @@ async function submitDirectoryEditModal(event) {
     setDirectoryEditModalMessage('Guardando cambios...');
     await saveDirectoryUser(editingDirectoryUserId, payload);
     closeDirectoryEditModal(true);
+    showUserToast('Usuario actualizado correctamente.', 'success');
     await initUserDirectoryPage('dashboard_user_directory.html');
   } catch (error) {
     setDirectoryEditModalMessage(error.message || 'No se pudo actualizar el usuario.', true);
+    showUserToast(error.message || 'No se pudo actualizar el usuario.', 'error');
   } finally {
     setDirectoryEditSubmittingState(false);
   }
@@ -988,20 +1086,22 @@ async function handleDirectoryAction(event) {
     }
 
     if (action === 'delete') {
-      const confirmed = window.confirm('Esta acción hará una baja lógica y dejará el usuario inactivo. ¿Continuar?');
+      const confirmed = await openUserConfirmModal('Esta acción hará una baja lógica y dejará el usuario inactivo. ¿Continuar?', 'Dar de baja');
       if (!confirmed) return;
       await deactivateDirectoryUser(userId);
+      showUserToast('Usuario dado de baja correctamente.', 'success');
     }
 
     if (action === 'activate') {
-      const confirmed = window.confirm('Este usuario volverá a estado activo. ¿Continuar?');
+      const confirmed = await openUserConfirmModal('Este usuario volverá a estado activo. ¿Continuar?', 'Activar');
       if (!confirmed) return;
       await activateDirectoryUser(userId);
+      showUserToast('Usuario activado correctamente.', 'success');
     }
 
     await initUserDirectoryPage('dashboard_user_directory.html');
   } catch (error) {
-    window.alert(error.message || 'No se pudo completar la acción.');
+    showUserToast(error.message || 'No se pudo completar la acción.', 'error');
   }
 }
 
@@ -1077,6 +1177,7 @@ async function initUserDirectoryPage(current) {
 
   initUserDirectoryFilters();
   initDirectoryEditModal();
+  initUserConfirmModal();
 
   if (!tbody.dataset.boundActions) {
     tbody.addEventListener('click', handleDirectoryAction);
@@ -1214,7 +1315,7 @@ function renderVehicleDashboard(vehicles) {
   if (!vehicles || vehicles.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="5" class="px-6 py-10 text-center text-slate-500 font-medium">No hay vehículos para mostrar.</td>
+        <td colspan="6" class="px-6 py-10 text-center text-slate-500 font-medium">No hay vehículos para mostrar.</td>
       </tr>
     `;
     if (summaryLabel) summaryLabel.textContent = 'Mostrando 0 vehículos';
@@ -1223,6 +1324,26 @@ function renderVehicleDashboard(vehicles) {
 
   tbody.innerHTML = vehicles.map((vehicle) => {
     const status = getVehicleStatusBadge(vehicle.estado_vehiculo);
+    const isInactive = normalizeVehicleText(vehicle.estado_vehiculo) === 'inactivo';
+    const actionButtonHtml = isInactive
+      ? `
+          <div class="flex justify-end gap-2">
+            <button class="p-2 text-slate-400 hover:text-primary transition-colors hover:bg-primary-fixed rounded-lg" type="button" data-vehicle-action="activate" data-vehicle-id="${vehicle.id}" title="Activar vehículo">
+              <span class="material-symbols-outlined text-lg">check_circle</span>
+            </button>
+          </div>
+        `
+      : `
+          <div class="flex justify-end gap-2">
+            <button class="p-2 text-slate-400 hover:text-primary transition-colors hover:bg-primary-fixed rounded-lg" type="button" data-vehicle-action="edit" data-vehicle-id="${vehicle.id}" title="Editar vehículo">
+              <span class="material-symbols-outlined text-lg">edit</span>
+            </button>
+            <button class="p-2 text-slate-400 hover:text-error transition-colors hover:bg-error-container rounded-lg" type="button" data-vehicle-action="deactivate" data-vehicle-id="${vehicle.id}" title="Dar de baja">
+              <span class="material-symbols-outlined text-lg">delete</span>
+            </button>
+          </div>
+        `;
+
     return `
       <tr class="hover:bg-surface-bright transition-colors group">
         <td class="px-6 py-5">
@@ -1248,6 +1369,9 @@ function renderVehicleDashboard(vehicles) {
         <td class="px-6 py-5">
           <span class="px-3 py-1 ${status.className} text-[10px] font-bold uppercase tracking-wider rounded-full">${escapeHtml(status.label)}</span>
         </td>
+        <td class="px-6 py-5 text-right">
+          ${actionButtonHtml}
+        </td>
       </tr>
     `;
   }).join('');
@@ -1255,6 +1379,288 @@ function renderVehicleDashboard(vehicles) {
   if (summaryLabel) {
     const total = vehicles.length;
     summaryLabel.textContent = `Mostrando ${total} vehículo${total === 1 ? '' : 's'}`;
+  }
+}
+
+function showVehicleToast(message, type = 'info') {
+  showScopedToast('vehicle', message, type);
+}
+
+function closeVehicleConfirmModal(confirmed) {
+  closeScopedConfirmModal('vehicle', confirmed);
+}
+
+function openVehicleConfirmModal(message, confirmText = 'Confirmar') {
+  return openScopedConfirmModal('vehicle', message, confirmText);
+}
+
+function initVehicleConfirmModal() {
+  initScopedConfirmModal('vehicle');
+}
+
+function setVehicleEditModalMessage(text, isError = false) {
+  const message = document.getElementById('vehicle-edit-form-message');
+  if (!message) return;
+
+  message.textContent = text;
+  message.classList.toggle('text-error', isError);
+  message.classList.toggle('text-primary', !isError);
+}
+
+function setVehicleEditSubmittingState(isSubmitting) {
+  vehicleEditSubmitting = isSubmitting;
+
+  const saveButton = document.getElementById('vehicle-edit-save');
+  const cancelButton = document.getElementById('vehicle-edit-cancel');
+  const closeButton = document.getElementById('vehicle-edit-modal-close');
+
+  if (saveButton) {
+    saveButton.disabled = isSubmitting;
+    saveButton.classList.toggle('opacity-60', isSubmitting);
+    saveButton.classList.toggle('cursor-not-allowed', isSubmitting);
+    saveButton.textContent = isSubmitting ? 'Guardando...' : 'Guardar cambios';
+  }
+  if (cancelButton) cancelButton.disabled = isSubmitting;
+  if (closeButton) closeButton.disabled = isSubmitting;
+}
+
+async function ensureVehicleEditModels() {
+  const modelSelect = document.getElementById('edit-vehicle-modelo');
+  if (!modelSelect) return;
+
+  if (vehicleEditModelsCache.length === 0) {
+    const response = await fetch(`${API_BASE_URL}/vehiculos/modelos`);
+    if (!response.ok) {
+      throw new Error('No se pudieron cargar los modelos de vehículos.');
+    }
+
+    vehicleEditModelsCache = await response.json();
+  }
+
+  modelSelect.innerHTML = '<option value="">Seleccionar modelo</option>';
+  vehicleEditModelsCache.forEach((model) => {
+    const option = document.createElement('option');
+    option.value = String(model.id);
+    option.textContent = `${model.marca_nombre} - ${model.nombre}`;
+    modelSelect.appendChild(option);
+  });
+}
+
+function sanitizeVehiclePatentInput(value) {
+  return (value || '').toString().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
+}
+
+function isValidVehiclePatent(value) {
+  return /^[A-Z0-9]{6,10}$/.test(value);
+}
+
+function closeVehicleEditModal(force = false) {
+  if (vehicleEditSubmitting && !force) return;
+
+  const modal = document.getElementById('vehicle-edit-modal');
+  if (!modal) return;
+
+  modal.classList.add('hidden');
+  editingVehicleId = null;
+  setVehicleEditSubmittingState(false);
+  setVehicleEditModalMessage('');
+}
+
+async function openVehicleEditModal(vehicleId) {
+  const modal = document.getElementById('vehicle-edit-modal');
+  if (!modal) return;
+
+  const vehicle = vehicleDashboardCache.find((item) => Number(item.id) === Number(vehicleId));
+  if (!vehicle) {
+    showVehicleToast('No se encontró el vehículo a editar.', 'error');
+    return;
+  }
+
+  try {
+    await ensureVehicleEditModels();
+  } catch (error) {
+    showVehicleToast(error.message || 'No se pudieron cargar los modelos.', 'error');
+    return;
+  }
+
+  editingVehicleId = Number(vehicleId);
+
+  const patentInput = document.getElementById('edit-vehicle-patente');
+  const yearInput = document.getElementById('edit-vehicle-anio');
+  const modelInput = document.getElementById('edit-vehicle-modelo');
+
+  if (patentInput) patentInput.value = vehicle.patente || '';
+  if (yearInput) yearInput.value = String(vehicle.anio || '');
+  if (modelInput) modelInput.value = String(vehicle.modelo_id || '');
+
+  setVehicleEditSubmittingState(false);
+  setVehicleEditModalMessage('');
+  modal.classList.remove('hidden');
+}
+
+async function updateVehicleById(vehicleId, payload) {
+  const token = localStorage.getItem('auth_token');
+  const response = await fetch(`${API_BASE_URL}/vehiculos/${vehicleId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || 'No se pudo actualizar el vehículo.');
+  }
+
+  return data;
+}
+
+async function deactivateVehicleById(vehicleId) {
+  const token = localStorage.getItem('auth_token');
+  const response = await fetch(`${API_BASE_URL}/vehiculos/${vehicleId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || 'No se pudo dar de baja al vehículo.');
+  }
+
+  return data;
+}
+
+async function activateVehicleById(vehicleId) {
+  const token = localStorage.getItem('auth_token');
+  const response = await fetch(`${API_BASE_URL}/vehiculos/${vehicleId}/activate`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || 'No se pudo activar el vehículo.');
+  }
+
+  return data;
+}
+
+async function submitVehicleEditModal(event) {
+  event.preventDefault();
+
+  if (vehicleEditSubmitting) return;
+  if (!editingVehicleId) {
+    setVehicleEditModalMessage('No se encontró el vehículo a editar.', true);
+    return;
+  }
+
+  const patentInput = document.getElementById('edit-vehicle-patente');
+  const yearInput = document.getElementById('edit-vehicle-anio');
+  const modelInput = document.getElementById('edit-vehicle-modelo');
+
+  const patente = sanitizeVehiclePatentInput(patentInput?.value || '');
+  const anio = Number.parseInt(yearInput?.value || '', 10);
+  const modeloId = Number.parseInt(modelInput?.value || '', 10);
+
+  if (!patente || Number.isNaN(anio) || Number.isNaN(modeloId)) {
+    setVehicleEditModalMessage('Completá patente, año y modelo.', true);
+    return;
+  }
+
+  if (!isValidVehiclePatent(patente)) {
+    setVehicleEditModalMessage('La patente debe tener entre 6 y 10 caracteres alfanuméricos.', true);
+    return;
+  }
+
+  if (anio < 1980) {
+    setVehicleEditModalMessage('El año del vehículo no es válido.', true);
+    return;
+  }
+
+  const payload = {
+    patente,
+    anio,
+    modelo_id: modeloId,
+  };
+
+  try {
+    setVehicleEditSubmittingState(true);
+    setVehicleEditModalMessage('Guardando cambios...');
+    await updateVehicleById(editingVehicleId, payload);
+    closeVehicleEditModal(true);
+    showVehicleToast('Vehículo actualizado correctamente.', 'success');
+    await initVehicleDashboardPage('deshboard_vehiculos.html');
+  } catch (error) {
+    setVehicleEditModalMessage(error.message || 'No se pudo actualizar el vehículo.', true);
+    showVehicleToast(error.message || 'No se pudo actualizar el vehículo.', 'error');
+  } finally {
+    setVehicleEditSubmittingState(false);
+  }
+}
+
+function initVehicleEditModal() {
+  const modal = document.getElementById('vehicle-edit-modal');
+  const closeBtn = document.getElementById('vehicle-edit-modal-close');
+  const cancelBtn = document.getElementById('vehicle-edit-cancel');
+  const backdrop = document.getElementById('vehicle-edit-modal-backdrop');
+  const form = document.getElementById('vehicle-edit-form');
+  const patentInput = document.getElementById('edit-vehicle-patente');
+
+  if (!modal || !closeBtn || !cancelBtn || !backdrop || !form || !patentInput) return;
+  if (modal.dataset.boundModal === '1') return;
+
+  closeBtn.addEventListener('click', closeVehicleEditModal);
+  cancelBtn.addEventListener('click', closeVehicleEditModal);
+  backdrop.addEventListener('click', closeVehicleEditModal);
+  form.addEventListener('submit', submitVehicleEditModal);
+
+  patentInput.addEventListener('input', () => {
+    const sanitized = sanitizeVehiclePatentInput(patentInput.value);
+    if (sanitized !== patentInput.value) {
+      patentInput.value = sanitized;
+    }
+  });
+
+  modal.dataset.boundModal = '1';
+}
+
+async function handleVehicleDashboardAction(event) {
+  const button = event.target.closest('button[data-vehicle-action]');
+  if (!button) return;
+
+  const vehicleId = Number.parseInt(button.dataset.vehicleId || '', 10);
+  const action = button.dataset.vehicleAction || '';
+  if (!vehicleId || !action) return;
+
+  try {
+    if (action === 'edit') {
+      await openVehicleEditModal(vehicleId);
+      return;
+    }
+
+    if (action === 'deactivate') {
+      const confirmed = await openVehicleConfirmModal('Esta acción hará una baja lógica del vehículo. ¿Continuar?', 'Dar de baja');
+      if (!confirmed) return;
+      await deactivateVehicleById(vehicleId);
+      showVehicleToast('Vehículo dado de baja correctamente.', 'success');
+      await initVehicleDashboardPage('deshboard_vehiculos.html');
+    }
+
+    if (action === 'activate') {
+      const confirmed = await openVehicleConfirmModal('Este vehículo volverá a estado activo. ¿Continuar?', 'Activar');
+      if (!confirmed) return;
+      await activateVehicleById(vehicleId);
+      showVehicleToast('Vehículo activado correctamente.', 'success');
+      await initVehicleDashboardPage('deshboard_vehiculos.html');
+    }
+  } catch (error) {
+    showVehicleToast(error.message || 'No se pudo completar la acción.', 'error');
   }
 }
 
@@ -1330,10 +1736,17 @@ async function initVehicleDashboardPage(current) {
   if (!tbody) return;
 
   initVehicleDashboardFilters();
+  initVehicleEditModal();
+  initVehicleConfirmModal();
+
+  if (!tbody.dataset.boundActions) {
+    tbody.addEventListener('click', handleVehicleDashboardAction);
+    tbody.dataset.boundActions = '1';
+  }
 
   tbody.innerHTML = `
     <tr>
-      <td colspan="5" class="px-6 py-10 text-center text-slate-500 font-medium">Cargando vehículos...</td>
+      <td colspan="6" class="px-6 py-10 text-center text-slate-500 font-medium">Cargando vehículos...</td>
     </tr>
   `;
 
@@ -1349,7 +1762,7 @@ async function initVehicleDashboardPage(current) {
     populateVehicleFilterOptions([]);
     tbody.innerHTML = `
       <tr>
-        <td colspan="5" class="px-6 py-10 text-center text-error font-semibold">${escapeHtml(error.message || 'No se pudo cargar el dashboard de vehículos.')}</td>
+        <td colspan="6" class="px-6 py-10 text-center text-error font-semibold">${escapeHtml(error.message || 'No se pudo cargar el dashboard de vehículos.')}</td>
       </tr>
     `;
   }

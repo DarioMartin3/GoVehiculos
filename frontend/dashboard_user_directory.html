@@ -256,6 +256,26 @@ Restaurar filtros
 </div>
 </div>
 
+<div id="user-toast" class="fixed bottom-6 right-6 z-[60] hidden max-w-sm rounded-lg px-4 py-3 text-sm font-semibold shadow-lg"></div>
+
+<div id="user-confirm-modal" class="fixed inset-0 z-[55] hidden">
+<div id="user-confirm-backdrop" class="absolute inset-0 bg-black/40"></div>
+<div class="absolute inset-0 flex items-center justify-center p-4">
+<div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-xl overflow-hidden">
+<div class="px-6 py-4 border-b border-outline-variant/20">
+<h3 class="font-headline text-lg font-bold text-on-surface">Confirmar acción</h3>
+</div>
+<div class="px-6 py-5">
+<p id="user-confirm-message" class="text-sm text-on-surface-variant"></p>
+</div>
+<div class="px-6 py-4 border-t border-outline-variant/20 flex justify-end gap-3">
+<button id="user-confirm-cancel" class="px-4 py-2 rounded-lg bg-surface-container text-on-surface font-semibold" type="button">Cancelar</button>
+<button id="user-confirm-accept" class="px-4 py-2 rounded-lg bg-primary text-white font-semibold" type="button">Confirmar</button>
+</div>
+</div>
+</div>
+</div>
+
 <div id="footer-placeholder"></div>
 <div id="login-modal-placeholder"></div>
 <script src="/components/layout.js"></script>
