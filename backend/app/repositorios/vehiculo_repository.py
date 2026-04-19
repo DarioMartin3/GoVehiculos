@@ -1,9 +1,23 @@
 from datetime import date
 
 from app.core.database import get_connection
+from app.entidades.vehiculo import Vehiculo
 
 
 class VehiculoRepository:
+    def _build_vehicle_entity_from_row(self, row: tuple) -> Vehiculo:
+        return Vehiculo(
+            id=row[0],
+            usuario_id=row[1],
+            patente=row[2],
+            anio=row[3],
+            fecha_ingreso=row[4].isoformat() if row[4] else None,
+            estado_vehiculo=row[5],
+            modelo_id=row[6],
+            modelo_nombre=row[7],
+            marca_nombre=row[8],
+        )
+
     def _get_estado_vehiculo_id(self, cursor, estado_nombre: str) -> int:
         cursor.execute(
             """
@@ -117,7 +131,7 @@ class VehiculoRepository:
         )
         return cursor.fetchone()[0]
 
-    def get_vehicle_by_id(self, vehicle_id: int) -> dict | None:
+    def get_vehicle_by_id(self, vehicle_id: int) -> Vehiculo | None:
         with get_connection() as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
@@ -139,19 +153,9 @@ class VehiculoRepository:
         if not row:
             return None
 
-        return {
-            "id": row[0],
-            "usuario_id": row[1],
-            "patente": row[2],
-            "anio": row[3],
-            "fecha_ingreso": row[4].isoformat() if row[4] else None,
-            "estado_vehiculo": row[5],
-            "modelo_id": row[6],
-            "modelo_nombre": row[7],
-            "marca_nombre": row[8],
-        }
+        return self._build_vehicle_entity_from_row(row)
 
-    def list_vehicles(self, usuario_id: int | None = None) -> list[dict]:
+    def list_vehicles(self, usuario_id: int | None = None) -> list[Vehiculo]:
         query = """
             SELECT v.id, v.usuario_id, v.patente, v.anio, v.fecha_ingreso,
                    ev.nombre AS estado_vehiculo,
@@ -174,21 +178,9 @@ class VehiculoRepository:
                 cursor.execute(query, params)
                 rows = cursor.fetchall()
 
-        vehicles: list[dict] = []
+        vehicles: list[Vehiculo] = []
         for row in rows:
-            vehicles.append(
-                {
-                    "id": row[0],
-                    "usuario_id": row[1],
-                    "patente": row[2],
-                    "anio": row[3],
-                    "fecha_ingreso": row[4].isoformat() if row[4] else None,
-                    "estado_vehiculo": row[5],
-                    "modelo_id": row[6],
-                    "modelo_nombre": row[7],
-                    "marca_nombre": row[8],
-                }
-            )
+            vehicles.append(self._build_vehicle_entity_from_row(row))
 
         return vehicles
 

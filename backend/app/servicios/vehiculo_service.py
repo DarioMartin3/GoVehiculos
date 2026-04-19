@@ -2,6 +2,7 @@ import re
 
 from app.core.security import decode_access_token
 from app.core.database import get_connection
+from app.entidades.vehiculo import Vehiculo
 from app.repositorios.usuario_repository import UsuarioRepository
 from app.repositorios.vehiculo_repository import VehiculoRepository
 
@@ -29,11 +30,17 @@ class VehiculoService:
 
         return usuario_id, role
 
-    def _validate_vehicle_access(self, role: str, vehicle: dict, usuario_id: int) -> None:
+    def _vehicle_to_dict(self, vehicle: Vehiculo) -> dict:
+        return vehicle.to_dict()
+
+    def _vehicles_to_dict(self, vehicles: list[Vehiculo]) -> list[dict]:
+        return [vehicle.to_dict() for vehicle in vehicles]
+
+    def _validate_vehicle_access(self, role: str, vehicle: Vehiculo, usuario_id: int) -> None:
         if role in {"administrador", "admin", "operador", "soporte"}:
             return
 
-        if role == "socio" and int(vehicle.get("usuario_id") or 0) == usuario_id:
+        if role == "socio" and vehicle.usuario_id == usuario_id:
             return
 
         raise ValueError("Permiso denegado")
@@ -42,10 +49,10 @@ class VehiculoService:
         usuario_id, role = self._get_request_context(token)
 
         if role in {"administrador", "admin", "operador", "soporte"}:
-            return self.vehiculo_repository.list_vehicles()
+            return self._vehicles_to_dict(self.vehiculo_repository.list_vehicles())
 
         if role == "socio":
-            return self.vehiculo_repository.list_vehicles(usuario_id=usuario_id)
+            return self._vehicles_to_dict(self.vehiculo_repository.list_vehicles(usuario_id=usuario_id))
 
         raise ValueError("Permiso denegado")
 
@@ -89,7 +96,7 @@ class VehiculoService:
         if not vehicle:
             raise ValueError("No se pudo registrar el vehículo")
 
-        return vehicle
+        return self._vehicle_to_dict(vehicle)
 
     def update_vehicle(self, token: str, vehicle_id: int, data: dict) -> dict:
         usuario_id, role = self._get_request_context(token)
@@ -151,7 +158,7 @@ class VehiculoService:
         if not updated_vehicle:
             raise ValueError("Vehículo no encontrado")
 
-        return updated_vehicle
+        return self._vehicle_to_dict(updated_vehicle)
 
     def deactivate_vehicle(self, token: str, vehicle_id: int) -> dict:
         usuario_id, role = self._get_request_context(token)
@@ -177,7 +184,7 @@ class VehiculoService:
         if not updated_vehicle:
             raise ValueError("Vehículo no encontrado")
 
-        return updated_vehicle
+        return self._vehicle_to_dict(updated_vehicle)
 
     def activate_vehicle(self, token: str, vehicle_id: int) -> dict:
         usuario_id, role = self._get_request_context(token)
@@ -203,4 +210,4 @@ class VehiculoService:
         if not updated_vehicle:
             raise ValueError("Vehículo no encontrado")
 
-        return updated_vehicle
+        return self._vehicle_to_dict(updated_vehicle)
