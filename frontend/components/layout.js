@@ -157,6 +157,29 @@ function applySidebarUserName() {
   }
 }
 
+function getUserInitials(user) {
+  const nameInitials = [user?.nombre, user?.apellido]
+    .map((part) => (part || '').toString().trim())
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('');
+
+  if (nameInitials) {
+    return nameInitials;
+  }
+
+  const emailInitial = (user?.email || '').toString().trim().charAt(0).toUpperCase();
+  return emailInitial || '?';
+}
+
+function applyHeaderUserInitials() {
+  const initialsEl = document.getElementById('nav-user-initials');
+  if (!initialsEl) return;
+
+  const authUser = getAuthUser();
+  initialsEl.textContent = getUserInitials(authUser);
+}
+
 function applyAuthenticatedHeaderState(current) {
   const token = localStorage.getItem('auth_token');
   const authUser = getAuthUser();
@@ -217,12 +240,45 @@ function applyAuthenticatedHeaderState(current) {
       footerPlaceholder.classList.add('ml-64');
     }
   }
+
+  applyHeaderUserInitials();
+}
+
+function persistAuthUserProfile(profile) {
+  if (!profile) return;
+
+  const existingAuthUser = getAuthUser() || {};
+  localStorage.setItem(
+    'auth_user',
+    JSON.stringify({
+      ...existingAuthUser,
+      id: profile.id,
+      email: profile.email,
+      rol: profile.rol,
+      nombre: profile.nombre,
+      apellido: profile.apellido,
+    })
+  );
+}
+
+async function hydrateAuthUserFromProfile(current) {
+  const token = localStorage.getItem('auth_token');
+  if (!token) return;
+
+  const profile = await fetchAuthenticatedProfile();
+  if (!profile) return;
+
+  persistAuthUserProfile(profile);
+  applySidebarUserName();
+  applySidebarAdminOnlyLinks();
+  applyAuthenticatedHeaderState(current);
 }
 
 function syncAuthenticatedUiAfterLogin(current) {
   applyAuthenticatedHeaderState(current);
   applySidebarUserName();
   applySidebarAdminOnlyLinks();
+  hydrateAuthUserFromProfile(current).catch(() => {});
 }
 
 async function fetchAuthenticatedProfile() {
@@ -276,23 +332,12 @@ async function initProfilePage(current) {
   if (!profile) return;
 
   applyProfilePageData(profile);
-
-  const existingAuthUser = getAuthUser() || {};
-  localStorage.setItem(
-    'auth_user',
-    JSON.stringify({
-      ...existingAuthUser,
-      id: profile.id,
-      email: profile.email,
-      rol: profile.rol,
-      nombre: profile.nombre,
-      apellido: profile.apellido,
-    })
-  );
+  persistAuthUserProfile(profile);
 
   applySidebarUserName();
   applySidebarAdminOnlyLinks();
   applyAuthenticatedHeaderState(current);
+  applyHeaderUserInitials();
 }
 
 function setPasswordChangeMessage(text, isError = false) {
@@ -1090,6 +1135,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   applyAuthenticatedHeaderState(current);
   applySidebarUserName();
   applySidebarAdminOnlyLinks();
+
+  if (current !== 'perfil_view.html') {
+    hydrateAuthUserFromProfile(current).catch(() => {});
+  }
+
   await initProfilePage(current);
   initPasswordChange(current);
   await initProfileEdit(current);
