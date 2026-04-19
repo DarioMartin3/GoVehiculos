@@ -191,3 +191,45 @@ class VehiculoRepository:
             )
 
         return vehicles
+
+    def update_vehicle_by_id(self, cursor, vehicle_id: int, data: dict) -> bool:
+        updates: list[str] = []
+        values: list[object] = []
+
+        if data.get("patente") is not None:
+            updates.append("patente = %s")
+            values.append(data["patente"])
+        if data.get("anio") is not None:
+            updates.append("anio = %s")
+            values.append(data["anio"])
+        if data.get("modelo_id") is not None:
+            updates.append("modelo = %s")
+            values.append(data["modelo_id"])
+
+        if not updates:
+            return True
+
+        values.append(vehicle_id)
+        update_clause = ", ".join(updates)
+
+        cursor.execute(
+            f"""
+            UPDATE vehiculo
+            SET {update_clause}
+            WHERE id = %s
+            """,
+            tuple(values),
+        )
+        return cursor.rowcount > 0
+
+    def update_vehicle_status_by_id(self, cursor, vehicle_id: int, estado_nombre: str) -> bool:
+        estado_id = self._get_estado_vehiculo_id(cursor, estado_nombre)
+        cursor.execute(
+            """
+            UPDATE vehiculo
+            SET estado_vehiculo = %s
+            WHERE id = %s
+            """,
+            (estado_id, vehicle_id),
+        )
+        return cursor.rowcount > 0

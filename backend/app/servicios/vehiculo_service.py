@@ -17,7 +17,7 @@ class VehiculoService:
     def list_modelos(self, marca_id: int | None = None) -> list[dict]:
         return self.vehiculo_repository.get_modelos(marca_id)
 
-    def list_vehicles(self, token: str) -> list[dict]:
+    def _get_request_context(self, token: str) -> tuple[int, str]:
         payload = decode_access_token(token)
         user_id_raw = payload.get("sub")
         role = (payload.get("rol") or "").strip().lower()
@@ -26,6 +26,20 @@ class VehiculoService:
             usuario_id = int(user_id_raw)
         except (TypeError, ValueError) as error:
             raise ValueError("Token inválido") from error
+
+        return usuario_id, role
+
+    def _validate_vehicle_access(self, role: str, vehicle: dict, usuario_id: int) -> None:
+        if role in {"administrador", "admin", "operador", "soporte"}:
+            return
+
+        if role == "socio" and int(vehicle.get("usuario_id") or 0) == usuario_id:
+            return
+
+        raise ValueError("Permiso denegado")
+
+    def list_vehicles(self, token: str) -> list[dict]:
+        usuario_id, role = self._get_request_context(token)
 
         if role in {"administrador", "admin", "operador", "soporte"}:
             return self.vehiculo_repository.list_vehicles()
@@ -36,17 +50,10 @@ class VehiculoService:
         raise ValueError("Permiso denegado")
 
     def register_vehicle(self, token: str, patente: str, modelo_id: int, anio: int) -> dict:
-        payload = decode_access_token(token)
-        user_id_raw = payload.get("sub")
-        role = (payload.get("rol") or "").strip().lower()
+        usuario_id, role = self._get_request_context(token)
 
         if role not in {"socio", "administrador", "admin"}:
             raise ValueError("Permiso denegado")
-
-        try:
-            usuario_id = int(user_id_raw)
-        except (TypeError, ValueError) as error:
-            raise ValueError("Token inválido") from error
 
         patente_normalizada = patente.strip().upper()
         if not re.fullmatch(r"[A-Z0-9]{6,10}", patente_normalizada):
@@ -83,3 +90,117 @@ class VehiculoService:
             raise ValueError("No se pudo registrar el vehículo")
 
         return vehicle
+
+    def update_vehicle(self, token: str, vehicle_id: int, data: dict) -> dict:
+        usuario_id, role = self._get_request_context(token)
+
+        vehicle = self.vehiculo_repository.get_vehicle_by_id(vehicle_id)
+        if not vehicle:
+            raise ValueError("Vehículo no encontrado")
+
+        self._validate_vehicle_access(role, vehicle, usuario_id)
+
+        payload: dict[str, object] = {}
+
+        if data.get("patente") is not None:
+            patente = str(data["patente"]).strip().upper()
+            if not re.fullmatch(r"[A-Z0-9]{6,10}", patente):
+                raise ValueError("La patente debe tener entre 6 y 10 caracteres alfanuméricos sin espacios ni símbolos")
+
+            existing_vehicle = self.vehiculo_repository.get_vehicle_by_patente(patente)
+            if existing_vehicle and int(existing_vehicle.get("id") or 0) != vehicle_id:
+                raise ValueError("Ya existe un vehículo con esa patente")
+
+            payload["patente"] = patente
+
+        if data.get("anio") is not None:
+            try:
+                anio = int(data["anio"])
+            except (TypeError, ValueError) as error:
+                raise ValueError("El año del vehículo no es válido") from error
+            if anio < 1980:
+                raise ValueError("El año del vehículo no es válido")
+            payload["anio"] = anio
+
+        if data.get("modelo_id") is not None:
+            try:
+                modelo_id = int(data["modelo_id"])
+            except (TypeError, ValueError) as error:
+                raise ValueError("El modelo seleccionado no existe") from error
+
+            modelo = self.vehiculo_repository.get_modelo_by_id(modelo_id)
+            if not modelo:
+                raise ValueError("El modelo seleccionado no existe")
+            payload["modelo_id"] = modelo_id
+
+        if not payload:
+            raise ValueError("Debe proporcionar al menos un campo para actualizar")
+
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                try:
+                    updated = self.vehiculo_repository.update_vehicle_by_id(cursor, vehicle_id, payload)
+                    if not updated:
+                        raise ValueError("Vehículo no encontrado")
+                    connection.commit()
+                except Exception:
+                    connection.rollback()
+                    raise
+
+        updated_vehicle = self.vehiculo_repository.get_vehicle_by_id(vehicle_id)
+        if not updated_vehicle:
+            raise ValueError("Vehículo no encontrado")
+
+        return updated_vehicle
+
+    def deactivate_vehicle(self, token: str, vehicle_id: int) -> dict:
+        usuario_id, role = self._get_request_context(token)
+
+        vehicle = self.vehiculo_repository.get_vehicle_by_id(vehicle_id)
+        if not vehicle:
+            raise ValueError("Vehículo no encontrado")
+
+        self._validate_vehicle_access(role, vehicle, usuario_id)
+
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                try:
+                    updated = self.vehiculo_repository.update_vehicle_status_by_id(cursor, vehicle_id, "Inactivo")
+                    if not updated:
+                        raise ValueError("Vehículo no encontrado")
+                    connection.commit()
+                except Exception:
+                    connection.rollback()
+                    raise
+
+        updated_vehicle = self.vehiculo_repository.get_vehicle_by_id(vehicle_id)
+        if not updated_vehicle:
+            raise ValueError("Vehículo no encontrado")
+
+        return updated_vehicle
+
+    def activate_vehicle(self, token: str, vehicle_id: int) -> dict:
+        usuario_id, role = self._get_request_context(token)
+
+        vehicle = self.vehiculo_repository.get_vehicle_by_id(vehicle_id)
+        if not vehicle:
+            raise ValueError("Vehículo no encontrado")
+
+        self._validate_vehicle_access(role, vehicle, usuario_id)
+
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                try:
+                    updated = self.vehiculo_repository.update_vehicle_status_by_id(cursor, vehicle_id, "Activo")
+                    if not updated:
+                        raise ValueError("Vehículo no encontrado")
+                    connection.commit()
+                except Exception:
+                    connection.rollback()
+                    raise
+
+        updated_vehicle = self.vehiculo_repository.get_vehicle_by_id(vehicle_id)
+        if not updated_vehicle:
+            raise ValueError("Vehículo no encontrado")
+
+        return updated_vehicle

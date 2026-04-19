@@ -108,6 +108,12 @@ class VehicleCreateRequest(BaseModel):
     anio: int
 
 
+class VehicleUpdateRequest(BaseModel):
+    patente: str | None = None
+    modelo_id: int | None = None
+    anio: int | None = None
+
+
 class VehicleResponse(BaseModel):
     id: int
     usuario_id: int
