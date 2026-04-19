@@ -60,7 +60,6 @@ CREATE TABLE vehiculo (
     anio INT,
     fecha_ingreso DATE,
     patente TEXT,
-    estado INT,
     estado_vehiculo INT,
     FOREIGN KEY (usuario_id) REFERENCES usuario(id),
     FOREIGN KEY (modelo) REFERENCES modelo(id),
@@ -170,13 +169,13 @@ INSERT INTO modelo (nombre, marca_id) VALUES
 INSERT INTO persona (nombre, apellido, email, telefono, dni, pais) VALUES
 ('Juan', 'Pérez', 'juan.cliente@email.com', '+5491123456789', '35123456', 1),--cliente
 ('Ana', 'Martínez', 'ana.socio@email.com', '+5493794123456', '38765432', 1),--socio
-('Carlos', 'López', 'carlos.admin@email.com', '+549114445555', '29345678', 1);--admin
+('Carlos', 'López', 'carlos.admin@email.com', '+549114445555', '29345678', 1),--admin
 ('Mariana', 'Vaca', 'mariana.op@govehiculos.com', '+5493794001122', '40123987', 1),--operador
 ('Elena', 'Torres', 'elena.soporte@govehiculos.com', '+5493794990011', '41555666', 1);--soporte
 
 INSERT INTO usuario (persona_id, password, rol_id, estado) VALUES
 (1, '1234', 1, 1), --cliente
 (2, '1234', 2, 1), --socio
-(3, '1234', 3, 1);-- admin
+(3, '1234', 3, 1),-- admin
 (4, '1234', 4, 1), -- Mariana: Operador
-(5 '1234', 5, 1), -- Facundo: Soporte
+(5, '1234', 5, 1); -- Facundo: Soporte
