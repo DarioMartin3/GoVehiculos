@@ -115,7 +115,7 @@ class VehiculoService:
                 raise ValueError("La patente debe tener entre 6 y 10 caracteres alfanuméricos sin espacios ni símbolos")
 
             existing_vehicle = self.vehiculo_repository.get_vehicle_by_patente(patente)
-            if existing_vehicle and int(existing_vehicle.get("id") or 0) != vehicle_id:
+            if existing_vehicle and existing_vehicle.id != vehicle_id:
                 raise ValueError("Ya existe un vehículo con esa patente")
 
             payload["patente"] = patente

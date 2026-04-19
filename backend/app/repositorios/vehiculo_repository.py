@@ -2,6 +2,7 @@ from datetime import date
 
 from app.core.database import get_connection
 from app.entidades.vehiculo import Vehiculo
+from app.entidades.vehiculo import VehiculoPatente
 
 
 class VehiculoRepository:
@@ -100,12 +101,12 @@ class VehiculoRepository:
             "marca_nombre": row[3],
         }
 
-    def get_vehicle_by_patente(self, patente: str) -> dict | None:
+    def get_vehicle_by_patente(self, patente: str) -> VehiculoPatente | None:
         with get_connection() as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT id
+                    SELECT id, patente
                     FROM vehiculo
                     WHERE LOWER(patente) = LOWER(%s)
                     LIMIT 1
@@ -117,7 +118,7 @@ class VehiculoRepository:
         if not row:
             return None
 
-        return {"id": row[0]}
+        return VehiculoPatente(id=row[0], patente=row[1])
 
     def create_vehicle(self, cursor, usuario_id: int, modelo_id: int, anio: int, patente: str) -> int:
         estado_vehiculo_id = self._get_estado_vehiculo_id(cursor, "En validacion")

@@ -26,3 +26,10 @@ class Vehiculo:
             "modelo_nombre": self.modelo_nombre,
             "marca_nombre": self.marca_nombre,
         }
+
+
+@dataclass
+class VehiculoPatente:
+    # Entidad liviana para búsquedas de unicidad por patente.
+    id: int
+    patente: str
