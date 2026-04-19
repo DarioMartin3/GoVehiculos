@@ -40,3 +40,21 @@ class RegisterUserResponse(BaseModel):
     # Respuesta del registro exitoso.
     persona_id: int
     user: UserResponse
+
+
+class ProfileResponse(BaseModel):
+    # Datos de perfil extendidos (usuario + persona).
+    id: int
+    email: EmailStr
+    rol: str | None = None
+    nombre: str | None = None
+    apellido: str | None = None
+    telefono: str | None = None
+    dni: str | None = None
+    pais: str | None = None
+
+
+class ChangePasswordRequest(BaseModel):
+    # Cambio de contraseña para usuario autenticado.
+    current_password: str
+    new_password: str

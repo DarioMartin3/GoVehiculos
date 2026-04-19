@@ -98,3 +98,80 @@ class UsuarioRepository:
             nombre=row[6],
             apellido=row[7],
         )
+
+    def get_profile_by_user_id(self, user_id: int) -> dict | None:
+        # Trae datos de usuario + persona para poblar la vista de perfil.
+        query_with_rol_text = """
+            SELECT u.id, u.rol, p.email, p.nombre, p.apellido, p.telefono, p.dni, pa.nombre AS pais
+            FROM usuario u
+            INNER JOIN persona p ON p.id = u.persona_id
+            LEFT JOIN pais pa ON pa.id = p.pais
+            WHERE u.id = %s
+            LIMIT 1
+        """
+        query_with_rol_fk = """
+            SELECT u.id, r.nombre AS rol, p.email, p.nombre, p.apellido, p.telefono, p.dni, pa.nombre AS pais
+            FROM usuario u
+            INNER JOIN persona p ON p.id = u.persona_id
+            LEFT JOIN rol r ON r.id = u.rol_id
+            LEFT JOIN pais pa ON pa.id = p.pais
+            WHERE u.id = %s
+            LIMIT 1
+        """
+
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                if self._usuario_has_column(cursor, 'rol'):
+                    cursor.execute(query_with_rol_text, (user_id,))
+                    row = cursor.fetchone()
+                else:
+                    cursor.execute(query_with_rol_fk, (user_id,))
+                    row = cursor.fetchone()
+
+        if not row:
+            return None
+
+        return {
+            "id": row[0],
+            "rol": row[1],
+            "email": row[2],
+            "nombre": row[3],
+            "apellido": row[4],
+            "telefono": row[5],
+            "dni": row[6],
+            "pais": row[7],
+        }
+
+    def get_password_hash_by_user_id(self, user_id: int) -> str | None:
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT password
+                    FROM usuario
+                    WHERE id = %s
+                    LIMIT 1
+                    """,
+                    (user_id,),
+                )
+                row = cursor.fetchone()
+
+        if not row:
+            return None
+        return row[0]
+
+    def update_password_by_user_id(self, user_id: int, password_hash: str) -> bool:
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE usuario
+                    SET password = %s
+                    WHERE id = %s
+                    """,
+                    (password_hash, user_id),
+                )
+                updated_rows = cursor.rowcount
+            connection.commit()
+
+        return updated_rows > 0

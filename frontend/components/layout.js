@@ -212,6 +212,174 @@ function syncAuthenticatedUiAfterLogin(current) {
   applySidebarAdminOnlyLinks();
 }
 
+async function fetchAuthenticatedProfile() {
+  const token = localStorage.getItem('auth_token');
+  if (!token) return null;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return response.json();
+  } catch (error) {
+    return null;
+  }
+}
+
+function applyProfilePageData(profile) {
+  if (!profile) return;
+
+  const profileFullName = document.getElementById('profile-full-name');
+  const profileNombre = document.getElementById('profile-nombre');
+  const profileApellido = document.getElementById('profile-apellido');
+  const profileDni = document.getElementById('profile-dni');
+  const profileEmail = document.getElementById('profile-email');
+  const profileTelefono = document.getElementById('profile-telefono');
+  const profilePais = document.getElementById('profile-pais');
+
+  const fullName = [profile.nombre, profile.apellido].filter(Boolean).join(' ').trim() || 'Usuario';
+
+  if (profileFullName) profileFullName.textContent = fullName;
+  if (profileNombre) profileNombre.textContent = profile.nombre || '-';
+  if (profileApellido) profileApellido.textContent = profile.apellido || '-';
+  if (profileDni) profileDni.textContent = profile.dni || '-';
+  if (profileEmail) profileEmail.textContent = profile.email || '-';
+  if (profileTelefono) profileTelefono.textContent = profile.telefono || '-';
+  if (profilePais) profilePais.textContent = profile.pais || '-';
+}
+
+async function initProfilePage(current) {
+  if (current !== 'perfil_view.html') return;
+
+  const profile = await fetchAuthenticatedProfile();
+  if (!profile) return;
+
+  applyProfilePageData(profile);
+
+  const existingAuthUser = getAuthUser() || {};
+  localStorage.setItem(
+    'auth_user',
+    JSON.stringify({
+      ...existingAuthUser,
+      id: profile.id,
+      email: profile.email,
+      rol: profile.rol,
+      nombre: profile.nombre,
+      apellido: profile.apellido,
+    })
+  );
+
+  applySidebarUserName();
+  applySidebarAdminOnlyLinks();
+  applyAuthenticatedHeaderState(current);
+}
+
+function setPasswordChangeMessage(text, isError = false) {
+  const message = document.getElementById('password-change-message');
+  if (!message) return;
+
+  message.textContent = text;
+  message.classList.toggle('text-error', isError);
+  message.classList.toggle('text-primary', !isError);
+}
+
+async function handlePasswordChangeSubmit() {
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
+    setPasswordChangeMessage('Debes iniciar sesión para cambiar la contraseña.', true);
+    return;
+  }
+
+  const currentPassword = document.getElementById('current-password')?.value || '';
+  const newPassword = document.getElementById('new-password')?.value || '';
+  const confirmPassword = document.getElementById('confirm-new-password')?.value || '';
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    setPasswordChangeMessage('Completá todos los campos de contraseña.', true);
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    setPasswordChangeMessage('La confirmación no coincide con la nueva contraseña.', true);
+    return;
+  }
+
+  if (newPassword.length < 8) {
+    setPasswordChangeMessage('La nueva contraseña debe tener al menos 8 caracteres.', true);
+    return;
+  }
+
+  try {
+    setPasswordChangeMessage('Actualizando contraseña...');
+    const endpoints = ['/auth/change-password', '/auth/change_password'];
+    let response = null;
+    let data = null;
+
+    for (const endpoint of endpoints) {
+      response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      });
+
+      data = await response.json().catch(() => ({}));
+
+      // Si la ruta no existe en esta versión del backend, probar la siguiente.
+      if (response.status === 404 && data?.detail === 'Not Found') {
+        continue;
+      }
+
+      break;
+    }
+
+    if (!response || !response.ok) {
+      const detail = data?.detail || 'No se pudo actualizar la contraseña.';
+      const message = detail === 'Not Found'
+        ? 'No encontramos el endpoint de cambio de contraseña. Reiniciá backend y frontend.'
+        : detail;
+      setPasswordChangeMessage(message, true);
+      return;
+    }
+
+    setPasswordChangeMessage(data?.message || 'Contraseña actualizada correctamente.');
+
+    const currentInput = document.getElementById('current-password');
+    const newInput = document.getElementById('new-password');
+    const confirmInput = document.getElementById('confirm-new-password');
+    if (currentInput) currentInput.value = '';
+    if (newInput) newInput.value = '';
+    if (confirmInput) confirmInput.value = '';
+  } catch (error) {
+    setPasswordChangeMessage('No se pudo conectar con el backend.', true);
+  }
+}
+
+function initPasswordChange(current) {
+  if (current !== 'perfil_view.html') return;
+
+  const savePasswordBtn = document.getElementById('save-password-btn');
+  if (!savePasswordBtn) return;
+
+  savePasswordBtn.addEventListener('click', (event) => {
+    event.preventDefault();
+    handlePasswordChangeSubmit();
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await Promise.all([
     loadComponent('header-placeholder', '/components/header.html'),
@@ -243,4 +411,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   applyAuthenticatedHeaderState(current);
   applySidebarUserName();
   applySidebarAdminOnlyLinks();
+  await initProfilePage(current);
+  initPasswordChange(current);
 });

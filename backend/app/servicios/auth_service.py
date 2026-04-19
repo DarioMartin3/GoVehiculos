@@ -2,7 +2,7 @@ import psycopg2
 
 from app.core.database import get_connection
 from app.core.security import create_access_token, verify_password
-from app.core.security import hash_password
+from app.core.security import decode_access_token, hash_password
 from app.entidades import Persona
 from app.repositorios.persona_repository import PersonaRepository
 from app.repositorios.usuario_repository import UsuarioRepository
@@ -96,6 +96,46 @@ class AuthService:
                 "apellido": payload.apellido,
             },
         }
+
+    def get_profile(self, token: str) -> dict:
+        payload = decode_access_token(token)
+        user_id_raw = payload.get("sub")
+
+        try:
+            user_id = int(user_id_raw)
+        except (TypeError, ValueError) as error:
+            raise ValueError("Token inválido") from error
+
+        profile = self.usuario_repository.get_profile_by_user_id(user_id)
+        if not profile:
+            raise ValueError("Usuario no encontrado")
+        return profile
+
+    def change_password(self, token: str, current_password: str, new_password: str) -> None:
+        payload = decode_access_token(token)
+        user_id_raw = payload.get("sub")
+
+        try:
+            user_id = int(user_id_raw)
+        except (TypeError, ValueError) as error:
+            raise ValueError("Token inválido") from error
+
+        stored_password = self.usuario_repository.get_password_hash_by_user_id(user_id)
+        if not stored_password:
+            raise ValueError("Usuario no encontrado")
+
+        if not verify_password(current_password, stored_password):
+            raise ValueError("La contraseña actual es incorrecta")
+
+        if len(new_password) < 8:
+            raise ValueError("La nueva contraseña debe tener al menos 8 caracteres")
+
+        if verify_password(new_password, stored_password):
+            raise ValueError("La nueva contraseña no puede ser igual a la actual")
+
+        updated = self.usuario_repository.update_password_by_user_id(user_id, hash_password(new_password))
+        if not updated:
+            raise ValueError("No se pudo actualizar la contraseña")
 
     @staticmethod
     def translate_register_error(error: Exception) -> str:

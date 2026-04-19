@@ -83,9 +83,9 @@
 <main class="ml-64 pt-24 pb-12 px-8 min-h-screen">
 <!-- Header Section -->
 <header class="mb-16">
-<span class="text-primary font-bold tracking-[0.2em] uppercase text-[10px] mb-4 block font-label">Member Profile</span>
-<h1 class="text-5xl font-extrabold font-headline tracking-tight text-on-surface max-w-2xl leading-none">
-                Julian Alvarez <span class="text-primary-container">Castillo</span>
+<span class="text-primary font-bold tracking-[0.2em] uppercase text-[10px] mb-4 block font-label">Perfil de Usuario</span>
+<h1 id="profile-full-name" class="text-5xl font-extrabold font-headline tracking-tight text-on-surface max-w-2xl leading-none">
+                Usuario
 </h1>
 </header>
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
@@ -93,60 +93,53 @@
 <div class="lg:col-span-7 flex flex-col gap-8">
 <section class="bg-surface-container-low p-8 rounded-xl">
 <div class="flex justify-between items-center mb-10">
-<h2 class="text-2xl font-bold font-headline">Personal Information</h2>
+<h2 class="text-2xl font-bold font-headline">Informacion Personal</h2>
 <button class="flex items-center gap-2 text-primary font-semibold hover:opacity-80 transition-opacity">
 <span class="material-symbols-outlined text-sm">edit</span>
-<span class="font-label text-sm">Edit Details</span>
+<span class="font-label text-sm">Editar</span>
 </button>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 <!-- Name Field -->
 <div class="flex flex-col gap-2">
-<label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">First Name</label>
+<label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">Nombre</label>
 <div class="bg-surface-container-high p-4 rounded-lg focus-indicator-active">
-<p class="text-on-surface font-medium">Julian</p>
+<p id="profile-nombre" class="text-on-surface font-medium">-</p>
 </div>
 </div>
 <!-- Surname Field -->
 <div class="flex flex-col gap-2">
-<label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">Surname</label>
+<label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">Apellido</label>
 <div class="bg-surface-container-high p-4 rounded-lg focus-indicator-active">
-<p class="text-on-surface font-medium">Alvarez Castillo</p>
+<p id="profile-apellido" class="text-on-surface font-medium">-</p>
 </div>
 </div>
 <!-- DNI Field -->
 <div class="flex flex-col gap-2">
-<label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">DNI / Passport</label>
+<label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">DNI</label>
 <div class="bg-surface-container-high p-4 rounded-lg focus-indicator-active">
-<p class="text-on-surface font-medium">48229103K</p>
+<p id="profile-dni" class="text-on-surface font-medium">-</p>
 </div>
 </div>
 <!-- Email Field -->
 <div class="flex flex-col gap-2">
-<label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">Email Address</label>
+<label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">Email</label>
 <div class="bg-surface-container-high p-4 rounded-lg focus-indicator-active">
-<p class="text-on-surface font-medium">j.alvarez@executive.com</p>
+<p id="profile-email" class="text-on-surface font-medium">-</p>
 </div>
 </div>
 <!-- Phone Field -->
 <div class="flex flex-col gap-2">
-<label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">Phone Number</label>
+<label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">Numero de Telefono</label>
 <div class="bg-surface-container-high p-4 rounded-lg focus-indicator-active">
-<p class="text-on-surface font-medium">+34 692 881 229</p>
+<p id="profile-telefono" class="text-on-surface font-medium">-</p>
 </div>
 </div>
 <!-- Country Field -->
 <div class="flex flex-col gap-2">
-<label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">Country</label>
+<label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">Pais</label>
 <div class="bg-surface-container-high p-4 rounded-lg focus-indicator-active">
-<p class="text-on-surface font-medium">Spain</p>
-</div>
-</div>
-<!-- Recovery Email Field -->
-<div class="flex flex-col gap-2 md:col-span-2">
-<label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1">Recovery Email</label>
-<div class="bg-surface-container-high p-4 rounded-lg focus-indicator-active">
-<p class="text-on-surface font-medium">julian.backup@proton.me</p>
+<p id="profile-pais" class="text-on-surface font-medium">-</p>
 </div>
 </div>
 </div>
@@ -155,15 +148,18 @@
 <section class="bg-surface-container-low p-8 rounded-xl border border-primary-container/10">
 <div class="flex items-center justify-between">
 <div>
-<h3 class="text-xl font-bold font-headline mb-2">Security &amp; Access</h3>
-<p class="text-sm text-on-secondary-container">Manage your login credentials and authentication methods.</p>
+<h3 class="text-xl font-bold font-headline mb-2">Seguridad &amp; Acceso</h3>
 </div>
 <button id="toggle-password-btn" onclick="document.getElementById('password-fields').classList.toggle('hidden')" class="bg-primary text-white px-6 py-3 rounded-lg font-bold font-label text-sm flex items-center gap-2 hover:bg-primary-container transition-colors shadow-sm">
 <span class="material-symbols-outlined text-base">lock_reset</span>
-Change Password
+Cambia tu contraseña
 </button>
 </div>
 <div id="password-fields" class="hidden mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex flex-col gap-2 md:col-span-2">
+<label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1" for="current-password">Contraseña Actual</label>
+<input id="current-password" type="password" placeholder="••••••••" class="w-full bg-surface-container-high border-none focus:ring-2 focus:ring-primary rounded-lg text-on-surface py-3 px-4 transition-colors placeholder:text-slate-400"/>
+</div>
 <div class="flex flex-col gap-2">
 <label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1" for="new-password">Nueva Contraseña</label>
 <input id="new-password" type="password" placeholder="••••••••" class="w-full bg-surface-container-high border-none focus:ring-2 focus:ring-primary rounded-lg text-on-surface py-3 px-4 transition-colors placeholder:text-slate-400"/>
@@ -172,8 +168,9 @@ Change Password
 <label class="text-[11px] font-bold text-on-secondary-container uppercase tracking-wider px-1" for="confirm-new-password">Confirmar Contraseña</label>
 <input id="confirm-new-password" type="password" placeholder="••••••••" class="w-full bg-surface-container-high border-none focus:ring-2 focus:ring-primary rounded-lg text-on-surface py-3 px-4 transition-colors placeholder:text-slate-400"/>
 </div>
+<p id="password-change-message" class="md:col-span-2 text-sm font-semibold text-primary"></p>
 <div class="md:col-span-2 flex justify-end">
-<button class="kinetic-gradient text-white px-8 py-3 rounded-lg font-bold text-sm flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-sm">
+<button id="save-password-btn" class="kinetic-gradient text-white px-8 py-3 rounded-lg font-bold text-sm flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-sm">
 <span class="material-symbols-outlined text-base">save</span>
 Guardar Contraseña
 </button>
@@ -193,16 +190,16 @@ Guardar Contraseña
 </div>
 <div>
 <p class="text-sm font-bold text-primary font-headline">Estado: Verificada</p>
-<p class="text-xs text-on-secondary-container">Your credentials have been validated for mobility services.</p>
+<p class="text-xs text-on-secondary-container">Tu documentación ha sido verificada para servicios de de alquiler de vehiculos</p>
 </div>
 </div>
 <div class="space-y-6">
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-3">
 <span class="material-symbols-outlined text-secondary">license</span>
-<span class="text-sm font-medium">Driving License</span>
+<span class="text-sm font-medium">Licencia de Conducir</span>
 </div>
-<span class="text-[10px] font-bold text-primary-container px-2 py-1 bg-primary-fixed rounded-full">ACTIVE</span>
+<span class="text-[10px] font-bold text-primary-container px-2 py-1 bg-primary-fixed rounded-full">ACTIVA</span>
 </div>
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-3">
@@ -217,7 +214,7 @@ Guardar Contraseña
 <span class="material-symbols-outlined">upload_file</span>
                             Actualizar Archivos
                         </button>
-<p class="text-center text-[10px] text-on-secondary-container mt-4">Accepted formats: PDF, JPG, PNG. Max size: 10MB.</p>
+<p class="text-center text-[10px] text-on-secondary-container mt-4">Formatos aceptados: PDF, JPG, PNG. Max size: 10MB.</p>
 </div>
 </div>
 <!-- Ad/Visual Space -->
@@ -225,8 +222,8 @@ Guardar Contraseña
 <div class="absolute inset-0 bg-primary/40 group-hover:bg-primary/20 transition-all duration-500 z-10"></div>
 <img alt="Luxury vehicle background" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="rear view of a high-end luxury electric sedan parked on a sleek asphalt surface under dramatic dusk lighting with city lights blurred" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAepLavcFb3c-OQl0oNY-wU0UJF1QEbzAW1-J6pG5D7P2DRYzdLgdH_-dsXCWO9F-h6y_xpX_0LNjvu0FjwvEj6v3r8dyfAazj9Nl8eXOJbur7dWY7QfaM9s2smx00WHi2H7bI66aGPn5Kk29I7TmZz7WA8euaJot-NwfOPV92j3mD2wFzt3pELo-ffe8rqBjRzE2XGJcodwZiRAIoO-TMVTvIzzpseY4gYPKSYvP5j5AP8aZ39UmWcVb4vpQTIJFtvfN1fOBB4y7Y"/>
 <div class="absolute bottom-6 left-6 z-20">
-<p class="text-white font-headline text-2xl font-extrabold leading-tight">Elevate Your<br/>Journey</p>
-<a class="text-white text-xs font-bold underline underline-offset-4 mt-2 block" href="#">Upgrade Membership</a>
+<p class="text-white font-headline text-2xl font-extrabold leading-tight">Consigue<br/>GANANCIAS</p>
+<a class="text-white text-xs font-bold underline underline-offset-4 mt-2 block" href="#">Conviertete en socio</a>
 </div>
 </div>
 </aside>
