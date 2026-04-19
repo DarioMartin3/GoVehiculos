@@ -137,6 +137,33 @@ class AuthService:
         if not updated:
             raise ValueError("No se pudo actualizar la contraseña")
 
+    def update_profile(self, token: str, email: str | None, telefono: str | None, pais: int | None) -> dict:
+        payload = decode_access_token(token)
+        user_id_raw = payload.get("sub")
+
+        try:
+            user_id = int(user_id_raw)
+        except (TypeError, ValueError) as error:
+            raise ValueError("Token inválido") from error
+
+        if not any([email, telefono, pais]):
+            raise ValueError("Debe proporcionar al menos un campo para actualizar")
+
+        if email:
+            existing_user = self.usuario_repository.get_by_email(email)
+            if existing_user and existing_user.id != user_id:
+                raise ValueError("El email ya está registrado")
+
+        updated = self.usuario_repository.update_persona_by_user_id(user_id, email, telefono, pais)
+        if not updated:
+            raise ValueError("No se pudo actualizar el perfil")
+
+        profile = self.usuario_repository.get_profile_by_user_id(user_id)
+        if not profile:
+            raise ValueError("Usuario no encontrado")
+
+        return profile
+
     @staticmethod
     def translate_register_error(error: Exception) -> str:
         # Traduce errores técnicos de PostgreSQL a mensajes claros.

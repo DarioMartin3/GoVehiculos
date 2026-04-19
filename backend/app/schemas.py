@@ -58,3 +58,10 @@ class ChangePasswordRequest(BaseModel):
     # Cambio de contraseña para usuario autenticado.
     current_password: str
     new_password: str
+
+
+class UpdateProfileRequest(BaseModel):
+    # Actualización de perfil para usuario autenticado.
+    email: EmailStr | None = None
+    telefono: str | None = None
+    pais: int | None = None

@@ -175,3 +175,52 @@ class UsuarioRepository:
             connection.commit()
 
         return updated_rows > 0
+
+    def update_persona_by_user_id(self, user_id: int, email: str | None, telefono: str | None, pais: int | None) -> bool:
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT persona_id
+                    FROM usuario
+                    WHERE id = %s
+                    LIMIT 1
+                    """,
+                    (user_id,),
+                )
+                row = cursor.fetchone()
+                if not row:
+                    return False
+
+                persona_id = row[0]
+
+                updates = []
+                values = []
+
+                if email is not None:
+                    updates.append("email = %s")
+                    values.append(email)
+                if telefono is not None:
+                    updates.append("telefono = %s")
+                    values.append(telefono)
+                if pais is not None:
+                    updates.append("pais = %s")
+                    values.append(pais)
+
+                if not updates:
+                    return True
+
+                values.append(persona_id)
+                update_clause = ", ".join(updates)
+                cursor.execute(
+                    f"""
+                    UPDATE persona
+                    SET {update_clause}
+                    WHERE id = %s
+                    """,
+                    tuple(values),
+                )
+                updated_rows = cursor.rowcount
+            connection.commit()
+
+        return updated_rows > 0

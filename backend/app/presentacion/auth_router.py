@@ -7,6 +7,7 @@ from app.schemas import (
     ProfileResponse,
     RegisterUserRequest,
     RegisterUserResponse,
+    UpdateProfileRequest,
     UserResponse,
 )
 from app.servicios.auth_service import AuthService
@@ -85,3 +86,36 @@ def change_password(payload: ChangePasswordRequest, authorization: str | None = 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message) from error
 
     return {"message": "Contraseña actualizada correctamente"}
+
+
+@router.put("/profile")
+def update_profile(payload: UpdateProfileRequest, authorization: str | None = Header(default=None)):
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token requerido")
+
+    token = authorization.split(" ", 1)[1].strip()
+
+    try:
+        result = AuthService().update_profile(token, payload.email, payload.telefono, payload.pais)
+    except ValueError as error:
+        message = str(error)
+        if message == "Usuario no encontrado":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=message) from error
+        if message == "Token inválido":
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=message) from error
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message) from error
+
+    return ProfileResponse(**result)
+
+
+@router.get("/paises")
+def get_countries():
+    from app.core.database import get_connection
+
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id, nombre FROM pais ORDER BY nombre ASC")
+            rows = cursor.fetchall()
+
+    countries = [{"id": row[0], "nombre": row[1]} for row in rows]
+    return countries

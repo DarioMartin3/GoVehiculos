@@ -380,6 +380,168 @@ function initPasswordChange(current) {
   });
 }
 
+async function fetchCountries() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/paises`);
+    if (!response.ok) return [];
+    return await response.json();
+  } catch (error) {
+    return [];
+  }
+}
+
+function setProfileEditMessage(text, isError = false) {
+  const message = document.getElementById('profile-edit-message');
+  if (!message) return;
+  message.textContent = text;
+  message.classList.toggle('text-error', isError);
+  message.classList.toggle('text-primary', !isError);
+}
+
+function toggleProfileEditMode(enable) {
+  const editBtn = document.getElementById('edit-profile-btn');
+  const cancelBtn = document.getElementById('cancel-profile-btn');
+  const saveActions = document.getElementById('profile-save-actions');
+  
+  const emailDisplay = document.getElementById('profile-email-display');
+  const emailInput = document.getElementById('profile-email-input');
+  const telefonoDisplay = document.getElementById('profile-telefono-display');
+  const telefonoInput = document.getElementById('profile-telefono-input');
+  const paisDisplay = document.getElementById('profile-pais-display');
+  const paisInput = document.getElementById('profile-pais-input');
+
+  if (enable) {
+    editBtn.classList.add('hidden');
+    cancelBtn.classList.remove('hidden');
+    saveActions.classList.remove('hidden');
+
+    emailDisplay.classList.add('hidden');
+    emailInput.classList.remove('hidden');
+    emailInput.value = document.getElementById('profile-email').textContent;
+
+    telefonoDisplay.classList.add('hidden');
+    telefonoInput.classList.remove('hidden');
+    telefonoInput.value = document.getElementById('profile-telefono').textContent;
+
+    paisDisplay.classList.add('hidden');
+    paisInput.classList.remove('hidden');
+
+    setProfileEditMessage('');
+  } else {
+    editBtn.classList.remove('hidden');
+    cancelBtn.classList.add('hidden');
+    saveActions.classList.add('hidden');
+
+    emailDisplay.classList.remove('hidden');
+    emailInput.classList.add('hidden');
+
+    telefonoDisplay.classList.remove('hidden');
+    telefonoInput.classList.add('hidden');
+
+    paisDisplay.classList.remove('hidden');
+    paisInput.classList.add('hidden');
+
+    setProfileEditMessage('');
+  }
+}
+
+async function handleProfileEditSave() {
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
+    setProfileEditMessage('Debes iniciar sesión.', true);
+    return;
+  }
+
+  const emailInput = document.getElementById('profile-email-input');
+  const telefonoInput = document.getElementById('profile-telefono-input');
+  const paisInput = document.getElementById('profile-pais-input');
+
+  const email = emailInput?.value.trim() || null;
+  const telefono = telefonoInput?.value.trim() || null;
+  const pais = paisInput?.value ? parseInt(paisInput.value) : null;
+
+  if (!email && !telefono && !pais) {
+    setProfileEditMessage('Debes cambiar al menos un campo.', true);
+    return;
+  }
+
+  try {
+    setProfileEditMessage('Guardando cambios...');
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        email: email,
+        telefono: telefono,
+        pais: pais,
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      setProfileEditMessage(data.detail || 'No se pudo actualizar el perfil.', true);
+      return;
+    }
+
+    document.getElementById('profile-email').textContent = data.email || '-';
+    document.getElementById('profile-telefono').textContent = data.telefono || '-';
+    document.getElementById('profile-pais').textContent = data.pais || '-';
+
+    const existingAuthUser = getAuthUser() || {};
+    localStorage.setItem(
+      'auth_user',
+      JSON.stringify({
+        ...existingAuthUser,
+        email: data.email,
+      })
+    );
+
+    setProfileEditMessage('Cambios guardados exitosamente.');
+    setTimeout(() => toggleProfileEditMode(false), 1500);
+  } catch (error) {
+    setProfileEditMessage('No se pudo conectar con el backend.', true);
+  }
+}
+
+async function initProfileEdit(current) {
+  if (current !== 'perfil_view.html') return;
+
+  const editBtn = document.getElementById('edit-profile-btn');
+  const cancelBtn = document.getElementById('cancel-profile-btn');
+  const saveBtn = document.getElementById('save-profile-btn');
+
+  if (!editBtn || !cancelBtn || !saveBtn) return;
+
+  const countries = await fetchCountries();
+  const paisInput = document.getElementById('profile-pais-input');
+  if (paisInput && countries.length > 0) {
+    countries.forEach(country => {
+      const option = document.createElement('option');
+      option.value = country.id;
+      option.textContent = country.nombre;
+      paisInput.appendChild(option);
+    });
+  }
+
+  editBtn.addEventListener('click', (event) => {
+    event.preventDefault();
+    toggleProfileEditMode(true);
+  });
+
+  cancelBtn.addEventListener('click', (event) => {
+    event.preventDefault();
+    toggleProfileEditMode(false);
+  });
+
+  saveBtn.addEventListener('click', (event) => {
+    event.preventDefault();
+    handleProfileEditSave();
+  });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await Promise.all([
     loadComponent('header-placeholder', '/components/header.html'),
@@ -413,4 +575,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   applySidebarAdminOnlyLinks();
   await initProfilePage(current);
   initPasswordChange(current);
+  await initProfileEdit(current);
 });
