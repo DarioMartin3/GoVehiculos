@@ -120,6 +120,8 @@ function applySidebarAdminOnlyLinks() {
   const sidebarUsersLink = document.querySelector(
     '#sidebar-placeholder a[href="/dashboard_user_directory.html"]'
   );
+  const sidebarVehiculosLink = document.getElementById('sidebar-vehiculos');
+  const sidebarTuVehiculoLink = document.getElementById('sidebar-tu-vehiculo');
 
   if (sidebarDashboardLink) {
     sidebarDashboardLink.classList.toggle('hidden', !isAdmin);
@@ -127,6 +129,13 @@ function applySidebarAdminOnlyLinks() {
   if (sidebarUsersLink) {
     sidebarUsersLink.classList.toggle('hidden', !isAdmin);
   }
+  if (sidebarVehiculosLink) {
+    sidebarVehiculosLink.classList.toggle('hidden', !isAdmin);
+  }
+  if (sidebarTuVehiculoLink) {
+    sidebarTuVehiculoLink.classList.toggle('hidden', !isAdmin);
+  }
+
 }
 
 function applySidebarUserName() {

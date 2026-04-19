@@ -12,6 +12,13 @@ CREATE TABLE estado (
     id SERIAL PRIMARY KEY,
     nombre TEXT NOT NULL
 );
+
+CREATE TABLE estado_vehiculo (
+    id SERIAL PRIMARY KEY,
+    nombre TEXT NOT NULL
+);
+
+
 CREATE TABLE persona (
     id SERIAL PRIMARY KEY,
     nombre TEXT,
@@ -30,7 +37,8 @@ CREATE TABLE usuario (
     rol_id INT,
     estado INT,
     FOREIGN KEY (persona_id) REFERENCES persona(id),
-    FOREIGN KEY (rol_id) REFERENCES rol(id)
+    FOREIGN KEY (rol_id) REFERENCES rol(id),
+    FOREIGN KEY (estado) REFERENCES estado(id)
 );
 
 CREATE TABLE marca (
@@ -48,12 +56,15 @@ CREATE TABLE modelo (
 CREATE TABLE vehiculo (
     id SERIAL PRIMARY KEY,
     usuario_id INT,
-    modelo TEXT,
+    modelo INT,
     anio INT,
     fecha_ingreso DATE,
     patente TEXT,
     estado INT,
-    FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+    estado_vehiculo INT,
+    FOREIGN KEY (usuario_id) REFERENCES usuario(id),
+    FOREIGN KEY (modelo) REFERENCES modelo(id),
+    FOREIGN KEY (estado_vehiculo) REFERENCES estado_vehiculo(id)
 );
 
 CREATE TABLE carnet_conducir (
@@ -134,29 +145,38 @@ CREATE TABLE horario_operador (
     FOREIGN KEY (usuario_id) REFERENCES usuario(id)
 );
 
-INSERT INTO rol (nombre)
-SELECT seed.nombre
-FROM (VALUES ('Cliente'), ('Socio'), ('Administrador'), ('Operador'), ('Soporte')) AS seed(nombre)
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM rol existing
-    WHERE existing.nombre = seed.nombre
-);
+--Inserccion de datos
+INSERT INTO pais (nombre) VALUES 
+('Argentina'), ('Chile'), ('Uruguay'), ('Paraguay'), ('Brasil');
 
-INSERT INTO estado (nombre)
-SELECT seed.nombre
-FROM (VALUES ('Activo'), ('Inactivo'), ('Pendiente'), ('Rechazado')) AS seed(nombre)
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM estado existing
-    WHERE existing.nombre = seed.nombre
-);
+INSERT INTO rol (nombre) VALUES 
+('Cliente'), ('Socio'), ('Administrador'), ('Operador'), ('Soporte');
 
-INSERT INTO pais (nombre)
-SELECT seed.nombre
-FROM (VALUES ('Argentina'), ('Chile'), ('Uruguay'), ('Paraguay'), ('Brasil')) AS seed(nombre)
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM pais existing
-    WHERE existing.nombre = seed.nombre
-);
+INSERT INTO estado (nombre) VALUES 
+('Activo'), ('Inactivo'), ('En validacion'), ('Rechazado');
+
+INSERT INTO estado_vehiculo (nombre) VALUES 
+('Activo'), ('Inactivo'), ('En validacion'), ('Rechazado'), ('Alquilado'), ('En Taller');
+
+INSERT INTO marca (nombre) VALUES 
+('Toyota'), ('Fiat'), ('Peugeot'), ('Volkswagen');
+
+INSERT INTO modelo (nombre, marca_id) VALUES 
+('Hilux', 1), ('Corolla', 1),
+('Cronos', 2), ('Toro', 2),
+('208', 3), 
+('Amarok', 4), ('Taos', 4);
+
+INSERT INTO persona (nombre, apellido, email, telefono, dni, pais) VALUES
+('Juan', 'Pérez', 'juan.cliente@email.com', '+5491123456789', '35123456', 1),--cliente
+('Ana', 'Martínez', 'ana.socio@email.com', '+5493794123456', '38765432', 1),--socio
+('Carlos', 'López', 'carlos.admin@email.com', '+549114445555', '29345678', 1);--admin
+('Mariana', 'Vaca', 'mariana.op@govehiculos.com', '+5493794001122', '40123987', 1),--operador
+('Elena', 'Torres', 'elena.soporte@govehiculos.com', '+5493794990011', '41555666', 1);--soporte
+
+INSERT INTO usuario (persona_id, password, rol_id, estado) VALUES
+(1, '1234', 1, 1), --cliente
+(2, '1234', 2, 1), --socio
+(3, '1234', 3, 1);-- admin
+(4, '1234', 4, 1), -- Mariana: Operador
+(5 '1234', 5, 1), -- Facundo: Soporte
