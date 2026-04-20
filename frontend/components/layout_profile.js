@@ -326,9 +326,152 @@
     saveBtn.dataset.boundProfileEdit = '1';
   }
 
+  function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+  }
+
+  function applyLicenciaData(data) {
+    const badge = document.getElementById('licencia-status-badge');
+    const icon = document.getElementById('licencia-status-icon');
+    const statusText = document.getElementById('licencia-status-text');
+    const statusSub = document.getElementById('licencia-status-sub');
+    const clasesSection = document.getElementById('licencia-clases-section');
+    const clasesEl = document.getElementById('licencia-clases');
+    const vencimientoSection = document.getElementById('licencia-vencimiento-section');
+    const vencimientoEl = document.getElementById('licencia-vencimiento');
+    const uploadText = document.getElementById('licencia-upload-text');
+
+    if (!data) {
+      statusText.textContent = 'Sin licencia registrada';
+      statusSub.textContent = 'Subí tu licencia para habilitarte a alquilar vehículos.';
+      return;
+    }
+
+    const hoy = new Date();
+    const vence = data.fecha_vencimiento ? new Date(data.fecha_vencimiento) : null;
+    const vencida = vence && vence < hoy;
+
+    if (vencida) {
+      badge.classList.replace('bg-secondary-container', 'bg-error-container');
+      icon.classList.replace('bg-primary-container', 'bg-error');
+      statusText.classList.replace('text-primary', 'text-error');
+      statusText.textContent = 'Licencia vencida';
+      statusSub.textContent = 'Tu licencia está vencida. Actualizala para seguir operando.';
+      uploadText.textContent = 'Actualizar Licencia';
+    } else {
+      statusText.textContent = 'Licencia activa';
+      statusSub.textContent = 'Tu licencia está vigente para alquilar vehículos.';
+      uploadText.textContent = 'Actualizar Licencia';
+    }
+
+    if (data.clases && data.clases.length > 0) {
+      clasesSection.classList.remove('hidden');
+      clasesEl.innerHTML = '';
+      data.clases.forEach(({ clase }) => {
+        const span = document.createElement('span');
+        span.className = 'text-[11px] font-bold text-primary-container px-3 py-1 bg-primary-fixed rounded-full';
+        span.textContent = clase;
+        clasesEl.appendChild(span);
+      });
+    }
+
+    if (data.fecha_vencimiento) {
+      vencimientoSection.classList.remove('hidden');
+      vencimientoEl.textContent = formatDate(data.fecha_vencimiento);
+      if (vencida) vencimientoEl.classList.add('text-error');
+    }
+  }
+
+  async function fetchLicencia() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/licencias/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.status === 404) {
+        applyLicenciaData(null);
+        return;
+      }
+
+      if (!response.ok) return;
+      const data = await response.json();
+      applyLicenciaData(data);
+    } catch {
+      applyLicenciaData(null);
+    }
+  }
+
+  function setLicenciaMessage(text, isError = false) {
+    const el = document.getElementById('licencia-message');
+    if (!el) return;
+    el.textContent = text;
+    el.classList.toggle('text-error', isError);
+    el.classList.toggle('text-primary', !isError);
+  }
+
+  async function handleLicenciaUpload(file) {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      setLicenciaMessage('Debés iniciar sesión.', true);
+      return;
+    }
+
+    setLicenciaMessage('Validando licencia...');
+
+    const formData = new FormData();
+    formData.append('documento', file);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/licencias/validate`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setLicenciaMessage(data.detail || 'No se pudo validar la licencia.', true);
+        return;
+      }
+
+      if (data.valido) {
+        setLicenciaMessage('Licencia validada y guardada correctamente.');
+        await fetchLicencia();
+      } else {
+        setLicenciaMessage(data.mensaje || 'La licencia no pudo ser validada.', true);
+      }
+    } catch {
+      setLicenciaMessage('No se pudo conectar con el servicio de validación.', true);
+    }
+  }
+
+  function initLicencia(current) {
+    if (current !== 'perfil_view.html') return;
+
+    fetchLicencia();
+
+    const input = document.getElementById('licencia-file-input');
+    if (!input || input.dataset.bound === '1') return;
+
+    input.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (file) handleLicenciaUpload(file);
+      input.value = '';
+    });
+
+    input.dataset.bound = '1';
+  }
+
   window.LayoutProfile = {
     initProfilePage,
     initPasswordChange,
     initProfileEdit,
+    initLicencia,
   };
 })();

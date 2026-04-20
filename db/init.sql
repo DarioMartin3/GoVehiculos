@@ -67,16 +67,31 @@ CREATE TABLE vehiculo (
     FOREIGN KEY (estado_vehiculo) REFERENCES estado_vehiculo(id)
 );
 
+CREATE TABLE tipo_licencia (
+    id SERIAL PRIMARY KEY,
+    nombre TEXT NOT NULL
+);
+
 CREATE TABLE carnet_conducir (
     id SERIAL PRIMARY KEY,
     usuario_id INT,
     nombre_titular TEXT,
-    clase TEXT,
+    fecha_emision DATE,
     fecha_vencimiento DATE,
     imagen TEXT,
     estado_validacion INT,
     motivo_rechazo TEXT,
     FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+);
+
+CREATE TABLE carnet_clase (
+    id SERIAL PRIMARY KEY,
+    carnet_id INT,
+    tipo_licencia_id INT,
+    fecha_otorgamiento DATE,
+    fecha_vencimiento DATE,
+    FOREIGN KEY (carnet_id) REFERENCES carnet_conducir(id),
+    FOREIGN KEY (tipo_licencia_id) REFERENCES tipo_licencia(id)
 );
 
 CREATE TABLE documento_vehiculo (
@@ -167,16 +182,26 @@ INSERT INTO modelo (nombre, marca_id) VALUES
 ('208', 3), 
 ('Amarok', 4), ('Taos', 4);
 
+INSERT INTO tipo_licencia (nombre) VALUES
+('A1'), ('A2'), ('A3'), ('A4'),
+('B1'), ('B2'),
+('C1'), ('C2'),
+('D1'), ('D2'), ('D3'),
+('E1'), ('E2'),
+('F'), ('G1'), ('G2'), ('G3');
+
 INSERT INTO persona (nombre, apellido, email, telefono, dni, pais, fecha_nacimiento) VALUES
 ('Juan', 'Pérez', 'juan.cliente@email.com', '+5491123456789', '35123456', 1, '1990-05-14'),--cliente
 ('Ana', 'Martínez', 'ana.socio@email.com', '+5493794123456', '38765432', 1, '1985-11-23'),--socio
 ('Carlos', 'López', 'carlos.admin@email.com', '+549114445555', '29345678', 1, '1978-03-07'),--admin
 ('Mariana', 'Vaca', 'mariana.op@govehiculos.com', '+5493794001122', '40123987', 1, '1995-08-30'),--operador
-('Elena', 'Torres', 'elena.soporte@govehiculos.com', '+5493794990011', '41555666', 1, '1993-01-19');--soporte
+('Elena', 'Torres', 'elena.soporte@govehiculos.com', '+5493794990011', '41555666', 1, '1993-01-19'),--soporte
+('María Del Rosario', 'Sosa', 'maria.del.rosario@sosa.com', '+5493794880011', '42666777', 1, '2003-09-20');--cliente
 
 INSERT INTO usuario (persona_id, password, rol_id, estado) VALUES
 (1, '1234', 1, 1), --cliente
 (2, '1234', 2, 1), --socio
 (3, '1234', 3, 1),-- admin
 (4, '1234', 4, 1), -- Mariana: Operador
-(5, '1234', 5, 1); -- Facundo: Soporte
+(5, '1234', 5, 1), -- Facundo: Soporte
+(6, '1234', 1, 1); -- Maria del Rosario: Cliente

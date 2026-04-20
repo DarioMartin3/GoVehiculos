@@ -10,7 +10,7 @@ class LicenciaService:
         self.token_service = TokenService()
         self.usuario_repository = UsuarioRepository()
         self.licencia_repository = LicenciaRepository()
-        self.validation_service = LicenciaValidationService(adapter=GroqDocumentAdapter())
+        self.validation_service = LicenciaValidationService(adapter=GroqDocumentAdapter(max_tokens=1024))
 
     def validar_y_guardar(self, token: str, image_bytes: bytes) -> dict:
         user_id = self.token_service.validate_token(token)

@@ -3,7 +3,8 @@ import psycopg2
 from app.core.database import get_connection
 from app.core.security import create_access_token, verify_password, hash_password
 from app.entidades import Persona
-from app.repositorios.persona_repository import PersonaRepository, UsuarioRepository
+from app.repositorios.persona_repository import PersonaRepository
+from app.repositorios.usuario_repository import UsuarioRepository
 from app.schemas import RegisterUserRequest
 from app.servicios.token_service import TokenService
 

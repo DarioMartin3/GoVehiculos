@@ -31,6 +31,7 @@ const {
   initProfilePage,
   initPasswordChange,
   initProfileEdit,
+  initLicencia,
 } = layoutProfile;
 
 const { initUserDirectoryPage } = layoutUsers;
@@ -74,6 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await initProfilePage(current);
   initPasswordChange(current);
   await initProfileEdit(current);
+  initLicencia(current);
   await initUserDirectoryPage(current);
   await initVehicleDashboardPage(current);
 });

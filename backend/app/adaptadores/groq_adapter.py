@@ -7,6 +7,9 @@ from app.core.config import GROQ_API_KEY
 
 class GroqDocumentAdapter(DocumentValidatorAdapter):
 
+    def __init__(self, max_tokens: int = 512):
+        self.max_tokens = max_tokens
+
     def extraer_datos(self, prompt: str, imagen: bytes) -> dict:
         response = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
@@ -16,7 +19,7 @@ class GroqDocumentAdapter(DocumentValidatorAdapter):
             },
             json={
                 "model": "meta-llama/llama-4-scout-17b-16e-instruct",
-                "max_tokens": 256,
+                "max_tokens": self.max_tokens,
                 "messages": [
                     {
                         "role": "user",
