@@ -27,6 +27,7 @@ CREATE TABLE persona (
     telefono TEXT,
     dni TEXT,
     pais INT,
+    fecha_nacimiento DATE,
     FOREIGN KEY (pais) REFERENCES pais(id)
 );
 
@@ -166,12 +167,12 @@ INSERT INTO modelo (nombre, marca_id) VALUES
 ('208', 3), 
 ('Amarok', 4), ('Taos', 4);
 
-INSERT INTO persona (nombre, apellido, email, telefono, dni, pais) VALUES
-('Juan', 'Pérez', 'juan.cliente@email.com', '+5491123456789', '35123456', 1),--cliente
-('Ana', 'Martínez', 'ana.socio@email.com', '+5493794123456', '38765432', 1),--socio
-('Carlos', 'López', 'carlos.admin@email.com', '+549114445555', '29345678', 1),--admin
-('Mariana', 'Vaca', 'mariana.op@govehiculos.com', '+5493794001122', '40123987', 1),--operador
-('Elena', 'Torres', 'elena.soporte@govehiculos.com', '+5493794990011', '41555666', 1);--soporte
+INSERT INTO persona (nombre, apellido, email, telefono, dni, pais, fecha_nacimiento) VALUES
+('Juan', 'Pérez', 'juan.cliente@email.com', '+5491123456789', '35123456', 1, '1990-05-14'),--cliente
+('Ana', 'Martínez', 'ana.socio@email.com', '+5493794123456', '38765432', 1, '1985-11-23'),--socio
+('Carlos', 'López', 'carlos.admin@email.com', '+549114445555', '29345678', 1, '1978-03-07'),--admin
+('Mariana', 'Vaca', 'mariana.op@govehiculos.com', '+5493794001122', '40123987', 1, '1995-08-30'),--operador
+('Elena', 'Torres', 'elena.soporte@govehiculos.com', '+5493794990011', '41555666', 1, '1993-01-19');--soporte
 
 INSERT INTO usuario (persona_id, password, rol_id, estado) VALUES
 (1, '1234', 1, 1), --cliente
