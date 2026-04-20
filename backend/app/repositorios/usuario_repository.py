@@ -157,6 +157,25 @@ class UsuarioRepository:
             "pais": row[7],
         }
 
+    def get_persona_basica_by_user_id(self, user_id: int) -> dict | None:
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """SELECT p.nombre, p.apellido, p.fecha_nacimiento
+                       FROM usuario u
+                       INNER JOIN persona p ON p.id = u.persona_id
+                       WHERE u.id = %s LIMIT 1""",
+                    (user_id,),
+                )
+                row = cursor.fetchone()
+        if not row:
+            return None
+        return {
+            "nombre": row[0],
+            "apellido": row[1],
+            "fecha_nacimiento": str(row[2]) if row[2] else None,
+        }
+
     def get_password_hash_by_user_id(self, user_id: int) -> str | None:
         with get_connection() as connection:
             with connection.cursor() as cursor:
