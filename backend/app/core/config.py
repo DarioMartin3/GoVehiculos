@@ -12,3 +12,6 @@ DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "password")
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-this-secret")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "480"))
+
+# API key de Groq para validación de documentos.
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")

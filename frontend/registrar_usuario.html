@@ -166,13 +166,14 @@
 </div>
 <!-- Documentation Upload Area -->
 <div class="relative group">
-<label class="block mb-2 text-[10px] font-bold uppercase tracking-widest text-on-secondary-container">Documentación</label>
+<label class="block mb-2 text-[10px] font-bold uppercase tracking-widest text-on-secondary-container">Documentación (DNI)</label>
 <div class="w-full h-40 border-2 border-dashed border-outline-variant bg-surface-container-lowest rounded-xl flex flex-col items-center justify-center transition-all group-hover:bg-surface-container cursor-pointer">
-<span class="material-symbols-outlined text-4xl text-primary mb-3" data-icon="cloud_upload">cloud_upload</span>
-<p class="text-sm font-semibold text-on-background">subir imagen de la documentación</p>
+<span class="material-symbols-outlined text-4xl text-primary mb-3">cloud_upload</span>
+<p class="text-sm font-semibold text-on-background">Subir foto del DNI</p>
 <p class="text-xs text-on-surface-variant mt-1">Formatos aceptados: JPG, PNG (Max. 5MB)</p>
-<input class="absolute inset-0 opacity-0 cursor-pointer" type="file"/>
+<input class="absolute inset-0 opacity-0 cursor-pointer" id="documento-input" type="file" accept="image/jpeg,image/png,image/webp"/>
 </div>
+<p id="document-validation-status" class="mt-2 text-xs font-semibold hidden"></p>
 </div>
 <!-- Action Button -->
 <div class="pt-6">

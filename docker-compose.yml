@@ -32,6 +32,8 @@ services:
     networks: [public-net, private-net]
     depends_on:
       - db
+    env_file:
+      - ./backend/.env
 
   frontend:
     build: ./frontend
