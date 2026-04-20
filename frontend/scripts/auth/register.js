@@ -27,9 +27,15 @@ async function handleRegisterSubmit(event) {
     const confirmPassword = document.getElementById("confirm-password")?.value || "";
     const paisValue = document.getElementById("pais")?.value || "";
     const pais = paisValue ? Number.parseInt(paisValue, 10) : null;
+    const fechaNacimiento = document.getElementById("fecha-nacimiento")?.value || null;
 
-    if (!nombre || !apellido || !email || !password || !pais || !telefono || !dni) {
+    if (!nombre || !apellido || !email || !password || !pais || !telefono || !dni || !fechaNacimiento) {
         setMessage("Completá todos los campos requeridos.", true);
+        return;
+    }
+
+    if (password.length < 8) {
+        setMessage("La contraseña debe tener al menos 8 caracteres.", true);
         return;
     }
 
@@ -45,6 +51,7 @@ async function handleRegisterSubmit(event) {
         telefono,
         dni,
         pais,
+        fecha_nacimiento: fechaNacimiento,
         password,
         rol: "cliente",
         estado_usuario: 1,

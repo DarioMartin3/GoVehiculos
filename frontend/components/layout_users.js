@@ -19,6 +19,9 @@
   } = layoutUi;
 
   let userDirectoryCache = [];
+  let filteredUsersCache = [];
+  let currentPage = 1;
+  const PAGE_SIZE = 10;
   let editingDirectoryUserId = null;
   let directoryEditSubmitting = false;
 
@@ -83,6 +86,74 @@
     return (value || '').toString().trim().toLowerCase();
   }
 
+  function renderPagination(totalItems) {
+    const infoEl = document.getElementById('pagination-info');
+    const buttonsEl = document.getElementById('pagination-buttons');
+    if (!infoEl || !buttonsEl) return;
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const from = totalItems === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+    const to = Math.min(currentPage * PAGE_SIZE, totalItems);
+    infoEl.textContent = `Mostrando ${from} a ${to} de ${totalItems} entradas`;
+
+    buttonsEl.innerHTML = '';
+
+    const btnClass = 'px-3 py-1.5 rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors text-slate-600';
+    const activeBtnClass = 'px-4 py-1.5 rounded-lg bg-primary text-white font-bold text-xs shadow-md';
+    const inactiveBtnClass = 'px-4 py-1.5 rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors text-slate-600 text-xs font-semibold';
+
+    function makePageBtn(page) {
+      const btn = document.createElement('button');
+      btn.className = page === currentPage ? activeBtnClass : inactiveBtnClass;
+      btn.textContent = String(page);
+      btn.addEventListener('click', () => goToPage(page));
+      return btn;
+    }
+
+    const prevBtn = document.createElement('button');
+    prevBtn.className = btnClass;
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.innerHTML = '<span class="material-symbols-outlined text-sm">chevron_left</span>';
+    prevBtn.addEventListener('click', () => goToPage(currentPage - 1));
+    buttonsEl.appendChild(prevBtn);
+
+    if (totalPages <= 7) {
+      for (let p = 1; p <= totalPages; p++) buttonsEl.appendChild(makePageBtn(p));
+    } else {
+      const pages = new Set([1, totalPages, currentPage, currentPage - 1, currentPage + 1].filter((p) => p >= 1 && p <= totalPages));
+      const sorted = [...pages].sort((a, b) => a - b);
+      let prev = 0;
+      sorted.forEach((p) => {
+        if (p - prev > 1) {
+          const dots = document.createElement('span');
+          dots.className = 'px-2 py-1.5 text-slate-400 text-xs';
+          dots.textContent = '...';
+          buttonsEl.appendChild(dots);
+        }
+        buttonsEl.appendChild(makePageBtn(p));
+        prev = p;
+      });
+    }
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = btnClass;
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.innerHTML = '<span class="material-symbols-outlined text-sm">chevron_right</span>';
+    nextBtn.addEventListener('click', () => goToPage(currentPage + 1));
+    buttonsEl.appendChild(nextBtn);
+  }
+
+  function goToPage(page) {
+    const totalPages = Math.max(1, Math.ceil(filteredUsersCache.length / PAGE_SIZE));
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    const slice = filteredUsersCache.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+    renderUserDirectory(slice);
+    renderPagination(filteredUsersCache.length);
+  }
+
   function applyUserDirectoryFilters() {
     const roleFilter = document.getElementById('user-role-filter');
     const statusFilter = document.getElementById('user-status-filter');
@@ -92,7 +163,7 @@
     const selectedStatus = (statusFilter?.value || 'all').toString().trim().toLowerCase();
     const searchTerm = (searchInput?.value || '').toString().trim().toLowerCase();
 
-    const filteredUsers = userDirectoryCache.filter((user) => {
+    filteredUsersCache = userDirectoryCache.filter((user) => {
       const userRole = normalizeUserRole(user.rol);
       const userStatus = (user.estado ?? '').toString().trim().toLowerCase();
 
@@ -115,7 +186,10 @@
       return matchesRole && matchesStatus && matchesSearch;
     });
 
-    renderUserDirectory(filteredUsers);
+    currentPage = 1;
+    const slice = filteredUsersCache.slice(0, PAGE_SIZE);
+    renderUserDirectory(slice);
+    renderPagination(filteredUsersCache.length);
   }
 
   function initUserDirectoryFilters() {
