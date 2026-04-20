@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.presentacion.auth_router import router as auth_router
 from app.presentacion.vehiculo_router import router as vehiculo_router
+from app.presentacion.auth_documents import router as documents_router
 
 # Punto de entrada principal del backend.
 app = FastAPI()
@@ -24,6 +25,7 @@ app.add_middleware(
 # Monta rutas de autenticación con prefijo /auth.
 app.include_router(auth_router)
 app.include_router(vehiculo_router)
+app.include_router(documents_router)
 
 
 @app.get("/")

@@ -1,12 +1,11 @@
 import psycopg2
 
 from app.core.database import get_connection
-from app.core.security import create_access_token, verify_password
-from app.core.security import decode_access_token, hash_password
+from app.core.security import create_access_token, verify_password, hash_password
 from app.entidades import Persona
-from app.repositorios.persona_repository import PersonaRepository
-from app.repositorios.usuario_repository import UsuarioRepository
+from app.repositorios.persona_repository import PersonaRepository, UsuarioRepository
 from app.schemas import RegisterUserRequest
+from app.servicios.token_service import TokenService
 
 
 class AuthService:
@@ -15,6 +14,7 @@ class AuthService:
     def __init__(self, usuario_repository: UsuarioRepository | None = None):
         self.usuario_repository = usuario_repository or UsuarioRepository()
         self.persona_repository = PersonaRepository()
+        self.token_service = TokenService()
 
     def login(self, email: str, password: str) -> dict:
         # 1) Buscar usuario por email.
@@ -99,13 +99,7 @@ class AuthService:
         }
 
     def get_profile(self, token: str) -> dict:
-        payload = decode_access_token(token)
-        user_id_raw = payload.get("sub")
-
-        try:
-            user_id = int(user_id_raw)
-        except (TypeError, ValueError) as error:
-            raise ValueError("Token inválido") from error
+        user_id = self.token_service.validate_token(token)
 
         profile = self.usuario_repository.get_profile_by_user_id(user_id)
         if not profile:
@@ -113,13 +107,7 @@ class AuthService:
         return profile
 
     def change_password(self, token: str, current_password: str, new_password: str) -> None:
-        payload = decode_access_token(token)
-        user_id_raw = payload.get("sub")
-
-        try:
-            user_id = int(user_id_raw)
-        except (TypeError, ValueError) as error:
-            raise ValueError("Token inválido") from error
+        user_id = self.token_service.validate_token(token)
 
         stored_password = self.usuario_repository.get_password_hash_by_user_id(user_id)
         if not stored_password:
@@ -139,13 +127,7 @@ class AuthService:
             raise ValueError("No se pudo actualizar la contraseña")
 
     def update_profile(self, token: str, email: str | None, telefono: str | None, pais: int | None) -> dict:
-        payload = decode_access_token(token)
-        user_id_raw = payload.get("sub")
-
-        try:
-            user_id = int(user_id_raw)
-        except (TypeError, ValueError) as error:
-            raise ValueError("Token inválido") from error
+        user_id = self.token_service.validate_token(token)
 
         if not any([email, telefono, pais]):
             raise ValueError("Debe proporcionar al menos un campo para actualizar")
@@ -166,16 +148,14 @@ class AuthService:
         return profile
 
     def list_users_directory(self, token: str) -> list[dict]:
-        payload = decode_access_token(token)
-        role = (payload.get("rol") or "").strip().lower()
+        role = self.token_service.get_role(token)
         if role not in {"administrador", "admin"}:
             raise ValueError("Permiso denegado")
 
         return self.usuario_repository.get_users_directory()
 
     def update_directory_user(self, token: str, user_id: int, data: dict) -> dict:
-        payload = decode_access_token(token)
-        role = (payload.get("rol") or "").strip().lower()
+        role = self.token_service.get_role(token)
         if role not in {"administrador", "admin"}:
             raise ValueError("Permiso denegado")
 
@@ -195,8 +175,7 @@ class AuthService:
         return item
 
     def deactivate_directory_user(self, token: str, user_id: int) -> dict:
-        payload = decode_access_token(token)
-        role = (payload.get("rol") or "").strip().lower()
+        role = self.token_service.get_role(token)
         if role not in {"administrador", "admin"}:
             raise ValueError("Permiso denegado")
 
@@ -211,8 +190,7 @@ class AuthService:
         return item
 
     def activate_directory_user(self, token: str, user_id: int) -> dict:
-        payload = decode_access_token(token)
-        role = (payload.get("rol") or "").strip().lower()
+        role = self.token_service.get_role(token)
         if role not in {"administrador", "admin"}:
             raise ValueError("Permiso denegado")
 

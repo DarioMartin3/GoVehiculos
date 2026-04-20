@@ -73,7 +73,7 @@ async function handleDocumentoChange(event) {
     formData.append("fecha_nacimiento", fechaNacimiento);
 
     try {
-        const response = await fetch(`${registerApiBaseUrl}/auth/validate-document`, {
+        const response = await fetch(`${registerApiBaseUrl}/documents/validate-document`, {
             method: "POST",
             body: formData,
         });
