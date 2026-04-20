@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 
 
 class LoginRequest(BaseModel):
@@ -34,6 +34,13 @@ class RegisterUserRequest(BaseModel):
     password: str
     rol: str
     estado_usuario: int | None = 1
+
+    @field_validator('password')
+    @classmethod
+    def password_min_length(cls, value: str) -> str:
+        if len(value) < 8:
+            raise ValueError('La contraseña debe tener al menos 8 caracteres')
+        return value
 
 
 class RegisterUserResponse(BaseModel):
