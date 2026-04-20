@@ -167,20 +167,8 @@ Restaurar filtros
 </table>
 <!-- Pagination Control -->
 <div class="px-8 py-6 bg-surface-container-low/20 flex justify-between items-center border-t border-outline-variant/5">
-<p class="text-xs text-slate-500 font-medium">Showing 1 to 10 of 1,284 entries</p>
-<div class="flex gap-1">
-<button class="px-3 py-1.5 rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors text-slate-600">
-<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
-</button>
-<button class="px-4 py-1.5 rounded-lg bg-primary text-white font-bold text-xs shadow-md">1</button>
-<button class="px-4 py-1.5 rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors text-slate-600 text-xs font-semibold">2</button>
-<button class="px-4 py-1.5 rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors text-slate-600 text-xs font-semibold">3</button>
-<span class="px-2 py-1.5 text-slate-400 text-xs">...</span>
-<button class="px-4 py-1.5 rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors text-slate-600 text-xs font-semibold">128</button>
-<button class="px-3 py-1.5 rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors text-slate-600">
-<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
-</button>
-</div>
+<p id="pagination-info" class="text-xs text-slate-500 font-medium"></p>
+<div id="pagination-buttons" class="flex gap-1"></div>
 </div>
 </div>
 <!-- Contextual Note / Footer Editorial -->
