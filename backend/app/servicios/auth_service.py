@@ -67,6 +67,7 @@ class AuthService:
                             telefono=payload.telefono,
                             dni=payload.dni,
                             pais=payload.pais,
+                            fecha_nacimiento=payload.fecha_nacimiento,
                         ),
                     )
 
