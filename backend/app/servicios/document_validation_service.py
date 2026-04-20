@@ -1,9 +1,9 @@
-import json
 import re
 import base64
-import requests
 
-from app.core.config import GROQ_API_KEY
+from app.adaptadores.document_validator import DocumentValidatorAdapter
+
+
 
 
 def _normalize(value: str | None) -> str:
@@ -29,9 +29,8 @@ def _normalize_dni(value: str | None) -> str:
 
 
 class DocumentValidationService:
-    def __init__(self):
-        if not GROQ_API_KEY:
-            raise ValueError("GROQ_API_KEY no configurada")
+    def __init__(self, adapter: DocumentValidatorAdapter):
+        self.adapter = adapter
 
     def validate(
         self,
@@ -44,54 +43,16 @@ class DocumentValidationService:
         image_b64 = base64.standard_b64encode(image_bytes).decode("utf-8")
 
         prompt = """Analizá esta imagen de un documento de identidad argentino (DNI).
-Extraé los siguientes campos y devolvé ÚNICAMENTE un JSON válido con esta estructura, sin texto adicional:
-{
-  "nombre": "<nombre/s de pila>",
-  "apellido": "<apellido/s>",
-  "dni": "<número de DNI sin puntos ni espacios>",
-  "fecha_nacimiento": "<fecha en formato YYYY-MM-DD>"
-}
-Si no podés leer algún campo con certeza, dejá el valor como cadena vacía."""
+            Extraé los siguientes campos y devolvé ÚNICAMENTE un JSON válido con esta estructura, sin texto adicional:
+            {
+            "nombre": "<nombre/s de pila>",
+            "apellido": "<apellido/s>",
+            "dni": "<número de DNI sin puntos ni espacios>",
+            "fecha_nacimiento": "<fecha en formato YYYY-MM-DD>"
+            }
+            Si no podés leer algún campo con certeza, dejá el valor como cadena vacía."""
 
-        response = requests.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {GROQ_API_KEY}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": "meta-llama/llama-4-scout-17b-16e-instruct",
-                "max_tokens": 256,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{image_b64}"
-                                },
-                            },
-                            {"type": "text", "text": prompt},
-                        ],
-                    }
-                ],
-            },
-        )
-
-        if not response.ok:
-            raise ValueError(f"Groq error {response.status_code}: {response.text}")
-
-        raw = response.json()["choices"][0]["message"]["content"].strip()
-        print("=== RESPUESTA GROQ ===")
-        print(raw)
-        print("=====================")
-
-        json_match = re.search(r"\{.*\}", raw, re.DOTALL)
-        if not json_match:
-            raise ValueError("No se pudo interpretar la respuesta del modelo")
-
-        extracted = json.loads(json_match.group())
+        extracted = self.adapter.extraer_datos(prompt, image_b64)
 
         coincidencias = {
             "nombre": _normalize(extracted.get("nombre")) == _normalize(nombre),

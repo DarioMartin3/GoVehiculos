@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Header, HTTPException, UploadFile, File, Form, status
+from app.servicios.document_validation_service import DocumentValidationService
+from app.adaptadores.groq_adapter import GroqDocumentAdapter
 
 from app.schemas import (
     ChangePasswordRequest,
@@ -59,7 +61,7 @@ async def validate_document(
     dni: str = Form(...),
     fecha_nacimiento: str = Form(...),
 ):
-    from app.servicios.document_validation_service import DocumentValidationService
+    
 
     allowed_types = {"image/jpeg", "image/png", "image/webp"}
     if documento.content_type not in allowed_types:
@@ -69,8 +71,11 @@ async def validate_document(
     if len(imagen_bytes) > 5 * 1024 * 1024:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La imagen no puede superar los 5MB.")
 
+
     try:
-        result = DocumentValidationService().validate(
+        service = DocumentValidationService(adapter=GroqDocumentAdapter())
+
+        result = service.validate(
             image_bytes=imagen_bytes,
             nombre=nombre,
             apellido=apellido,
