@@ -20,6 +20,9 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# StaticFiles valida la carpeta al montar, por eso debe existir antes de app.mount.
+os.makedirs(DOCS_UPLOAD_DIR, exist_ok=True)
+
 # CORS habilita llamadas desde el frontend (puerto 3000) al backend (puerto 8000).
 app.add_middleware(
     CORSMiddleware,

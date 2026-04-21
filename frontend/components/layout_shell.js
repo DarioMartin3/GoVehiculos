@@ -118,7 +118,9 @@
       'perfil_view.html',
     ];
 
-    const showDashboardActions = dashboardPages.includes(current) || (current === 'index.html' && token);
+    const navActionsPages = [...dashboardPages, 'index_registrar_vehiculo.html'];
+
+    const showDashboardActions = navActionsPages.includes(current) || (current === 'index.html' && token);
 
     const btnCrear = document.getElementById('nav-crear-cuenta');
     const btnSignUp = document.getElementById('nav-sign-up');
