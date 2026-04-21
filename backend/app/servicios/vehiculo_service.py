@@ -4,13 +4,15 @@ import base64
 import unicodedata
 
 from app.core.config import DOCS_UPLOAD_DIR
-from app.core.security import decode_access_token
 from app.core.database import get_connection
 from app.entidades.vehiculo import Vehiculo
 from app.adaptadores.document_validator import DocumentValidatorAdapter
 from app.repositorios.documento_vehiculo_repository import DocumentoVehiculoRepository
 from app.repositorios.usuario_repository import UsuarioRepository
+from app.prompts.cedula_vehiculo_prompt import PROMPT_CEDULA_EXTRACCION, PROMPT_CEDULA_TRASERA
+from app.prompts.seguro_prompt import PROMPT_SEGURO
 from app.repositorios.vehiculo_repository import VehiculoRepository
+from app.servicios.token_service import TokenService
 
 
 def _sanitize_filename_part(text: str) -> str:
@@ -29,6 +31,7 @@ class VehiculoService:
         self.usuario_repository = UsuarioRepository()
         self.documento_repository = DocumentoVehiculoRepository()
         self.document_validator = document_validator
+        self.token_service = TokenService()
 
     def list_marcas(self) -> list[dict]:
         return self.vehiculo_repository.get_marcas()
@@ -37,16 +40,7 @@ class VehiculoService:
         return self.vehiculo_repository.get_modelos(marca_id)
 
     def _get_request_context(self, token: str) -> tuple[int, str]:
-        payload = decode_access_token(token)
-        user_id_raw = payload.get("sub")
-        role = (payload.get("rol") or "").strip().lower()
-
-        try:
-            usuario_id = int(user_id_raw)
-        except (TypeError, ValueError) as error:
-            raise ValueError("Token inválido") from error
-
-        return usuario_id, role
+        return self.token_service.get_context(token)
 
     def _vehicle_to_dict(self, vehicle: Vehiculo) -> dict:
         return vehicle.to_dict()
@@ -216,19 +210,7 @@ class VehiculoService:
 
         image_b64 = base64.standard_b64encode(image_bytes).decode("utf-8")
 
-        prompt = """Analizá esta imagen de una póliza de seguro de vehículo.
-Extraé los siguientes campos y devolvé ÚNICAMENTE un JSON válido con esta estructura, sin texto adicional:
-{
-  "nombre": "<nombre/s de pila del asegurado>",
-  "apellido": "<apellido/s del asegurado>",
-  "dni": "<número de DNI sin puntos ni espacios>",
-  "fecha_nacimiento": "<fecha en formato YYYY-MM-DD>",
-  "marca": "<marca del vehículo>",
-  "modelo": "<modelo del vehículo>"
-}
-Si no podés leer algún campo con certeza, dejá el valor como cadena vacía."""
-
-        extracted = self.document_validator.extraer_datos(prompt, image_b64)
+        extracted = self.document_validator.extraer_datos(PROMPT_SEGURO, image_b64)
 
         def _norm(value: str | None) -> str:
             v = (value or "").strip().lower()
@@ -281,16 +263,7 @@ Si no podés leer algún campo con certeza, dejá el valor como cadena vacía.""
 
         image_b64 = base64.standard_b64encode(image_bytes).decode("utf-8")
 
-        prompt = """Analizá esta imagen de la parte trasera de una Cédula Verde de vehículo argentina.
-Extraé los datos del titular y devolvé ÚNICAMENTE un JSON válido con esta estructura, sin texto adicional:
-{
-  "nombre": "<nombre/s de pila del titular>",
-  "apellido": "<apellido/s del titular>",
-  "dni": "<número de DNI sin puntos ni espacios>"
-}
-Si no podés leer algún campo con certeza, dejá el valor como cadena vacía."""
-
-        extracted = self.document_validator.extraer_datos(prompt, image_b64)
+        extracted = self.document_validator.extraer_datos(PROMPT_CEDULA_TRASERA, image_b64)
 
         def _norm(value: str | None) -> str:
             v = (value or "").strip().lower()
@@ -322,17 +295,7 @@ Si no podés leer algún campo con certeza, dejá el valor como cadena vacía.""
 
         image_b64 = base64.standard_b64encode(image_bytes).decode("utf-8")
 
-        prompt = """Analizá esta imagen de una Cédula Verde de vehículo argentina.
-Extraé los siguientes campos y devolvé ÚNICAMENTE un JSON válido con esta estructura, sin texto adicional:
-{
-  "marca": "<marca del vehículo>",
-  "modelo": "<modelo del vehículo>",
-  "patente": "<dominio/patente sin guiones ni espacios>",
-  "anio": <año de fabricación como número entero>
-}
-Si no podés leer algún campo con certeza, dejá el valor como cadena vacía o null."""
-
-        extracted = self.document_validator.extraer_datos(prompt, image_b64)
+        extracted = self.document_validator.extraer_datos(PROMPT_CEDULA_EXTRACCION, image_b64)
 
         marca_nombre = (extracted.get("marca") or "").strip()
         modelo_nombre = (extracted.get("modelo") or "").strip()

@@ -1,4 +1,5 @@
 from app.adaptadores.groq_adapter import GroqDocumentAdapter
+from app.core.database import get_connection
 from app.repositorios.licencia_repository import LicenciaRepository
 from app.repositorios.usuario_repository import UsuarioRepository
 from app.servicios.licencia_validation_service import LicenciaValidationService
@@ -28,12 +29,20 @@ class LicenciaService:
 
         if result["valido"]:
             datos = result["datos_extraidos"]
-            self.licencia_repository.crear_carnet(
-                usuario_id=user_id,
-                fecha_emision=datos.get("fecha_emision"),
-                fecha_vencimiento=datos.get("fecha_vencimiento"),
-                clases=datos.get("clases", []),
-            )
+            with get_connection() as connection:
+                with connection.cursor() as cursor:
+                    try:
+                        self.licencia_repository.crear_carnet(
+                            cursor,
+                            usuario_id=user_id,
+                            fecha_emision=datos.get("fecha_emision"),
+                            fecha_vencimiento=datos.get("fecha_vencimiento"),
+                            clases=datos.get("clases", []),
+                        )
+                        connection.commit()
+                    except Exception:
+                        connection.rollback()
+                        raise
 
         return result
 

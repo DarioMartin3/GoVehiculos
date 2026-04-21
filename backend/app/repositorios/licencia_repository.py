@@ -16,40 +16,35 @@ class LicenciaRepository:
 
     def crear_carnet(
         self,
+        cursor,
         usuario_id: int,
         fecha_emision: str | None,
         fecha_vencimiento: str | None,
         clases: list[dict],
     ) -> int:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                try:
-                    cur.execute(
-                        """INSERT INTO carnet_conducir
-                           (usuario_id, fecha_emision, fecha_vencimiento, estado_validacion)
-                           VALUES (%s, %s, %s, 1) RETURNING id""",
-                        (usuario_id, fecha_emision or None, fecha_vencimiento or None),
-                    )
-                    carnet_id = cur.fetchone()[0]
+        cursor.execute(
+            """INSERT INTO carnet_conducir
+               (usuario_id, fecha_emision, fecha_vencimiento, estado_validacion)
+               VALUES (%s, %s, %s, 1) RETURNING id""",
+            (usuario_id, fecha_emision or None, fecha_vencimiento or None),
+        )
+        carnet_id = cursor.fetchone()[0]
 
-                    for clase in clases:
-                        tipo_id = self.get_tipo_by_nombre(clase["clase"], cur)
-                        if tipo_id:
-                            cur.execute(
-                                """INSERT INTO carnet_clase
-                                   (carnet_id, tipo_licencia_id, fecha_otorgamiento, fecha_vencimiento)
-                                   VALUES (%s, %s, %s, %s)""",
-                                (
-                                    carnet_id,
-                                    tipo_id,
-                                    clase.get("fecha_otorgamiento") or None,
-                                    clase.get("fecha_vencimiento") or None,
-                                ),
-                            )
-                    conn.commit()
-                except Exception:
-                    conn.rollback()
-                    raise
+        for clase in clases:
+            tipo_id = self.get_tipo_by_nombre(clase["clase"], cursor)
+            if tipo_id:
+                cursor.execute(
+                    """INSERT INTO carnet_clase
+                       (carnet_id, tipo_licencia_id, fecha_otorgamiento, fecha_vencimiento)
+                       VALUES (%s, %s, %s, %s)""",
+                    (
+                        carnet_id,
+                        tipo_id,
+                        clase.get("fecha_otorgamiento") or None,
+                        clase.get("fecha_vencimiento") or None,
+                    ),
+                )
+
         return carnet_id
 
     def get_carnet_by_usuario(self, usuario_id: int) -> dict | None:

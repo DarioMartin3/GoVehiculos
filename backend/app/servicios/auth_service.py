@@ -1,8 +1,9 @@
 import psycopg2
 
 from app.core.database import get_connection
-from app.core.security import create_access_token, verify_password, hash_password
+from app.core.security import verify_password, hash_password
 from app.entidades import Persona
+from app.repositorios.pais_repository import PaisRepository
 from app.repositorios.persona_repository import PersonaRepository
 from app.repositorios.usuario_repository import UsuarioRepository
 from app.schemas import RegisterUserRequest
@@ -15,6 +16,7 @@ class AuthService:
     def __init__(self, usuario_repository: UsuarioRepository | None = None):
         self.usuario_repository = usuario_repository or UsuarioRepository()
         self.persona_repository = PersonaRepository()
+        self.pais_repository = PaisRepository()
         self.token_service = TokenService()
 
     def login(self, email: str, password: str) -> dict:
@@ -32,10 +34,7 @@ class AuthService:
             raise ValueError("Credenciales inválidas")
 
         # 4) Generar token JWT para sesión.
-        token = create_access_token(
-            subject=str(user.id),
-            extra_claims={"email": user.email, "rol": user.rol},
-        )
+        token = self.token_service.create_token(user.id, user.email, user.rol)
         return {
             "access_token": token,
             "user": {
@@ -204,6 +203,9 @@ class AuthService:
             raise ValueError("Usuario no encontrado")
 
         return item
+
+    def get_paises(self) -> list[dict]:
+        return self.pais_repository.get_paises()
 
     @staticmethod
     def translate_register_error(error: Exception) -> str:

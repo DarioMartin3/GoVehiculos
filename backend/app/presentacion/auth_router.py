@@ -198,12 +198,4 @@ def activate_directory_user(user_id: int, authorization: str | None = Header(def
 
 @router.get("/paises")
 def get_countries():
-    from app.core.database import get_connection
-
-    with get_connection() as connection:
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT id, nombre FROM pais ORDER BY nombre ASC")
-            rows = cursor.fetchall()
-
-    countries = [{"id": row[0], "nombre": row[1]} for row in rows]
-    return countries
+    return AuthService().get_paises()
