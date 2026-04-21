@@ -15,3 +15,6 @@ JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "480"))
 
 # API key de Groq para validación de documentos.
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+
+# Directorio donde se almacenan los documentos de vehículos subidos.
+DOCS_UPLOAD_DIR = os.getenv("DOCS_UPLOAD_DIR", "/app/uploads/documentos")

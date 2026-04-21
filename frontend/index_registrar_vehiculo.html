@@ -124,7 +124,7 @@
 <div class="space-y-2 group">
 <label class="text-xs font-bold tracking-wider text-outline uppercase font-label" for="patente">Número de Patente</label>
 <div class="relative">
-<input class="w-full bg-surface-container-high border-none rounded-sm px-4 py-4 focus:ring-0 focus:border-none focus-indicator-active transition-all placeholder:text-outline-variant" id="patente" placeholder="ABC-123" type="text" maxlength="15"/>
+<input class="w-full bg-surface-container-high border-none rounded-sm px-4 py-4 transition-all placeholder:text-outline-variant cursor-not-allowed opacity-70" id="patente" placeholder="Se detectará desde la cédula" type="text" readonly/>
 </div>
 </div>
 <div class="space-y-2">
@@ -134,46 +134,68 @@
 </div>
 </div>
 </div>
+<input type="hidden" id="modelo_id" value=""/>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 <div class="space-y-2">
-<label class="text-xs font-bold tracking-wider text-outline uppercase font-label" for="marca">Marca del Vehículo</label>
-<select class="w-full bg-surface-container-high border-none rounded-sm px-4 py-4 focus:ring-0 focus:border-none focus-indicator-active transition-all" id="marca">
-<option value="">Seleccionar marca</option>
-</select>
+<label class="text-xs font-bold tracking-wider text-outline uppercase font-label">Marca del Vehículo</label>
+<div id="marca-display" class="w-full bg-surface-container-high rounded-sm px-4 py-4 text-sm text-outline-variant italic min-h-[56px] flex items-center">Se detectará desde la cédula</div>
 </div>
 <div class="space-y-2">
-<label class="text-xs font-bold tracking-wider text-outline uppercase font-label" for="modelo">Modelo del Vehículo</label>
-<select class="w-full bg-surface-container-high border-none rounded-sm px-4 py-4 focus:ring-0 focus:border-none focus-indicator-active transition-all" id="modelo" disabled>
-<option value="">Seleccionar modelo</option>
-</select>
+<label class="text-xs font-bold tracking-wider text-outline uppercase font-label">Modelo del Vehículo</label>
+<div id="modelo-display" class="w-full bg-surface-container-high rounded-sm px-4 py-4 text-sm text-outline-variant italic min-h-[56px] flex items-center">Se detectará desde la cédula</div>
 </div>
 </div>
-<!-- Upload Section -->
+<div id="cedula-extract-status" class="hidden text-sm font-semibold"></div>
+<div id="cedula-titular-status" class="hidden text-sm font-semibold"></div>
+<div id="seguro-status" class="hidden text-sm font-semibold"></div>
+<!-- Document & Photo Upload Section -->
 <div class="space-y-4">
-<label class="text-xs font-bold tracking-wider text-outline uppercase font-label">Subir archivos del vehículo</label>
-<div class="border-2 border-dashed border-outline-variant/30 bg-surface-container-low rounded-lg p-10 text-center hover:bg-surface-container-high transition-colors cursor-pointer group">
-<div class="flex flex-col items-center gap-3">
-<div class="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-sm text-primary transition-transform group-hover:-translate-y-1">
-<span class="material-symbols-outlined text-3xl" data-icon="cloud_upload">cloud_upload</span>
+<label class="text-xs font-bold tracking-wider text-outline uppercase font-label">Documentación y Fotos del Vehículo</label>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Frente de la cédula -->
+<label class="upload-zone border-2 border-dashed border-outline-variant/30 bg-surface-container-low rounded-lg p-6 text-center hover:bg-surface-container-high transition-colors cursor-pointer group block" data-target="cedula-frente">
+<input type="file" id="cedula-frente" accept="image/jpeg,image/png,image/jpg" class="hidden"/>
+<div class="flex flex-col items-center gap-2">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm text-primary transition-transform group-hover:-translate-y-1">
+<span class="material-symbols-outlined text-2xl">id_card</span>
 </div>
-<div class="space-y-1">
-<p class="font-bold text-on-background">Arrastra o selecciona tus documentos</p>
-<p class="text-sm text-on-surface-variant">Seguro, Título y Cédula de Registro (PDF, JPG hasta 10MB)</p>
+<p class="font-bold text-sm text-on-background">Frente de la Cédula</p>
+<p class="text-xs text-on-surface-variant" id="cedula-frente-label">JPG o PNG · hasta 10MB</p>
 </div>
+</label>
+<!-- Trasera de la cédula -->
+<label class="upload-zone border-2 border-dashed border-outline-variant/30 bg-surface-container-low rounded-lg p-6 text-center transition-colors cursor-not-allowed opacity-50 group block" data-target="cedula-trasera" data-locked="true">
+<input type="file" id="cedula-trasera" accept="image/jpeg,image/png,image/jpg" class="hidden" disabled/>
+<div class="flex flex-col items-center gap-2">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm text-primary transition-transform group-hover:-translate-y-1">
+<span class="material-symbols-outlined text-2xl">flip</span>
 </div>
+<p class="font-bold text-sm text-on-background">Trasera de la Cédula</p>
+<p class="text-xs text-on-surface-variant" id="cedula-trasera-label">Completá el paso anterior primero</p>
 </div>
-</div><div class="space-y-4">
-<label class="text-xs font-bold tracking-wider text-outline uppercase font-label">Imágenes del Vehículo</label>
-<div class="border-2 border-dashed border-outline-variant/30 bg-surface-container-low rounded-lg p-10 text-center hover:bg-surface-container-high transition-colors cursor-pointer group">
-<div class="flex flex-col items-center gap-3">
-<div class="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-sm text-primary transition-transform group-hover:-translate-y-1">
-<span class="material-symbols-outlined text-3xl" data-icon="photo_camera">photo_camera</span>
+</label>
+<!-- Seguro PDF -->
+<label class="upload-zone border-2 border-dashed border-outline-variant/30 bg-surface-container-low rounded-lg p-6 text-center transition-colors cursor-not-allowed opacity-50 group block" data-target="seguro-pdf" data-locked="true">
+<input type="file" id="seguro-pdf" accept="image/jpeg,image/png,image/jpg,image/webp" class="hidden" disabled/>
+<div class="flex flex-col items-center gap-2">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm text-primary transition-transform group-hover:-translate-y-1">
+<span class="material-symbols-outlined text-2xl">description</span>
 </div>
-<div class="space-y-1">
-<p class="font-bold text-on-background">Arrastra o selecciona fotos del auto</p>
-<p class="text-sm text-on-surface-variant">Fotos de frente, lateral y trasera (JPG, PNG hasta 5MB)</p>
+<p class="font-bold text-sm text-on-background">Seguro del Vehículo</p>
+<p class="text-xs text-on-surface-variant" id="seguro-pdf-label">Completá el paso anterior primero</p>
 </div>
+</label>
+<!-- Foto del vehículo -->
+<label class="upload-zone border-2 border-dashed border-outline-variant/30 bg-surface-container-low rounded-lg p-6 text-center hover:bg-surface-container-high transition-colors cursor-pointer group block" data-target="foto-vehiculo">
+<input type="file" id="foto-vehiculo" accept="image/jpeg,image/png,image/jpg" class="hidden"/>
+<div class="flex flex-col items-center gap-2">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm text-primary transition-transform group-hover:-translate-y-1">
+<span class="material-symbols-outlined text-2xl">photo_camera</span>
 </div>
+<p class="font-bold text-sm text-on-background">Foto del Vehículo</p>
+<p class="text-xs text-on-surface-variant" id="foto-vehiculo-label">JPG o PNG · hasta 5MB</p>
+</div>
+</label>
 </div>
 </div>
 <!-- Image Preview Card / Decorative -->

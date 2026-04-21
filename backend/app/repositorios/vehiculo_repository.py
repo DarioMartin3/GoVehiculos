@@ -185,6 +185,31 @@ class VehiculoRepository:
 
         return vehicles
 
+    def find_or_create_marca(self, cursor, nombre: str) -> int:
+        cursor.execute(
+            "SELECT id FROM marca WHERE LOWER(nombre) = LOWER(%s) LIMIT 1",
+            (nombre.strip(),),
+        )
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        cursor.execute("INSERT INTO marca (nombre) VALUES (%s) RETURNING id", (nombre.strip(),))
+        return cursor.fetchone()[0]
+
+    def find_or_create_modelo(self, cursor, nombre: str, marca_id: int) -> int:
+        cursor.execute(
+            "SELECT id FROM modelo WHERE LOWER(nombre) = LOWER(%s) AND marca_id = %s LIMIT 1",
+            (nombre.strip(), marca_id),
+        )
+        row = cursor.fetchone()
+        if row:
+            return row[0]
+        cursor.execute(
+            "INSERT INTO modelo (nombre, marca_id) VALUES (%s, %s) RETURNING id",
+            (nombre.strip(), marca_id),
+        )
+        return cursor.fetchone()[0]
+
     def update_vehicle_by_id(self, cursor, vehicle_id: int, data: dict) -> bool:
         updates: list[str] = []
         values: list[object] = []

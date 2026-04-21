@@ -117,7 +117,8 @@ class UsuarioRepository:
     def get_profile_by_user_id(self, user_id: int) -> dict | None:
         # Trae datos de usuario + persona para poblar la vista de perfil.
         query_with_rol_text = """
-            SELECT u.id, u.rol, p.email, p.nombre, p.apellido, p.telefono, p.dni, pa.nombre AS pais
+            SELECT u.id, u.rol, p.email, p.nombre, p.apellido, p.telefono, p.dni, pa.nombre AS pais,
+                   p.fecha_nacimiento
             FROM usuario u
             INNER JOIN persona p ON p.id = u.persona_id
             LEFT JOIN pais pa ON pa.id = p.pais
@@ -125,7 +126,8 @@ class UsuarioRepository:
             LIMIT 1
         """
         query_with_rol_fk = """
-            SELECT u.id, r.nombre AS rol, p.email, p.nombre, p.apellido, p.telefono, p.dni, pa.nombre AS pais
+            SELECT u.id, r.nombre AS rol, p.email, p.nombre, p.apellido, p.telefono, p.dni, pa.nombre AS pais,
+                   p.fecha_nacimiento
             FROM usuario u
             INNER JOIN persona p ON p.id = u.persona_id
             LEFT JOIN rol r ON r.id = u.rol_id
@@ -155,6 +157,7 @@ class UsuarioRepository:
             "telefono": row[5],
             "dni": row[6],
             "pais": row[7],
+            "fecha_nacimiento": str(row[8]) if row[8] else None,
         }
 
     def get_persona_basica_by_user_id(self, user_id: int) -> dict | None:
@@ -175,6 +178,24 @@ class UsuarioRepository:
             "apellido": row[1],
             "fecha_nacimiento": str(row[2]) if row[2] else None,
         }
+
+    def update_rol_by_user_id(self, user_id: int, rol: str) -> bool:
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                if self._usuario_has_column(cursor, 'rol'):
+                    cursor.execute(
+                        "UPDATE usuario SET rol = %s WHERE id = %s",
+                        (rol, user_id),
+                    )
+                else:
+                    rol_id = self._get_rol_id(cursor, rol)
+                    cursor.execute(
+                        "UPDATE usuario SET rol_id = %s WHERE id = %s",
+                        (rol_id, user_id),
+                    )
+                updated = cursor.rowcount > 0
+            connection.commit()
+        return updated
 
     def get_password_hash_by_user_id(self, user_id: int) -> str | None:
         with get_connection() as connection:

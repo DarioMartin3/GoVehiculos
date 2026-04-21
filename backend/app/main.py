@@ -1,13 +1,23 @@
+import os
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.core.config import DOCS_UPLOAD_DIR
 from app.presentacion.auth_router import router as auth_router
 from app.presentacion.vehiculo_router import router as vehiculo_router
 from app.presentacion.auth_documents import router as documents_router
 from app.presentacion.licencia_router import router as licencia_router
 
-# Punto de entrada principal del backend.
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    os.makedirs(DOCS_UPLOAD_DIR, exist_ok=True)
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 # CORS habilita llamadas desde el frontend (puerto 3000) al backend (puerto 8000).
 app.add_middleware(

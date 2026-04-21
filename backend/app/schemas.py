@@ -132,3 +132,35 @@ class VehicleResponse(BaseModel):
     modelo_id: int
     modelo_nombre: str
     marca_nombre: str
+
+
+class VehicleRegisterResponse(VehicleResponse):
+    nuevo_token: str | None = None
+
+
+class CedulaVehiculoExtractResponse(BaseModel):
+    marca: str
+    modelo: str
+    patente: str
+    anio: int | None = None
+    modelo_id: int
+
+
+class CedulaTitularValidacionResponse(BaseModel):
+    valido: bool
+    campos_detectados: dict
+    coincidencias: dict
+    mensaje: str
+
+
+class SeguroValidacionResponse(BaseModel):
+    valido: bool
+    campos_detectados: dict
+    coincidencias: dict
+    mensaje: str
+
+
+class DocumentoVehiculoResponse(BaseModel):
+    id: int
+    tipo: str
+    imagen: str
