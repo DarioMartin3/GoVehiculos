@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import DOCS_UPLOAD_DIR
 from app.presentacion.auth_router import router as auth_router
@@ -33,7 +34,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Monta rutas de autenticación con prefijo /auth.
+app.mount("/uploads/documentos", StaticFiles(directory=DOCS_UPLOAD_DIR), name="documentos")
+
 app.include_router(auth_router)
 app.include_router(vehiculo_router)
 app.include_router(documents_router)

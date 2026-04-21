@@ -13,6 +13,7 @@ class Vehiculo:
     modelo_id: int
     modelo_nombre: str
     marca_nombre: str
+    foto_vehiculo: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -25,6 +26,7 @@ class Vehiculo:
             "modelo_id": self.modelo_id,
             "modelo_nombre": self.modelo_nombre,
             "marca_nombre": self.marca_nombre,
+            "foto_vehiculo": self.foto_vehiculo,
         }
 
 

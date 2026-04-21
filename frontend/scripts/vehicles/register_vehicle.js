@@ -378,17 +378,8 @@ async function handleVehicleRegisterSubmit(event) {
     setVehicleRegisterMessage('Vehículo registrado. Guardando documentos...');
     await saveDocumentos(vehicleId, data.nuevo_token || token);
 
-    setVehicleRegisterMessage('Vehículo registrado y documentos guardados correctamente.');
-    const form = document.getElementById('vehicle-register-form');
-    if (form) form.reset();
-    clearCedulaExtractedData();
-    setCedulaExtractStatus('');
-    titularValidado = false;
-    setCedulaTitularStatus('');
-    seguroValidado = false;
-    setSeguroStatus('');
-    lockZone('cedula-trasera');
-    lockZone('seguro-pdf');
+    setVehicleRegisterMessage('Vehículo registrado. Redirigiendo...');
+    setTimeout(() => { window.location.href = 'deshboard_vehiculos.html'; }, 1200);
   } catch {
     setVehicleRegisterMessage('No se pudo conectar con el backend.', true);
   } finally {

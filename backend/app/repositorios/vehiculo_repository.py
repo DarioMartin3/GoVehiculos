@@ -17,6 +17,7 @@ class VehiculoRepository:
             modelo_id=row[6],
             modelo_nombre=row[7],
             marca_nombre=row[8],
+            foto_vehiculo=row[9] if len(row) > 9 else None,
         )
 
     def _get_estado_vehiculo_id(self, cursor, estado_nombre: str) -> int:
@@ -139,7 +140,10 @@ class VehiculoRepository:
                     """
                     SELECT v.id, v.usuario_id, v.patente, v.anio, v.fecha_ingreso,
                            ev.nombre AS estado_vehiculo,
-                           m.id AS modelo_id, m.nombre AS modelo_nombre, ma.nombre AS marca_nombre
+                           m.id AS modelo_id, m.nombre AS modelo_nombre, ma.nombre AS marca_nombre,
+                           (SELECT dv.imagen FROM documento_vehiculo dv
+                            WHERE dv.vehiculo_id = v.id AND dv.tipo = 'foto_vehiculo'
+                            ORDER BY dv.id DESC LIMIT 1) AS foto_vehiculo
                     FROM vehiculo v
                     INNER JOIN modelo m ON m.id = v.modelo
                     INNER JOIN marca ma ON ma.id = m.marca_id
@@ -160,7 +164,10 @@ class VehiculoRepository:
         query = """
             SELECT v.id, v.usuario_id, v.patente, v.anio, v.fecha_ingreso,
                    ev.nombre AS estado_vehiculo,
-                   m.id AS modelo_id, m.nombre AS modelo_nombre, ma.nombre AS marca_nombre
+                   m.id AS modelo_id, m.nombre AS modelo_nombre, ma.nombre AS marca_nombre,
+                   (SELECT dv.imagen FROM documento_vehiculo dv
+                    WHERE dv.vehiculo_id = v.id AND dv.tipo = 'foto_vehiculo'
+                    ORDER BY dv.id DESC LIMIT 1) AS foto_vehiculo
             FROM vehiculo v
             INNER JOIN modelo m ON m.id = v.modelo
             INNER JOIN marca ma ON ma.id = m.marca_id

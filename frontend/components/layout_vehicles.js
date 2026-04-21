@@ -165,7 +165,10 @@
         <tr class="hover:bg-surface-bright transition-colors group">
           <td class="px-6 py-5">
             <div class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-full bg-primary-fixed text-primary flex items-center justify-center font-bold text-xs">
+              ${vehicle.foto_vehiculo
+                ? `<img src="http://localhost:8000/uploads/documentos/${escapeHtml(vehicle.foto_vehiculo)}" alt="Foto del vehículo" class="w-10 h-10 rounded-full object-cover bg-surface-container" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+                : ''}
+              <div class="w-10 h-10 rounded-full bg-primary-fixed text-primary items-center justify-center font-bold text-xs ${vehicle.foto_vehiculo ? 'hidden' : 'flex'}">
                 ${escapeHtml((vehicle.modelo_nombre || 'M').charAt(0).toUpperCase())}
               </div>
               <div>

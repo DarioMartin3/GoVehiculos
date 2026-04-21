@@ -77,7 +77,7 @@ class VehiculoService:
     def register_vehicle(self, token: str, patente: str, modelo_id: int, anio: int) -> dict:
         usuario_id, role = self._get_request_context(token)
 
-        if role not in {"socio", "administrador", "admin"}:
+        if role not in {"cliente", "socio", "administrador", "admin"}:
             raise ValueError("Permiso denegado")
 
         patente_normalizada = patente.strip().upper()
@@ -231,7 +231,8 @@ Si no podés leer algún campo con certeza, dejá el valor como cadena vacía.""
         extracted = self.document_validator.extraer_datos(prompt, image_b64)
 
         def _norm(value: str | None) -> str:
-            return (value or "").strip().lower()
+            v = (value or "").strip().lower()
+            return unicodedata.normalize("NFD", v).encode("ascii", "ignore").decode("ascii")
 
         def _norm_dni(value: str | None) -> str:
             return re.sub(r"[.\s-]", "", (value or "").strip())
@@ -292,7 +293,8 @@ Si no podés leer algún campo con certeza, dejá el valor como cadena vacía.""
         extracted = self.document_validator.extraer_datos(prompt, image_b64)
 
         def _norm(value: str | None) -> str:
-            return (value or "").strip().lower()
+            v = (value or "").strip().lower()
+            return unicodedata.normalize("NFD", v).encode("ascii", "ignore").decode("ascii")
 
         def _norm_dni(value: str | None) -> str:
             return re.sub(r"[.\s-]", "", (value or "").strip())

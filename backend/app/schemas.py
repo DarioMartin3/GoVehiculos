@@ -132,6 +132,7 @@ class VehicleResponse(BaseModel):
     modelo_id: int
     modelo_nombre: str
     marca_nombre: str
+    foto_vehiculo: str | None = None
 
 
 class VehicleRegisterResponse(VehicleResponse):
