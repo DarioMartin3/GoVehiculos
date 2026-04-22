@@ -1,5 +1,6 @@
 PROMPT_LICENCIA = """Analizá esta imagen de una Licencia Nacional de Conducir argentina.
-Extraé los siguientes campos y devolvé ÚNICAMENTE un JSON válido con esta estructura, sin texto adicional:
+Extraé los siguientes campos y devolvé ÚNICAMENTE un JSON válido con esta estructura, sin texto adicional.
+IMPORTANTE: en "nombre" y "apellido" devolvé los datos completos tal como aparecen en la licencia (todos los nombres y todos los apellidos, sin recortar al primer token).
 {
   "nombre": "<nombre/s de pila>",
   "apellido": "<apellido/s>",

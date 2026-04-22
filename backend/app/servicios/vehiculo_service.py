@@ -21,6 +21,83 @@ def _sanitize_filename_part(text: str) -> str:
     return re.sub(r"[^A-Z0-9]", "_", ascii_text.upper().strip())
 
 
+def _normalize_text(value: str | None) -> str:
+    v = (value or "").strip().lower()
+    return unicodedata.normalize("NFD", v).encode("ascii", "ignore").decode("ascii")
+
+
+def _name_tokens(value: str | None) -> set[str]:
+    normalized = _normalize_text(value)
+    if not normalized:
+        return set()
+    return set(re.findall(r"[a-z0-9]+", normalized))
+
+
+def _matches_person_field(extracted_value: str | None, expected_value: str | None) -> bool:
+    extracted_norm = _normalize_text(extracted_value)
+    expected_norm = _normalize_text(expected_value)
+
+    if not extracted_norm or not expected_norm:
+        return False
+
+    if extracted_norm == expected_norm:
+        return True
+
+    extracted_tokens = _name_tokens(extracted_norm)
+    expected_tokens = _name_tokens(expected_norm)
+    if not extracted_tokens or not expected_tokens:
+        return False
+
+    return extracted_tokens.issubset(expected_tokens) or expected_tokens.issubset(extracted_tokens)
+
+
+def _prefer_complete_expected_field(extracted_value: str | None, expected_value: str | None) -> str | None:
+    if not _matches_person_field(extracted_value, expected_value):
+        return extracted_value
+
+    extracted_tokens = _name_tokens(extracted_value)
+    expected_tokens = _name_tokens(expected_value)
+
+    if not expected_tokens:
+        return extracted_value
+
+    if extracted_tokens and extracted_tokens.issubset(expected_tokens) and extracted_tokens != expected_tokens:
+        return expected_value
+
+    return extracted_value
+
+
+def _reconcile_person_fields(
+    extracted_nombre: str | None,
+    extracted_apellido: str | None,
+    expected_nombre: str | None,
+    expected_apellido: str | None,
+) -> tuple[str | None, str | None]:
+    nombre = _prefer_complete_expected_field(extracted_nombre, expected_nombre)
+    apellido = _prefer_complete_expected_field(extracted_apellido, expected_apellido)
+
+    # Caso frecuente de OCR: coloca "apellido + nombres" en nombre y deja apellido vacío.
+    if not _name_tokens(apellido):
+        combined_tokens = _name_tokens(nombre)
+        expected_name_tokens = _name_tokens(expected_nombre)
+        expected_lastname_tokens = _name_tokens(expected_apellido)
+
+        if (
+            combined_tokens
+            and expected_name_tokens
+            and expected_lastname_tokens
+            and expected_name_tokens.issubset(combined_tokens)
+            and expected_lastname_tokens.issubset(combined_tokens)
+        ):
+            return expected_nombre, expected_apellido
+
+    # Caso de campos invertidos por OCR.
+    if _matches_person_field(nombre, expected_apellido) and _matches_person_field(apellido, expected_nombre):
+        return expected_nombre, expected_apellido
+
+    return nombre, apellido
+
+
 class VehiculoService:
     def __init__(
         self,
@@ -212,10 +289,6 @@ class VehiculoService:
 
         extracted = self.document_validator.extraer_datos(PROMPT_SEGURO, image_b64)
 
-        def _norm(value: str | None) -> str:
-            v = (value or "").strip().lower()
-            return unicodedata.normalize("NFD", v).encode("ascii", "ignore").decode("ascii")
-
         def _norm_dni(value: str | None) -> str:
             return re.sub(r"[.\s-]", "", (value or "").strip())
 
@@ -227,13 +300,22 @@ class VehiculoService:
             return v
 
         def _contains_match(extracted_val: str | None, expected_val: str | None) -> bool:
-            a = _norm(extracted_val)
-            b = _norm(expected_val)
+            a = _normalize_text(extracted_val)
+            b = _normalize_text(expected_val)
             return bool(a and b and (b in a or a in b))
 
+        fixed_nombre, fixed_apellido = _reconcile_person_fields(
+            extracted.get("nombre"),
+            extracted.get("apellido"),
+            perfil.get("nombre"),
+            perfil.get("apellido"),
+        )
+        extracted["nombre"] = fixed_nombre
+        extracted["apellido"] = fixed_apellido
+
         coincidencias = {
-            "nombre":           _norm(extracted.get("nombre"))                == _norm(perfil.get("nombre")),
-            "apellido":         _norm(extracted.get("apellido"))               == _norm(perfil.get("apellido")),
+            "nombre":           _matches_person_field(extracted.get("nombre"), perfil.get("nombre")),
+            "apellido":         _matches_person_field(extracted.get("apellido"), perfil.get("apellido")),
             "dni":              _norm_dni(extracted.get("dni"))                == _norm_dni(perfil.get("dni")),
             "fecha_nacimiento": _norm_date(extracted.get("fecha_nacimiento"))  == _norm_date(perfil.get("fecha_nacimiento")),
             "marca":            _contains_match(extracted.get("marca"),  marca_esperada),
@@ -265,16 +347,21 @@ class VehiculoService:
 
         extracted = self.document_validator.extraer_datos(PROMPT_CEDULA_TRASERA, image_b64)
 
-        def _norm(value: str | None) -> str:
-            v = (value or "").strip().lower()
-            return unicodedata.normalize("NFD", v).encode("ascii", "ignore").decode("ascii")
-
         def _norm_dni(value: str | None) -> str:
             return re.sub(r"[.\s-]", "", (value or "").strip())
 
+        fixed_nombre, fixed_apellido = _reconcile_person_fields(
+            extracted.get("nombre"),
+            extracted.get("apellido"),
+            perfil.get("nombre"),
+            perfil.get("apellido"),
+        )
+        extracted["nombre"] = fixed_nombre
+        extracted["apellido"] = fixed_apellido
+
         coincidencias = {
-            "nombre":   _norm(extracted.get("nombre"))  == _norm(perfil.get("nombre")),
-            "apellido": _norm(extracted.get("apellido")) == _norm(perfil.get("apellido")),
+            "nombre":   _matches_person_field(extracted.get("nombre"), perfil.get("nombre")),
+            "apellido": _matches_person_field(extracted.get("apellido"), perfil.get("apellido")),
             "dni":      _norm_dni(extracted.get("dni"))  == _norm_dni(perfil.get("dni")),
         }
 

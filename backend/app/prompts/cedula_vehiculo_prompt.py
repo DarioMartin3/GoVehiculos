@@ -1,5 +1,6 @@
 PROMPT_CEDULA_TRASERA = """Analizá esta imagen de la parte trasera de una Cédula Verde de vehículo argentina.
-Extraé los datos del titular y devolvé ÚNICAMENTE un JSON válido con esta estructura, sin texto adicional:
+Extraé los datos del titular y devolvé ÚNICAMENTE un JSON válido con esta estructura, sin texto adicional.
+IMPORTANTE: en "nombre" y "apellido" devolvé los datos completos tal como aparecen en la cédula (todos los nombres y todos los apellidos, sin recortar al primer token).
 {
   "nombre": "<nombre/s de pila del titular>",
   "apellido": "<apellido/s del titular>",

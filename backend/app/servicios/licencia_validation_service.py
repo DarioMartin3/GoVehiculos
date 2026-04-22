@@ -14,6 +14,49 @@ def _normalize(value: str | None) -> str:
     return unicodedata.normalize("NFD", v).encode("ascii", "ignore").decode("ascii")
 
 
+def _name_tokens(value: str | None) -> set[str]:
+    normalized = _normalize(value)
+    if not normalized:
+        return set()
+    return set(re.findall(r"[a-z0-9]+", normalized))
+
+
+def _matches_person_field(extracted_value: str | None, expected_value: str | None) -> bool:
+    extracted_norm = _normalize(extracted_value)
+    expected_norm = _normalize(expected_value)
+
+    if not extracted_norm or not expected_norm:
+        return False
+
+    if extracted_norm == expected_norm:
+        return True
+
+    extracted_tokens = _name_tokens(extracted_norm)
+    expected_tokens = _name_tokens(expected_norm)
+    if not extracted_tokens or not expected_tokens:
+        return False
+
+    # Acepta nombres compuestos cuando uno contiene todos los tokens del otro.
+    return extracted_tokens.issubset(expected_tokens) or expected_tokens.issubset(extracted_tokens)
+
+
+def _prefer_complete_expected_field(extracted_value: str | None, expected_value: str | None) -> str | None:
+    """Si el OCR trae un campo parcial, prioriza el valor completo esperado."""
+    if not _matches_person_field(extracted_value, expected_value):
+        return extracted_value
+
+    extracted_tokens = _name_tokens(extracted_value)
+    expected_tokens = _name_tokens(expected_value)
+
+    if not expected_tokens:
+        return extracted_value
+
+    if extracted_tokens and extracted_tokens.issubset(expected_tokens) and extracted_tokens != expected_tokens:
+        return expected_value
+
+    return extracted_value
+
+
 def _normalize_date(value: str | None) -> str:
     if not value:
         return ""
@@ -38,9 +81,13 @@ class LicenciaValidationService:
         image_b64 = base64.standard_b64encode(image_bytes).decode("utf-8")
         extracted = self.adapter.extraer_datos(PROMPT_LICENCIA, image_b64)
 
+        # Evita devolver nombres truncados cuando el OCR reconoce solo una parte.
+        extracted["nombre"] = _prefer_complete_expected_field(extracted.get("nombre"), nombre)
+        extracted["apellido"] = _prefer_complete_expected_field(extracted.get("apellido"), apellido)
+
         coincidencias = {
-            "nombre": _normalize(extracted.get("nombre")) == _normalize(nombre),
-            "apellido": _normalize(extracted.get("apellido")) == _normalize(apellido),
+            "nombre": _matches_person_field(extracted.get("nombre"), nombre),
+            "apellido": _matches_person_field(extracted.get("apellido"), apellido),
             "fecha_nacimiento": _normalize_date(extracted.get("fecha_nacimiento")) == _normalize_date(fecha_nacimiento),
         }
 
