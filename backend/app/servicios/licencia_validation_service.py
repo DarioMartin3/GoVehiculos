@@ -1,5 +1,6 @@
 import base64
 import re
+import unicodedata
 from datetime import date
 
 from app.adaptadores.document_validator import DocumentValidatorAdapter
@@ -9,7 +10,8 @@ from app.prompts.licencia_prompt import PROMPT_LICENCIA
 def _normalize(value: str | None) -> str:
     if not value:
         return ""
-    return value.strip().lower()
+    v = value.strip().lower()
+    return unicodedata.normalize("NFD", v).encode("ascii", "ignore").decode("ascii")
 
 
 def _normalize_date(value: str | None) -> str:

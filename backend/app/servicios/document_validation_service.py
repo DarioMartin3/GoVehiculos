@@ -1,16 +1,16 @@
 import re
 import base64
+import unicodedata
 
 from app.adaptadores.document_validator import DocumentValidatorAdapter
 from app.prompts.dni_prompt import PROMPT_DNI
 
 
-
-
 def _normalize(value: str | None) -> str:
     if not value:
         return ""
-    return value.strip().lower()
+    v = value.strip().lower()
+    return unicodedata.normalize("NFD", v).encode("ascii", "ignore").decode("ascii")
 
 
 def _normalize_date(value: str | None) -> str:
