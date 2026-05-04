@@ -18,146 +18,161 @@ CREATE TABLE estado_vehiculo (
     nombre TEXT NOT NULL
 );
 
+CREATE TABLE estado_validacion (
+    id     SERIAL PRIMARY KEY,
+    nombre TEXT NOT NULL
+    -- valores esperados: 'pendiente', 'aprobado', 'rechazado'
+);
 
 CREATE TABLE persona (
-    id SERIAL PRIMARY KEY,
-    nombre TEXT,
-    apellido TEXT,
-    email TEXT,
-    telefono TEXT,
-    dni TEXT,
-    pais INT,
-    fecha_nacimiento DATE,
-    FOREIGN KEY (pais) REFERENCES pais(id)
+    id               SERIAL PRIMARY KEY,
+    nombre           TEXT NOT NULL,
+    apellido         TEXT NOT NULL,
+    email            TEXT NOT NULL,
+    telefono         TEXT,
+    dni              TEXT NOT NULL,
+    pais_id          INT  NOT NULL REFERENCES pais(id),
+    fecha_nacimiento DATE
 );
 
 CREATE TABLE usuario (
-    id SERIAL PRIMARY KEY,
-    persona_id INT,
-    password TEXT,
-    rol_id INT,
-    estado INT,
-    FOREIGN KEY (persona_id) REFERENCES persona(id),
-    FOREIGN KEY (rol_id) REFERENCES rol(id),
-    FOREIGN KEY (estado) REFERENCES estado(id)
+    id         SERIAL PRIMARY KEY,
+    persona_id INT  REFERENCES persona(id),   -- NULL válido: el bot no tiene persona
+    password   TEXT,                           -- NULL válido: el bot no tiene password
+    rol_id     INT  NOT NULL REFERENCES rol(id),
+    estado_id  INT  NOT NULL REFERENCES estado(id)
 );
 
+-- -------------------------------------------------------
+-- VEHÍCULOS Y DOCUMENTACIÓN
+-- -------------------------------------------------------
 CREATE TABLE marca (
-    id SERIAL PRIMARY KEY,
-    nombre TEXT
+    id     SERIAL PRIMARY KEY,
+    nombre TEXT NOT NULL
 );
 
 CREATE TABLE modelo (
-    id SERIAL PRIMARY KEY,
-    nombre TEXT,
-    marca_id INT,
-    FOREIGN KEY (marca_id) REFERENCES marca(id)
+    id       SERIAL PRIMARY KEY,
+    nombre   TEXT NOT NULL,
+    marca_id INT  NOT NULL REFERENCES marca(id)
 );
 
 CREATE TABLE vehiculo (
-    id SERIAL PRIMARY KEY,
-    usuario_id INT,
-    modelo INT,
-    anio INT,
-    fecha_ingreso DATE,
-    patente TEXT,
-    estado_vehiculo INT,
-    FOREIGN KEY (usuario_id) REFERENCES usuario(id),
-    FOREIGN KEY (modelo) REFERENCES modelo(id),
-    FOREIGN KEY (estado_vehiculo) REFERENCES estado_vehiculo(id)
+    id                SERIAL PRIMARY KEY,
+    usuario_id        INT  NOT NULL REFERENCES usuario(id),
+    modelo_id         INT  NOT NULL REFERENCES modelo(id),
+    anio              INT  NOT NULL,
+    fecha_ingreso     DATE NOT NULL,
+    patente           TEXT NOT NULL,
+    estado_vehiculo_id INT NOT NULL REFERENCES estado_vehiculo(id)
 );
 
 CREATE TABLE tipo_licencia (
-    id SERIAL PRIMARY KEY,
+    id     SERIAL PRIMARY KEY,
     nombre TEXT NOT NULL
 );
 
 CREATE TABLE carnet_conducir (
-    id SERIAL PRIMARY KEY,
-    usuario_id INT,
-    nombre_titular TEXT,
-    fecha_emision DATE,
-    fecha_vencimiento DATE,
-    imagen TEXT,
-    estado_validacion INT,
-    motivo_rechazo TEXT,
-    FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+    id                  SERIAL PRIMARY KEY,
+    usuario_id          INT  NOT NULL REFERENCES usuario(id),
+    nombre_titular      TEXT NOT NULL,
+    fecha_emision       DATE NOT NULL,
+    fecha_vencimiento   DATE NOT NULL,
+    imagen              TEXT NOT NULL,
+    estado_validacion_id INT NOT NULL REFERENCES estado_validacion(id),
+    motivo_rechazo      TEXT          -- NULL cuando no fue rechazado
 );
 
 CREATE TABLE carnet_clase (
-    id SERIAL PRIMARY KEY,
-    carnet_id INT,
-    tipo_licencia_id INT,
-    fecha_otorgamiento DATE,
-    fecha_vencimiento DATE,
-    FOREIGN KEY (carnet_id) REFERENCES carnet_conducir(id),
-    FOREIGN KEY (tipo_licencia_id) REFERENCES tipo_licencia(id)
+    id                 SERIAL PRIMARY KEY,
+    carnet_id          INT  NOT NULL REFERENCES carnet_conducir(id),
+    tipo_licencia_id   INT  NOT NULL REFERENCES tipo_licencia(id),
+    fecha_otorgamiento DATE NOT NULL,
+    fecha_vencimiento  DATE NOT NULL
+);
+
+CREATE TABLE tipo_documento_vehiculo (
+    id     SERIAL PRIMARY KEY,
+    nombre TEXT NOT NULL
+    -- valores esperados: 'seguro', 'vtv', 'cedula_verde', etc.
 );
 
 CREATE TABLE documento_vehiculo (
-    id SERIAL PRIMARY KEY,
-    vehiculo_id INT,
-    tipo TEXT,
-    nombre_titular TEXT,
-    fecha_vencimiento DATE,
-    imagen TEXT,
-    estado_validacion INT,
-    motivo_rechazo TEXT,
-    estado INT,
-    FOREIGN KEY (vehiculo_id) REFERENCES vehiculo(id)
+    id                   SERIAL PRIMARY KEY,
+    vehiculo_id          INT  NOT NULL REFERENCES vehiculo(id),
+    tipo_id              INT  NOT NULL REFERENCES tipo_documento_vehiculo(id),
+    nombre_titular       TEXT NOT NULL,
+    fecha_vencimiento    DATE NOT NULL,
+    imagen               TEXT NOT NULL,
+    estado_validacion_id INT  NOT NULL REFERENCES estado_validacion(id),
+    motivo_rechazo       TEXT,          -- NULL cuando no fue rechazado
+    estado_id            INT  NOT NULL REFERENCES estado(id)
+);
+
+-- -------------------------------------------------------
+-- BOT
+-- -------------------------------------------------------
+CREATE TABLE bot_tema (
+    id            SERIAL PRIMARY KEY,
+    nombre        TEXT NOT NULL,     -- "Términos y condiciones"
+    descripcion   TEXT,              -- subtítulo opcional del botón
+    system_prompt TEXT NOT NULL,     -- contexto acotado que recibe el LLM
+    orden         INT  NOT NULL,     -- orden de aparición en el menú
+    activo        BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- -------------------------------------------------------
+-- CONVERSACIÓN Y MENSAJERÍA
+-- -------------------------------------------------------
+CREATE TABLE fase_conversacion (
+    id     SERIAL PRIMARY KEY,
+    nombre TEXT NOT NULL
+    -- valores esperados: 'bot_menu', 'bot_libre', 'operario', 'cerrada'
 );
 
 CREATE TABLE conversacion (
-    id SERIAL PRIMARY KEY,
-    usuario_id INT,
-    operario_asignado INT,
-    estado INT,
-    fecha_ingreso TIMESTAMP,
-    fecha_salida TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+    id         SERIAL PRIMARY KEY,
+    usuario_id INT       NOT NULL REFERENCES usuario(id),
+    fase_id    INT       NOT NULL REFERENCES fase_conversacion(id),
+    abierta_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    cerrada_at TIMESTAMP           -- NULL = conversación activa
+);
+
+-- Estado actual del bot en una conversación activa.
+-- Existe solo mientras la conversación está en fase bot_menu o bot_libre.
+-- Se elimina (o queda como registro histórico) al escalar a operario.
+CREATE TABLE conversacion_bot_estado (
+    conversacion_id INT       PRIMARY KEY REFERENCES conversacion(id),
+    tema_id         INT       NOT NULL REFERENCES bot_tema(id),
+    actualizado_at  TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE mensaje (
-    id SERIAL PRIMARY KEY,
-    conversacion_id INT,
-    usuario_id INT,
-    origen TEXT,
-    cuerpo TEXT,
-    fecha_hora TIMESTAMP,
-    FOREIGN KEY (conversacion_id) REFERENCES conversacion(id),
-    FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+    id              SERIAL PRIMARY KEY,
+    conversacion_id INT       NOT NULL REFERENCES conversacion(id),
+    autor_id        INT       NOT NULL REFERENCES usuario(id),  -- bot, operario o cliente
+    cuerpo          TEXT      NOT NULL,
+    enviado_at      TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE derivacion (
-    id SERIAL PRIMARY KEY,
-    conversacion_id INT,
-    operario_asignado INT,
-    motivo TEXT,
-    estado INT,
-    ingreso TIMESTAMP,
-    salida TIMESTAMP,
-    FOREIGN KEY (conversacion_id) REFERENCES conversacion(id)
+    id              SERIAL PRIMARY KEY,
+    conversacion_id INT       NOT NULL REFERENCES conversacion(id),
+    operario_id     INT       NOT NULL REFERENCES usuario(id),
+    motivo          TEXT,              -- 'bot_no_resolvio', 'solicitud_usuario'
+    asignada_at     TIMESTAMP NOT NULL DEFAULT NOW(),
+    liberada_at     TIMESTAMP          -- NULL = operario actualmente activo
 );
 
-CREATE TABLE respuesta_bot (
-    id SERIAL PRIMARY KEY,
-    palabra_clave TEXT,
-    respuesta TEXT,
-    estado INT
-);
-
-CREATE TABLE estado_bot (
-    id SERIAL PRIMARY KEY,
-    nombre TEXT
-);
-
+-- -------------------------------------------------------
+-- HORARIO OPERADOR
+-- -------------------------------------------------------
 CREATE TABLE horario_operador (
-    id SERIAL PRIMARY KEY,
-    usuario_id INT,
-    dia_semana INT,
-    hora_inicio TIME,
-    hora_fin TIME,
-    FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+    id          SERIAL PRIMARY KEY,
+    usuario_id  INT  NOT NULL REFERENCES usuario(id),
+    dia_semana  INT  NOT NULL CHECK (dia_semana BETWEEN 0 AND 6),
+    hora_inicio TIME NOT NULL,
+    hora_fin    TIME NOT NULL
 );
 
 --Inserccion de datos
