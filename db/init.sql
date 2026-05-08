@@ -126,26 +126,18 @@ CREATE TABLE bot_tema (
 -- -------------------------------------------------------
 CREATE TABLE fase_conversacion (
     id     SERIAL PRIMARY KEY,
-    nombre TEXT NOT NULL
+    estado TEXT NOT NULL
     -- valores esperados: 'bot_menu', 'bot_libre', 'operario', 'cerrada'
 );
 
 CREATE TABLE conversacion (
     id         SERIAL PRIMARY KEY,
-    usuario_id INT       NOT NULL REFERENCES usuario(id),
     fase_id    INT       NOT NULL REFERENCES fase_conversacion(id),
     abierta_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    tema_id         INT       NOT NULL REFERENCES bot_tema(id),
     cerrada_at TIMESTAMP           -- NULL = conversación activa
 );
 
--- Estado actual del bot en una conversación activa.
--- Existe solo mientras la conversación está en fase bot_menu o bot_libre.
--- Se elimina (o queda como registro histórico) al escalar a operario.
-CREATE TABLE conversacion_bot_estado (
-    conversacion_id INT       PRIMARY KEY REFERENCES conversacion(id),
-    tema_id         INT       NOT NULL REFERENCES bot_tema(id),
-    actualizado_at  TIMESTAMP NOT NULL DEFAULT NOW()
-);
 
 CREATE TABLE mensaje (
     id              SERIAL PRIMARY KEY,
@@ -164,16 +156,6 @@ CREATE TABLE derivacion (
     liberada_at     TIMESTAMP          -- NULL = operario actualmente activo
 );
 
--- -------------------------------------------------------
--- HORARIO OPERADOR
--- -------------------------------------------------------
-CREATE TABLE horario_operador (
-    id          SERIAL PRIMARY KEY,
-    usuario_id  INT  NOT NULL REFERENCES usuario(id),
-    dia_semana  INT  NOT NULL CHECK (dia_semana BETWEEN 0 AND 6),
-    hora_inicio TIME NOT NULL,
-    hora_fin    TIME NOT NULL
-);
 
 --Inserccion de datos
 INSERT INTO pais (nombre) VALUES 
