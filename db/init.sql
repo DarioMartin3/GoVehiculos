@@ -187,7 +187,7 @@ INSERT INTO tipo_licencia (nombre) VALUES
 ('E1'), ('E2'),
 ('F'), ('G1'), ('G2'), ('G3');
 
-INSERT INTO persona (nombre, apellido, email, telefono, dni, pais, fecha_nacimiento) VALUES
+INSERT INTO persona (nombre, apellido, email, telefono, dni, pais_id, fecha_nacimiento) VALUES
 ('Juan', 'Pérez', 'juan.cliente@email.com', '+5491123456789', '35123456', 1, '1990-05-14'),--cliente
 ('Ana', 'Martínez', 'ana.socio@email.com', '+5493794123456', '38765432', 1, '1985-11-23'),--socio
 ('Carlos', 'López', 'carlos.admin@email.com', '+549114445555', '29345678', 1, '1978-03-07'),--admin
@@ -195,7 +195,7 @@ INSERT INTO persona (nombre, apellido, email, telefono, dni, pais, fecha_nacimie
 ('Elena', 'Torres', 'elena.soporte@govehiculos.com', '+5493794990011', '41555666', 1, '1993-01-19'),--soporte
 ('María Del Rosario', 'Sosa', 'maria.del.rosario@sosa.com', '+5493794880011', '42666777', 1, '2003-09-20');--cliente
 
-INSERT INTO usuario (persona_id, password, rol_id, estado) VALUES
+INSERT INTO usuario (persona_id, password, rol_id, estado_id) VALUES
 (1, '1234', 1, 1), --cliente
 (2, '1234', 2, 1), --socio
 (3, '1234', 3, 1),-- admin
