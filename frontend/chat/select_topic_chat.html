@@ -80,7 +80,10 @@
   <style>
     .active-topic {
       background-color: theme('colors.primary-fixed') !important;
-      border: 2px solid theme('colors.primary') !important;
+      border-left-color: theme('colors.primary') !important;
+    }
+    .active-topic .topic-icon {
+      background: linear-gradient(135deg, #00327d 0%, #0047ab 100%);
     }
   </style>
 </head>
@@ -101,98 +104,84 @@
   <div class="max-w-5xl mx-auto">
 
     <!-- Header Section -->
-    <header class="mb-12">
-      <span class="text-xs font-bold uppercase tracking-widest text-primary mb-3 block">Solicitud de Asistencia</span>
-      <h1 class="font-headline text-4xl font-extrabold text-on-background tracking-tight mb-4">Seleccioná un tema</h1>
-      <p class="text-on-surface-variant max-w-2xl text-lg leading-relaxed font-body">Nuestro equipo de soporte está listo para ayudarte. Identificá el tipo de consulta para conectarte con el especialista adecuado.</p>
+    <header class="mb-6">
+      <h1 class="font-headline text-2xl font-extrabold text-on-background tracking-tight">Seleccioná un tema</h1>
     </header>
 
     <!-- Topic Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-5">
 
-      <button class="topic-card text-left p-8 bg-surface-container-lowest rounded-xl border border-transparent hover:border-outline-variant/30 transition-all duration-300 group" onclick="selectTopic(this)" data-topic="Reservas y Alquileres">
-        <div class="w-12 h-12 bg-secondary-container text-primary rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined">calendar_month</span>
+      <button class="topic-card text-left p-4 bg-surface-container-lowest rounded-xl border-l-4 border-primary/30 hover:border-primary shadow-sm hover:shadow-md transition-all duration-200 group" onclick="selectTopic(this)" data-topic="Reservas y Alquileres">
+        <div class="topic-icon w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1">calendar_month</span>
         </div>
-        <h3 class="font-headline font-bold text-on-surface mb-2">Reservas y Alquileres</h3>
-        <p class="text-sm text-on-surface-variant leading-snug">Modificá fechas, confirmá reservas o consultá disponibilidad de vehículos.</p>
+        <h3 class="font-headline font-bold text-sm text-on-surface mb-1">Reservas y Alquileres</h3>
+        <p class="text-xs text-on-surface-variant leading-snug">Modificá fechas, confirmá reservas o consultá disponibilidad.</p>
       </button>
 
-      <button class="topic-card text-left p-8 bg-surface-container-lowest rounded-xl border border-transparent hover:border-outline-variant/30 transition-all duration-300 group" onclick="selectTopic(this)" data-topic="Vehículos y Flota">
-        <div class="w-12 h-12 bg-secondary-container text-primary rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined">directions_car</span>
+      <button class="topic-card text-left p-4 bg-surface-container-lowest rounded-xl border-l-4 border-primary/30 hover:border-primary shadow-sm hover:shadow-md transition-all duration-200 group" onclick="selectTopic(this)" data-topic="Vehículos y Flota">
+        <div class="topic-icon w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1">directions_car</span>
         </div>
-        <h3 class="font-headline font-bold text-on-surface mb-2">Vehículos y Flota</h3>
-        <p class="text-sm text-on-surface-variant leading-snug">Consultas sobre especificaciones, características técnicas o categorías de vehículos.</p>
+        <h3 class="font-headline font-bold text-sm text-on-surface mb-1">Vehículos y Flota</h3>
+        <p class="text-xs text-on-surface-variant leading-snug">Especificaciones, características técnicas o categorías.</p>
       </button>
 
-      <button class="topic-card text-left p-8 bg-surface-container-lowest rounded-xl border border-transparent hover:border-outline-variant/30 transition-all duration-300 group" onclick="selectTopic(this)" data-topic="Pagos y Facturación">
-        <div class="w-12 h-12 bg-secondary-container text-primary rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined">payments</span>
+      <button class="topic-card text-left p-4 bg-surface-container-lowest rounded-xl border-l-4 border-primary/30 hover:border-primary shadow-sm hover:shadow-md transition-all duration-200 group" onclick="selectTopic(this)" data-topic="Pagos y Facturación">
+        <div class="topic-icon w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1">payments</span>
         </div>
-        <h3 class="font-headline font-bold text-on-surface mb-2">Pagos y Facturación</h3>
-        <p class="text-sm text-on-surface-variant leading-snug">Revisá facturas, gestioná métodos de pago o solicitá comprobantes.</p>
+        <h3 class="font-headline font-bold text-sm text-on-surface mb-1">Pagos y Facturación</h3>
+        <p class="text-xs text-on-surface-variant leading-snug">Revisá facturas, gestioná métodos de pago o comprobantes.</p>
       </button>
 
-      <button class="topic-card text-left p-8 bg-surface-container-lowest rounded-xl border border-transparent hover:border-outline-variant/30 transition-all duration-300 group" onclick="selectTopic(this)" data-topic="Cuenta y Seguridad">
-        <div class="w-12 h-12 bg-secondary-container text-primary rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined">lock</span>
+      <button class="topic-card text-left p-4 bg-surface-container-lowest rounded-xl border-l-4 border-primary/30 hover:border-primary shadow-sm hover:shadow-md transition-all duration-200 group" onclick="selectTopic(this)" data-topic="Cuenta y Seguridad">
+        <div class="topic-icon w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1">lock</span>
         </div>
-        <h3 class="font-headline font-bold text-on-surface mb-2">Cuenta y Seguridad</h3>
-        <p class="text-sm text-on-surface-variant leading-snug">Verificación de identidad, cambio de contraseña y gestión de tu membresía.</p>
+        <h3 class="font-headline font-bold text-sm text-on-surface mb-1">Cuenta y Seguridad</h3>
+        <p class="text-xs text-on-surface-variant leading-snug">Verificación de identidad, contraseña y membresía.</p>
       </button>
 
-      <button class="topic-card text-left p-8 bg-surface-container-lowest rounded-xl border border-transparent hover:border-outline-variant/30 transition-all duration-300 group" onclick="selectTopic(this)" data-topic="Problemas Técnicos">
-        <div class="w-12 h-12 bg-secondary-container text-primary rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined">engineering</span>
+      <button class="topic-card text-left p-4 bg-surface-container-lowest rounded-xl border-l-4 border-primary/30 hover:border-primary shadow-sm hover:shadow-md transition-all duration-200 group" onclick="selectTopic(this)" data-topic="Problemas Técnicos">
+        <div class="topic-icon w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1">engineering</span>
         </div>
-        <h3 class="font-headline font-bold text-on-surface mb-2">Problemas Técnicos</h3>
-        <p class="text-sm text-on-surface-variant leading-snug">Reportá inconvenientes con la plataforma o la aplicación móvil.</p>
+        <h3 class="font-headline font-bold text-sm text-on-surface mb-1">Problemas Técnicos</h3>
+        <p class="text-xs text-on-surface-variant leading-snug">Inconvenientes con la plataforma o la aplicación móvil.</p>
       </button>
 
-      <button class="topic-card text-left p-8 bg-surface-container-lowest rounded-xl border border-transparent hover:border-outline-variant/30 transition-all duration-300 group" onclick="selectTopic(this)" data-topic="Seguros y Seguridad Vial">
-        <div class="w-12 h-12 bg-secondary-container text-primary rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined">verified_user</span>
+      <button class="topic-card text-left p-4 bg-surface-container-lowest rounded-xl border-l-4 border-primary/30 hover:border-primary shadow-sm hover:shadow-md transition-all duration-200 group" onclick="selectTopic(this)" data-topic="Seguros y Seguridad Vial">
+        <div class="topic-icon w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1">verified_user</span>
         </div>
-        <h3 class="font-headline font-bold text-on-surface mb-2">Seguros y Seguridad Vial</h3>
-        <p class="text-sm text-on-surface-variant leading-snug">Protocolos ante emergencias, cobertura y normativas de seguridad.</p>
+        <h3 class="font-headline font-bold text-sm text-on-surface mb-1">Seguros y Seguridad Vial</h3>
+        <p class="text-xs text-on-surface-variant leading-snug">Emergencias, cobertura y normativas de seguridad.</p>
       </button>
 
     </div>
 
-    <!-- Footer Action & Quick Help -->
-    <div class="flex flex-col lg:flex-row gap-12 items-start">
-      <div class="flex-1 w-full">
+    <!-- Acción y Ayuda Rápida -->
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
+      <div class="flex-1 w-full flex items-center gap-4">
         <button
-          class="w-full lg:w-auto px-12 py-4 bg-outline-variant text-on-primary-container opacity-50 cursor-not-allowed rounded-xl font-bold text-base transition-all duration-500 shadow-lg shadow-primary/10"
+          class="px-8 py-3 bg-outline-variant text-on-primary-container opacity-50 cursor-not-allowed rounded-xl font-bold text-sm transition-all duration-500"
           disabled
           id="startChatBtn"
         >
           Iniciar Conversación
         </button>
-        <p class="mt-4 text-sm text-secondary font-medium" id="selectionHint">Seleccioná un tema para iniciar la sesión de soporte.</p>
+        <p class="text-xs text-secondary font-medium" id="selectionHint">Seleccioná un tema para continuar.</p>
       </div>
-      <div class="lg:w-80 w-full space-y-6">
-        <h4 class="font-headline font-bold text-on-surface flex items-center gap-2">
-          <span class="material-symbols-outlined text-primary">auto_awesome</span>
+      <div class="lg:w-72 w-full">
+        <h4 class="font-headline font-bold text-sm text-on-surface flex items-center gap-1 mb-3">
+          <span class="material-symbols-outlined text-primary text-base">auto_awesome</span>
           Ayuda Rápida
         </h4>
-        <ul class="space-y-4">
-          <li>
-            <a class="group block py-1 border-b border-outline-variant/10 hover:border-primary transition-all" href="#">
-              <span class="text-on-surface-variant group-hover:text-primary transition-colors text-sm font-medium">Política de Cancelación</span>
-            </a>
-          </li>
-          <li>
-            <a class="group block py-1 border-b border-outline-variant/10 hover:border-primary transition-all" href="#">
-              <span class="text-on-surface-variant group-hover:text-primary transition-colors text-sm font-medium">Actualizar Verificación de Conductor</span>
-            </a>
-          </li>
-          <li>
-            <a class="group block py-1 border-b border-outline-variant/10 hover:border-primary transition-all" href="#">
-              <span class="text-on-surface-variant group-hover:text-primary transition-colors text-sm font-medium">Beneficios para Socios</span>
-            </a>
-          </li>
+        <ul class="space-y-2">
+          <li><a class="group block py-1 border-b border-outline-variant/10 hover:border-primary transition-all" href="#"><span class="text-on-surface-variant group-hover:text-primary transition-colors text-xs font-medium">Política de Cancelación</span></a></li>
+          <li><a class="group block py-1 border-b border-outline-variant/10 hover:border-primary transition-all" href="#"><span class="text-on-surface-variant group-hover:text-primary transition-colors text-xs font-medium">Actualizar Verificación de Conductor</span></a></li>
+          <li><a class="group block py-1 border-b border-outline-variant/10 hover:border-primary transition-all" href="#"><span class="text-on-surface-variant group-hover:text-primary transition-colors text-xs font-medium">Beneficios para Socios</span></a></li>
         </ul>
       </div>
     </div>
@@ -200,7 +189,7 @@
   </div>
 </main>
 
-<div id="footer-placeholder"></div>
+<div id="footer-placeholder" class="ml-64"></div>
 <div id="login-modal-placeholder"></div>
 
 <script>
@@ -224,7 +213,7 @@
     };
 
     const hint = document.getElementById('selectionHint');
-    hint.textContent = `Te conectaremos con un especialista en ${topic}.`;
+    hint.textContent = `Nuestro asistente virtual te ayudará con: ${topic}.`;
     hint.classList.replace('text-secondary', 'text-primary');
   }
 
