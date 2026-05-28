@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>GoVehiculos | Chat de Soporte</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="/styles/index.css" rel="stylesheet"/>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary-fixed-dim": "#ffb692",
+            "on-tertiary-fixed": "#341100",
+            "primary": "#00327d",
+            "on-secondary-container": "#5a666d",
+            "on-primary-fixed": "#001946",
+            "inverse-on-surface": "#eff1f3",
+            "outline": "#737784",
+            "on-background": "#191c1e",
+            "tertiary-container": "#843500",
+            "surface-container-lowest": "#ffffff",
+            "secondary-fixed": "#d7e4ec",
+            "surface": "#f8f9fb",
+            "on-primary-fixed-variant": "#00419e",
+            "error": "#ba1a1a",
+            "surface-container": "#eceef0",
+            "surface-dim": "#d8dadc",
+            "outline-variant": "#c3c6d5",
+            "error-container": "#ffdad6",
+            "tertiary-fixed": "#ffdbcb",
+            "on-secondary-fixed": "#111d23",
+            "inverse-primary": "#b1c5ff",
+            "on-secondary-fixed-variant": "#3c494f",
+            "on-tertiary": "#ffffff",
+            "surface-container-high": "#e6e8ea",
+            "secondary": "#546067",
+            "on-tertiary-fixed-variant": "#7a3000",
+            "secondary-fixed-dim": "#bbc8d0",
+            "on-tertiary-container": "#ffaa80",
+            "surface-variant": "#e0e3e5",
+            "primary-fixed-dim": "#b1c5ff",
+            "on-error-container": "#93000a",
+            "primary-container": "#0047ab",
+            "on-surface": "#191c1e",
+            "on-secondary": "#ffffff",
+            "tertiary": "#602400",
+            "surface-tint": "#2559bd",
+            "surface-container-low": "#f2f4f6",
+            "surface-container-highest": "#e0e3e5",
+            "primary-fixed": "#dae2ff",
+            "on-primary-container": "#a5bdff",
+            "on-primary": "#ffffff",
+            "inverse-surface": "#2d3133",
+            "surface-bright": "#f8f9fb",
+            "background": "#f8f9fb",
+            "on-surface-variant": "#434653",
+            "secondary-container": "#d7e4ec",
+            "on-error": "#ffffff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "fontFamily": {
+            "headline": ["Manrope"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-surface font-body text-on-surface">
+
+<div id="header-placeholder"></div>
+<div id="sidebar-placeholder"></div>
+
+<!-- TopAppBar -->
+<header class="fixed top-20 left-64 right-0 z-40 bg-surface/70 backdrop-blur-xl flex justify-between items-center px-8 h-16">
+  <div class="flex items-center gap-3">
+    <a href="/chat/select_topic_chat.html" class="p-1.5 rounded-lg hover:bg-surface-container transition-colors text-secondary">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </a>
+    <h2 class="font-headline text-lg tracking-tight font-bold text-primary" id="chat-topic-title">Chat de Soporte</h2>
+  </div>
+  <div class="flex items-center gap-2">
+    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+    <span class="text-xs font-medium text-secondary uppercase tracking-wider">En línea</span>
+  </div>
+</header>
+
+<!-- Chat Canvas: ocupa todo el espacio restante bajo el TopAppBar -->
+<div class="ml-64 pt-36 flex flex-col" style="height: 100vh;">
+
+  <!-- Chat Area -->
+  <div class="flex-1 overflow-y-auto px-8 py-6 space-y-8 hide-scrollbar bg-surface-container-low" id="chat-messages">
+
+    <div class="flex justify-center">
+      <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary opacity-60" id="chat-date-label">Hoy</span>
+    </div>
+
+    <!-- Mensaje inicial del agente -->
+    <div class="flex gap-4 max-w-[80%]" id="welcome-message">
+      <div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0 self-end">
+        <span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">support_agent</span>
+      </div>
+      <div class="space-y-2">
+        <div class="bg-surface-container-lowest p-5 rounded-xl rounded-bl-none shadow-sm border border-outline-variant/10">
+          <p class="text-sm leading-relaxed text-on-surface" id="welcome-text">
+            ¡Hola! Soy tu asistente de soporte de GoVehiculos. ¿En qué puedo ayudarte hoy?
+          </p>
+        </div>
+        <span class="text-[10px] text-secondary ml-1" id="welcome-time"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Message Input Area -->
+  <footer class="px-8 py-5 bg-surface-container-lowest border-t border-outline-variant/10">
+    <div class="max-w-4xl mx-auto flex items-end gap-4">
+      <div class="flex-1 bg-surface-container-high rounded-xl p-2 focus-within:bg-white transition-all border border-transparent focus-within:border-primary-fixed/50 shadow-sm flex items-end">
+        <button class="p-3 text-secondary hover:text-primary transition-colors">
+          <span class="material-symbols-outlined">add_circle</span>
+        </button>
+        <textarea
+          id="chat-input"
+          class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-3 px-2 resize-none max-h-32 hide-scrollbar font-body"
+          placeholder="Escribí tu consulta..."
+          rows="1"
+        ></textarea>
+      </div>
+      <button
+        id="send-btn"
+        class="kinetic-gradient w-14 h-14 rounded-xl flex items-center justify-center text-white shadow-lg hover:opacity-90 active:scale-90 transition-all"
+      >
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+      </button>
+    </div>
+    <div class="mt-3 flex justify-center gap-6">
+      <span class="text-[10px] text-slate-400 flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">lock</span>
+        Sesión cifrada
+      </span>
+      <span class="text-[10px] text-slate-400 flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">timer</span>
+        Sesión activa
+      </span>
+    </div>
+  </footer>
+
+</div>
+
+<div id="login-modal-placeholder"></div>
+
+<script>
+  function getNow() {
+    return new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function getAuthUserInitials() {
+    try {
+      const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
+      return [user.nombre, user.apellido]
+        .map(p => (p || '').charAt(0).toUpperCase())
+        .filter(Boolean)
+        .join('') || 'YO';
+    } catch {
+      return 'YO';
+    }
+  }
+
+  function appendMessage(text, isUser) {
+    const container = document.getElementById('chat-messages');
+    const wrapper = document.createElement('div');
+
+    if (isUser) {
+      const initials = getAuthUserInitials();
+      wrapper.className = 'flex flex-row-reverse gap-4 max-w-[80%] ml-auto';
+      wrapper.innerHTML = `
+        <div class="w-8 h-8 rounded-full kinetic-gradient flex items-center justify-center self-end shadow-md flex-shrink-0">
+          <span class="text-[10px] font-bold text-white">${initials}</span>
+        </div>
+        <div class="space-y-2 text-right">
+          <div class="kinetic-gradient p-5 rounded-xl rounded-br-none shadow-lg">
+            <p class="text-sm leading-relaxed text-white">${text}</p>
+          </div>
+          <span class="text-[10px] text-secondary mr-1">${getNow()}</span>
+        </div>
+      `;
+    } else {
+      wrapper.className = 'flex gap-4 max-w-[80%]';
+      wrapper.innerHTML = `
+        <div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0 self-end">
+          <span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">support_agent</span>
+        </div>
+        <div class="space-y-2">
+          <div class="bg-surface-container-lowest p-5 rounded-xl rounded-bl-none shadow-sm border border-outline-variant/10">
+            <p class="text-sm leading-relaxed text-on-surface">${text}</p>
+          </div>
+          <span class="text-[10px] text-secondary ml-1">${getNow()}</span>
+        </div>
+      `;
+    }
+
+    container.appendChild(wrapper);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+    appendMessage(text, true);
+    input.value = '';
+    input.style.height = 'auto';
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const topic = params.get('topic');
+
+    if (topic) {
+      document.getElementById('chat-topic-title').textContent = topic;
+      document.getElementById('welcome-text').textContent =
+        `Hola, te conecté con soporte de "${topic}". ¿Cuál es tu consulta?`;
+    }
+
+    document.getElementById('welcome-time').textContent = getNow();
+
+    const sendBtn = document.getElementById('send-btn');
+    const input = document.getElementById('chat-input');
+
+    sendBtn.addEventListener('click', sendMessage);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+    input.addEventListener('input', () => {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 128) + 'px';
+    });
+  });
+</script>
+
+<script src="/components/layout_shell.js"></script>
+<script src="/components/layout_ui.js"></script>
+<script src="/components/layout_profile.js"></script>
+<script src="/components/layout_users.js"></script>
+<script src="/components/layout_vehicles.js"></script>
+<script src="/components/layout.js"></script>
+</body>
+</html>

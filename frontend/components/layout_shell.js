@@ -116,6 +116,8 @@
       'dashboard_tecnico.html',
       'crear_rol_empleado.html',
       'perfil_view.html',
+      'select_topic_chat.html',
+      'chat_bot.html',
     ];
 
     const navActionsPages = [...dashboardPages, 'index_registrar_vehiculo.html'];
