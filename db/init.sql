@@ -201,7 +201,8 @@ INSERT INTO usuario (persona_id, password, rol_id, estado_id) VALUES
 (3, '1234', 3, 1),-- admin
 (4, '1234', 4, 1), -- Mariana: Operador
 (5, '1234', 5, 1), -- Facundo: Soporte
-(6, '1234', 1, 1); -- Maria del Rosario: Cliente
+(6, '1234', 1, 1), -- Maria del Rosario: Cliente
+(NULL, NULL, 5, 1); -- Bot: sin persona ni contraseña
 
 INSERT INTO bot_tema (nombre, descripcion, prompt_key, orden, activo) VALUES
 ('Reservas y Alquileres',   'Modificá fechas, confirmá reservas o consultá disponibilidad.', 'reservas',  1, TRUE),

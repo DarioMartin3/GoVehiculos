@@ -5,6 +5,32 @@ import json
 
 from app.core.config import GROQ_API_KEY
 
+_GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+_GROQ_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+
+
+class GroqChatAdapter:
+    def chat(self, system_prompt: str, user_message: str) -> str:
+        response = requests.post(
+            _GROQ_URL,
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": _GROQ_MODEL,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user",   "content": user_message},
+                ],
+            },
+            timeout=30,
+        )
+        if not response.ok:
+            raise ValueError(f"Groq error {response.status_code}: {response.text}")
+        return response.json()["choices"][0]["message"]["content"]
+
+
 class GroqDocumentAdapter(DocumentValidatorAdapter):
 
     def __init__(self, max_tokens: int = 512):

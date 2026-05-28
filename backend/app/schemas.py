@@ -165,3 +165,28 @@ class DocumentoVehiculoResponse(BaseModel):
     id: int
     tipo: str
     imagen: str
+
+
+class IniciarConversacionRequest(BaseModel):
+    prompt_key: str
+
+
+class IniciarConversacionResponse(BaseModel):
+    conversacion_id: int
+    tema_id: int
+    fase: str
+
+
+class EnviarMensajeRequest(BaseModel):
+    conversacion_id: int
+    pregunta: str
+    prompt_key: str
+
+
+class MensajeResponse(BaseModel):
+    id: int | None = None
+    conversacion_id: int
+    autor_id: int
+    autor: str
+    cuerpo: str
+    enviado_at: str
