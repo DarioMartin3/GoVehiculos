@@ -80,6 +80,15 @@
   <style>
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .chat-content p { margin-bottom: 0.5rem; }
+    .chat-content p:last-child { margin-bottom: 0; }
+    .chat-content strong { font-weight: 600; }
+    .chat-content ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+    .chat-content ol { list-style-type: decimal; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+    .chat-content li { margin-bottom: 0.25rem; }
+    .chat-content li:last-child { margin-bottom: 0; }
+    .chat-content code { background: #eceef0; border-radius: 4px; padding: 0.1em 0.35em; font-size: 0.85em; font-family: monospace; }
   </style>
 </head>
 <body class="bg-surface font-body text-on-surface">
@@ -166,6 +175,15 @@
 <div id="login-modal-placeholder"></div>
 
 <script>
+  const API_BASE = typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : 'http://localhost:8000';
+
+  let conversacionId = null;
+  let promptKey = null;
+
+  function getToken() {
+    return localStorage.getItem('auth_token');
+  }
+
   function getNow() {
     return new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
   }
@@ -182,6 +200,10 @@
     }
   }
 
+  function escapeHtml(text) {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
   function appendMessage(text, isUser) {
     const container = document.getElementById('chat-messages');
     const wrapper = document.createElement('div');
@@ -195,12 +217,13 @@
         </div>
         <div class="space-y-2 text-right">
           <div class="kinetic-gradient p-5 rounded-xl rounded-br-none shadow-lg">
-            <p class="text-sm leading-relaxed text-white">${text}</p>
+            <p class="text-sm leading-relaxed text-white">${escapeHtml(text)}</p>
           </div>
           <span class="text-[10px] text-secondary mr-1">${getNow()}</span>
         </div>
       `;
     } else {
+      const renderedText = typeof marked !== 'undefined' ? marked.parse(text) : escapeHtml(text);
       wrapper.className = 'flex gap-4 max-w-[80%]';
       wrapper.innerHTML = `
         <div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0 self-end">
@@ -208,7 +231,7 @@
         </div>
         <div class="space-y-2">
           <div class="bg-surface-container-lowest p-5 rounded-xl rounded-bl-none shadow-sm border border-outline-variant/10">
-            <p class="text-sm leading-relaxed text-on-surface">${text}</p>
+            <div class="chat-content text-sm leading-relaxed text-on-surface">${renderedText}</div>
           </div>
           <span class="text-[10px] text-secondary ml-1">${getNow()}</span>
         </div>
@@ -219,18 +242,96 @@
     container.scrollTop = container.scrollHeight;
   }
 
-  function sendMessage() {
+  function appendTypingIndicator() {
+    const container = document.getElementById('chat-messages');
+    const indicator = document.createElement('div');
+    indicator.id = 'typing-indicator';
+    indicator.className = 'flex gap-4 max-w-[80%]';
+    indicator.innerHTML = `
+      <div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0 self-end">
+        <span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">support_agent</span>
+      </div>
+      <div class="bg-surface-container-lowest px-5 py-4 rounded-xl rounded-bl-none shadow-sm border border-outline-variant/10 flex items-center gap-1">
+        <span class="w-2 h-2 bg-secondary rounded-full animate-bounce" style="animation-delay:0ms"></span>
+        <span class="w-2 h-2 bg-secondary rounded-full animate-bounce" style="animation-delay:150ms"></span>
+        <span class="w-2 h-2 bg-secondary rounded-full animate-bounce" style="animation-delay:300ms"></span>
+      </div>
+    `;
+    container.appendChild(indicator);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function removeTypingIndicator() {
+    document.getElementById('typing-indicator')?.remove();
+  }
+
+  function setSendingState(isSending) {
+    const btn = document.getElementById('send-btn');
+    const input = document.getElementById('chat-input');
+    btn.disabled = isSending;
+    input.disabled = isSending;
+    btn.classList.toggle('opacity-50', isSending);
+    btn.classList.toggle('cursor-not-allowed', isSending);
+  }
+
+  async function iniciarConversacion(key) {
+    const res = await fetch(`${API_BASE}/chat/iniciar`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify({ prompt_key: key }),
+    });
+    if (!res.ok) throw new Error('No se pudo iniciar la conversación');
+    const data = await res.json();
+    conversacionId = data.conversacion_id;
+  }
+
+  async function sendMessage() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
-    if (!text) return;
+    if (!text || !conversacionId) return;
+
     appendMessage(text, true);
     input.value = '';
     input.style.height = 'auto';
+
+    setSendingState(true);
+    appendTypingIndicator();
+
+    try {
+      const res = await fetch(`${API_BASE}/chat/mensaje`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({
+          conversacion_id: conversacionId,
+          pregunta: text,
+          prompt_key: promptKey,
+        }),
+      });
+
+      removeTypingIndicator();
+
+      if (!res.ok) throw new Error('Error al obtener respuesta del asistente');
+
+      const data = await res.json();
+      appendMessage(data.cuerpo, false);
+    } catch (err) {
+      removeTypingIndicator();
+      appendMessage('Ocurrió un error al contactar al asistente. Por favor, intentá nuevamente.', false);
+    } finally {
+      setSendingState(false);
+    }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     const topic = params.get('topic');
+    promptKey = params.get('key');
 
     if (topic) {
       document.getElementById('chat-topic-title').textContent = topic;
@@ -239,6 +340,15 @@
     }
 
     document.getElementById('welcome-time').textContent = getNow();
+
+    if (promptKey) {
+      try {
+        await iniciarConversacion(promptKey);
+      } catch (err) {
+        console.error('[chat] iniciarConversacion falló:', err);
+        appendMessage('No se pudo iniciar la sesión de chat. Recargá la página e intentá nuevamente.', false);
+      }
+    }
 
     const sendBtn = document.getElementById('send-btn');
     const input = document.getElementById('chat-input');
@@ -257,6 +367,7 @@
   });
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="/components/layout_shell.js"></script>
 <script src="/components/layout_ui.js"></script>
 <script src="/components/layout_profile.js"></script>

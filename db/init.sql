@@ -170,7 +170,13 @@ INSERT INTO estado (nombre) VALUES
 INSERT INTO estado_vehiculo (nombre) VALUES 
 ('Activo'), ('Inactivo'), ('En validacion'), ('Rechazado'), ('Alquilado'), ('En Taller');
 
-INSERT INTO marca (nombre) VALUES 
+INSERT INTO estado_validacion (nombre) VALUES
+('pendiente'), ('aprobado'), ('rechazado');
+
+INSERT INTO fase_conversacion (estado) VALUES
+('bot_menu'), ('bot_libre'), ('operario'), ('cerrada');
+
+INSERT INTO marca (nombre) VALUES
 ('Toyota'), ('Fiat'), ('Peugeot'), ('Volkswagen');
 
 INSERT INTO modelo (nombre, marca_id) VALUES 
