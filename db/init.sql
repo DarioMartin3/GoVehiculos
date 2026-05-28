@@ -113,12 +113,12 @@ CREATE TABLE documento_vehiculo (
 -- BOT
 -- -------------------------------------------------------
 CREATE TABLE bot_tema (
-    id            SERIAL PRIMARY KEY,
-    nombre        TEXT NOT NULL,     -- "Términos y condiciones"
-    descripcion   TEXT,              -- subtítulo opcional del botón
-    system_prompt TEXT NOT NULL,     -- contexto acotado que recibe el LLM
-    orden         INT  NOT NULL,     -- orden de aparición en el menú
-    activo        BOOLEAN NOT NULL DEFAULT TRUE
+    id          SERIAL PRIMARY KEY,
+    nombre      TEXT NOT NULL,     -- "Reservas y Alquileres"
+    descripcion TEXT,              -- subtítulo opcional del botón
+    prompt_key  TEXT NOT NULL,     -- alias que referencia al prompt en el backend (ej: 'reservas')
+    orden       INT  NOT NULL,     -- orden de aparición en el menú
+    activo      BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 -- -------------------------------------------------------
@@ -202,3 +202,11 @@ INSERT INTO usuario (persona_id, password, rol_id, estado_id) VALUES
 (4, '1234', 4, 1), -- Mariana: Operador
 (5, '1234', 5, 1), -- Facundo: Soporte
 (6, '1234', 1, 1); -- Maria del Rosario: Cliente
+
+INSERT INTO bot_tema (nombre, descripcion, prompt_key, orden, activo) VALUES
+('Reservas y Alquileres',   'Modificá fechas, confirmá reservas o consultá disponibilidad.', 'reservas',  1, TRUE),
+('Vehículos y Flota',       'Especificaciones, características técnicas o categorías.',       'vehiculos', 2, TRUE),
+('Pagos y Facturación',     'Revisá facturas, gestioná métodos de pago o comprobantes.',      'pagos',     3, TRUE),
+('Cuenta y Seguridad',      'Verificación de identidad, contraseña y membresía.',             'cuenta',    4, TRUE),
+('Problemas Técnicos',      'Inconvenientes con la plataforma o la aplicación móvil.',        'tecnico',   5, TRUE),
+('Seguros y Seguridad Vial','Emergencias, cobertura y normativas de seguridad.',              'seguros',   6, TRUE);
