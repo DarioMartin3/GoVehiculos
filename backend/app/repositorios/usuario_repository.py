@@ -19,26 +19,22 @@ class UsuarioRepository:
 
     def create(self, cursor, persona_id: int, password: str, rol: str, estado: int | None) -> int:
         # Crea el usuario enlazado con persona_id y devuelve su id.
-        # Soporta ambos esquemas: usuario.rol (texto) y usuario.rol_id (FK a tabla rol).
-        if self._usuario_has_column(cursor, 'rol'):
-            cursor.execute(
-                """
-                INSERT INTO usuario (persona_id, password, rol, estado)
-                VALUES (%s, %s, %s, %s)
-                RETURNING id
-                """,
-                (persona_id, password, rol, estado),
-            )
-            return cursor.fetchone()[0]
+        # Soporta ambos esquemas: usuario.rol (texto) y usuario.rol_id (FK a tabla rol),
+        # y usuario.estado (int directo) y usuario.estado_id (FK a tabla estado).
+        has_rol_col = self._usuario_has_column(cursor, 'rol')
+        has_estado_col = self._usuario_has_column(cursor, 'estado')
 
-        rol_id = self._get_rol_id(cursor, rol)
+        rol_col = 'rol' if has_rol_col else 'rol_id'
+        estado_col = 'estado' if has_estado_col else 'estado_id'
+        rol_val = rol if has_rol_col else self._get_rol_id(cursor, rol)
+
         cursor.execute(
-            """
-            INSERT INTO usuario (persona_id, password, rol_id, estado)
+            f"""
+            INSERT INTO usuario (persona_id, password, {rol_col}, {estado_col})
             VALUES (%s, %s, %s, %s)
             RETURNING id
             """,
-            (persona_id, password, rol_id, estado),
+            (persona_id, password, rol_val, estado),
         )
         return cursor.fetchone()[0]
 
@@ -83,11 +79,12 @@ class UsuarioRepository:
             LIMIT 1
         """
         query_with_rol_fk = """
-            SELECT u.id, u.password, r.nombre AS rol, u.estado, u.persona_id,
+            SELECT u.id, u.password, r.nombre AS rol, e.nombre AS estado, u.persona_id,
                    p.email, p.nombre, p.apellido
             FROM usuario u
             INNER JOIN persona p ON p.id = u.persona_id
             LEFT JOIN rol r ON r.id = u.rol_id
+            LEFT JOIN estado e ON e.id = u.estado_id
             WHERE LOWER(p.email) = LOWER(%s)
             LIMIT 1
         """
@@ -121,7 +118,7 @@ class UsuarioRepository:
                    p.fecha_nacimiento
             FROM usuario u
             INNER JOIN persona p ON p.id = u.persona_id
-            LEFT JOIN pais pa ON pa.id = p.pais
+            LEFT JOIN pais pa ON pa.id = p.pais_id
             WHERE u.id = %s
             LIMIT 1
         """
@@ -131,7 +128,7 @@ class UsuarioRepository:
             FROM usuario u
             INNER JOIN persona p ON p.id = u.persona_id
             LEFT JOIN rol r ON r.id = u.rol_id
-            LEFT JOIN pais pa ON pa.id = p.pais
+            LEFT JOIN pais pa ON pa.id = p.pais_id
             WHERE u.id = %s
             LIMIT 1
         """
@@ -259,7 +256,7 @@ class UsuarioRepository:
                     updates.append("telefono = %s")
                     values.append(telefono)
                 if pais is not None:
-                    updates.append("pais = %s")
+                    updates.append("pais_id = %s")
                     values.append(pais)
 
                 if not updates:
@@ -285,15 +282,16 @@ class UsuarioRepository:
             SELECT u.id, p.email, u.rol, u.estado, p.nombre, p.apellido, p.telefono, pa.nombre AS pais
             FROM usuario u
             INNER JOIN persona p ON p.id = u.persona_id
-            LEFT JOIN pais pa ON pa.id = p.pais
+            LEFT JOIN pais pa ON pa.id = p.pais_id
             ORDER BY p.apellido ASC, p.nombre ASC
         """
         query_with_rol_fk = """
-            SELECT u.id, p.email, r.nombre AS rol, u.estado, p.nombre, p.apellido, p.telefono, pa.nombre AS pais
+            SELECT u.id, p.email, r.nombre AS rol, e.nombre AS estado, p.nombre, p.apellido, p.telefono, pa.nombre AS pais
             FROM usuario u
             INNER JOIN persona p ON p.id = u.persona_id
             LEFT JOIN rol r ON r.id = u.rol_id
-            LEFT JOIN pais pa ON pa.id = p.pais
+            LEFT JOIN estado e ON e.id = u.estado_id
+            LEFT JOIN pais pa ON pa.id = p.pais_id
             ORDER BY p.apellido ASC, p.nombre ASC
         """
 
@@ -324,16 +322,17 @@ class UsuarioRepository:
             SELECT u.id, p.email, u.rol, u.estado, p.nombre, p.apellido, p.telefono, pa.nombre AS pais
             FROM usuario u
             INNER JOIN persona p ON p.id = u.persona_id
-            LEFT JOIN pais pa ON pa.id = p.pais
+            LEFT JOIN pais pa ON pa.id = p.pais_id
             WHERE u.id = %s
             LIMIT 1
         """
         query_with_rol_fk = """
-            SELECT u.id, p.email, r.nombre AS rol, u.estado, p.nombre, p.apellido, p.telefono, pa.nombre AS pais
+            SELECT u.id, p.email, r.nombre AS rol, e.nombre AS estado, p.nombre, p.apellido, p.telefono, pa.nombre AS pais
             FROM usuario u
             INNER JOIN persona p ON p.id = u.persona_id
             LEFT JOIN rol r ON r.id = u.rol_id
-            LEFT JOIN pais pa ON pa.id = p.pais
+            LEFT JOIN estado e ON e.id = u.estado_id
+            LEFT JOIN pais pa ON pa.id = p.pais_id
             WHERE u.id = %s
             LIMIT 1
         """
@@ -395,12 +394,17 @@ class UsuarioRepository:
                     persona_updates.append('telefono = %s')
                     persona_values.append(data['telefono'])
                 if data.get('pais') is not None:
-                    persona_updates.append('pais = %s')
+                    persona_updates.append('pais_id = %s')
                     persona_values.append(data['pais'])
 
                 if data.get('estado') is not None:
-                    usuario_updates.append('estado = %s')
-                    usuario_values.append(data['estado'])
+                    if self._usuario_has_column(cursor, 'estado'):
+                        usuario_updates.append('estado = %s')
+                        usuario_values.append(data['estado'])
+                    else:
+                        estado_id = self._get_estado_id(cursor, data['estado'])
+                        usuario_updates.append('estado_id = %s')
+                        usuario_values.append(estado_id)
 
                 if data.get('rol') is not None:
                     if self._usuario_has_column(cursor, 'rol'):
@@ -440,11 +444,12 @@ class UsuarioRepository:
     def deactivate_user_by_id(self, user_id: int) -> bool:
         with get_connection() as connection:
             with connection.cursor() as cursor:
+                estado_col = 'estado' if self._usuario_has_column(cursor, 'estado') else 'estado_id'
                 estado_inactivo_id = self._get_estado_id(cursor, 'Inactivo')
                 cursor.execute(
-                    """
+                    f"""
                     UPDATE usuario
-                    SET estado = %s
+                    SET {estado_col} = %s
                     WHERE id = %s
                     """,
                     (estado_inactivo_id, user_id),
@@ -457,11 +462,12 @@ class UsuarioRepository:
     def activate_user_by_id(self, user_id: int) -> bool:
         with get_connection() as connection:
             with connection.cursor() as cursor:
+                estado_col = 'estado' if self._usuario_has_column(cursor, 'estado') else 'estado_id'
                 estado_activo_id = self._get_estado_id(cursor, 'Activo')
                 cursor.execute(
-                    """
+                    f"""
                     UPDATE usuario
-                    SET estado = %s
+                    SET {estado_col} = %s
                     WHERE id = %s
                     """,
                     (estado_activo_id, user_id),
