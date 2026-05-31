@@ -143,6 +143,22 @@
       setElementHidden(btnSocio, true);
     } else {
       const rolSeguro = userRole.toLowerCase().trim();
+      // Si el usuario es soporte, mostrar 'Menu Soporte' y apuntar a la vista correspondiente
+      try {
+        if (rolSeguro.includes('soporte')) {
+          if (btnDashboard) {
+            btnDashboard.classList.remove('hidden');
+            btnDashboard.textContent = 'Menu Soporte';
+            btnDashboard.setAttribute('href', '/menu_soporte.html');
+          }
+        } else {
+          if (btnDashboard) {
+            btnDashboard.textContent = 'Dashboard';
+            btnDashboard.setAttribute('href', '/dashboard_general_tecnico.html');
+          }
+        }
+      } catch (e) {}
+
       setElementHidden(btnDashboard, ['cliente', 'socio'].includes(rolSeguro));
       setElementHidden(btnSocio, rolSeguro !== 'cliente');
     }
