@@ -142,12 +142,12 @@ class VehiculoRepository:
                            ev.nombre AS estado_vehiculo,
                            m.id AS modelo_id, m.nombre AS modelo_nombre, ma.nombre AS marca_nombre,
                            (SELECT dv.imagen FROM documento_vehiculo dv
-                            WHERE dv.vehiculo_id = v.id AND dv.tipo = 'foto_vehiculo'
+                            WHERE dv.vehiculo_id = v.id AND dv.tipo_id = 1
                             ORDER BY dv.id DESC LIMIT 1) AS foto_vehiculo
                     FROM vehiculo v
-                    INNER JOIN modelo m ON m.id = v.modelo
+                    INNER JOIN modelo m ON m.id = v.modelo_id
                     INNER JOIN marca ma ON ma.id = m.marca_id
-                    LEFT JOIN estado_vehiculo ev ON ev.id = v.estado_vehiculo
+                    LEFT JOIN estado_vehiculo ev ON ev.id = v.estado_vehiculo_id
                     WHERE v.id = %s
                     LIMIT 1
                     """,
@@ -166,12 +166,12 @@ class VehiculoRepository:
                    ev.nombre AS estado_vehiculo,
                    m.id AS modelo_id, m.nombre AS modelo_nombre, ma.nombre AS marca_nombre,
                    (SELECT dv.imagen FROM documento_vehiculo dv
-                    WHERE dv.vehiculo_id = v.id AND dv.tipo = 'foto_vehiculo'
+                    WHERE dv.vehiculo_id = v.id AND dv.tipo_id = 1
                     ORDER BY dv.id DESC LIMIT 1) AS foto_vehiculo
             FROM vehiculo v
-            INNER JOIN modelo m ON m.id = v.modelo
+            INNER JOIN modelo m ON m.id = v.modelo_id
             INNER JOIN marca ma ON ma.id = m.marca_id
-            LEFT JOIN estado_vehiculo ev ON ev.id = v.estado_vehiculo
+            LEFT JOIN estado_vehiculo ev ON ev.id = v.estado_vehiculo_id
         """
         params: tuple[object, ...] = ()
 

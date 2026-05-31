@@ -140,7 +140,7 @@ class VehiculoService:
         if role in {"administrador", "admin", "operador", "soporte"}:
             return self._vehicles_to_dict(self.vehiculo_repository.list_vehicles())
 
-        if role == "socio":
+        if role in {"socio", "cliente"}:
             return self._vehicles_to_dict(self.vehiculo_repository.list_vehicles(usuario_id=usuario_id))
 
         raise ValueError("Permiso denegado")

@@ -286,7 +286,7 @@ class UsuarioRepository:
             ORDER BY p.apellido ASC, p.nombre ASC
         """
         query_with_rol_fk = """
-            SELECT u.id, p.email, r.nombre AS rol, e.nombre AS estado, p.nombre, p.apellido, p.telefono, pa.nombre AS pais
+            SELECT u.id, p.email, r.nombre AS rol, e.id AS estado, p.nombre, p.apellido, p.telefono, pa.nombre AS pais
             FROM usuario u
             INNER JOIN persona p ON p.id = u.persona_id
             LEFT JOIN rol r ON r.id = u.rol_id
