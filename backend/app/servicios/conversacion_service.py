@@ -35,3 +35,39 @@ def guardar_mensaje(conversacion_id: int, autor_id: int, mensaje: dict) -> Mensa
         conn.commit()
 
     return entidad
+
+
+def obtener_conversacion(conversacion_id: int) -> dict:
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            conversacion = _repo.get_conversacion_by_id(cursor, conversacion_id)
+
+    if not conversacion:
+        raise ValueError(f"Conversación '{conversacion_id}' no encontrada")
+
+    return conversacion
+
+
+def obtener_mensajes_conversacion(conversacion_id: int) -> list[dict]:
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            mensajes = _repo.get_mensajes_by_conversacion_id(cursor, conversacion_id)
+
+    return mensajes
+
+
+def derivar_conversacion_a_soporte(conversacion_id: int, motivo: str) -> dict:
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            fase_id = _repo.get_fase_id(cursor, "operario")
+            _repo.actualizar_fase_conversacion(cursor, conversacion_id, fase_id)
+            operario_id = _repo.get_support_operator_id(cursor)
+            derivacion_id = _repo.crear_derivacion(cursor, conversacion_id, operario_id, motivo)
+        conn.commit()
+
+    return {
+        "conversacion_id": conversacion_id,
+        "fase": "operario",
+        "derivacion_id": derivacion_id,
+        "operario_id": operario_id,
+    }

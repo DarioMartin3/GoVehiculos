@@ -180,7 +180,7 @@ class IniciarConversacionResponse(BaseModel):
 class EnviarMensajeRequest(BaseModel):
     conversacion_id: int
     pregunta: str
-    prompt_key: str
+    prompt_key: str | None = None
 
 
 class MensajeResponse(BaseModel):
@@ -190,3 +190,23 @@ class MensajeResponse(BaseModel):
     autor: str
     cuerpo: str
     enviado_at: str
+    requiere_soporte: bool = False
+    fase: str | None = None
+    motivo_derivacion: str | None = None
+    redireccionar_a: str | None = None
+
+
+class ConversacionMensajeResponse(BaseModel):
+    id: int | None = None
+    conversacion_id: int
+    autor_id: int
+    autor: str
+    cuerpo: str
+    enviado_at: str
+
+
+class ConversacionResponse(BaseModel):
+    conversacion_id: int
+    tema_id: int
+    fase: str
+    mensajes: list[ConversacionMensajeResponse]
