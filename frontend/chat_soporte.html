@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed": "#001946",
+                    "secondary-fixed-dim": "#bbc8d0",
+                    "on-secondary-fixed": "#111d23",
+                    "primary-fixed": "#dae2ff",
+                    "surface-container": "#eceef0",
+                    "on-error": "#ffffff",
+                    "outline": "#737784",
+                    "on-background": "#191c1e",
+                    "primary-fixed-dim": "#b1c5ff",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb692",
+                    "surface-container-high": "#e6e8ea",
+                    "on-secondary-fixed-variant": "#3c494f",
+                    "inverse-primary": "#b1c5ff",
+                    "error-container": "#ffdad6",
+                    "surface-container-low": "#f2f4f6",
+                    "on-error-container": "#93000a",
+                    "secondary-fixed": "#d7e4ec",
+                    "on-surface": "#191c1e",
+                    "on-primary-fixed-variant": "#00419e",
+                    "error": "#ba1a1a",
+                    "primary-container": "#0047ab",
+                    "on-primary": "#ffffff",
+                    "surface": "#f8f9fb",
+                    "background": "#f8f9fb",
+                    "primary": "#00327d",
+                    "on-secondary-container": "#5a666d",
+                    "tertiary-container": "#843500",
+                    "surface-tint": "#2559bd",
+                    "surface-variant": "#e0e3e5",
+                    "tertiary-fixed": "#ffdbcb",
+                    "surface-dim": "#d8dadc",
+                    "on-surface-variant": "#434653",
+                    "on-secondary": "#ffffff",
+                    "tertiary": "#602400",
+                    "on-tertiary-fixed-variant": "#7a3000",
+                    "surface-bright": "#f8f9fb",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#2d3133",
+                    "on-primary-container": "#a5bdff",
+                    "secondary-container": "#d7e4ec",
+                    "secondary": "#546067",
+                    "on-tertiary-fixed": "#341100",
+                    "on-tertiary-container": "#ffaa80"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.375rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "display": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass-nav {
+            background: rgba(248, 249, 251, 0.7);
+            backdrop-filter: blur(20px);
+        }
+        .kinetic-gradient {
+            background: linear-gradient(135deg, #00327d 0%, #0047ab 100%);
+        }
+    </style>
+</head>
+<body class="bg-background font-body text-on-background antialiased">
+<!-- TopNavBar (Shared Component) -->
+<nav class="fixed top-0 w-full z-50 glass-nav">
+<div class="flex justify-between items-center h-16 px-8 w-full">
+<div class="text-xl font-extrabold tracking-tighter text-blue-900 font-headline">Executive Kinetic</div>
+<div class="hidden md:flex items-center gap-8 font-headline font-semibold tracking-tight">
+<a class="text-slate-500 hover:text-blue-600 transition-colors duration-200" href="#">Fleet</a>
+<a class="text-slate-500 hover:text-blue-600 transition-colors duration-200" href="#">Bookings</a>
+<a class="text-blue-700 font-bold border-b-2 border-blue-700 pb-1" href="#">Concierge</a>
+<a class="text-slate-500 hover:text-blue-600 transition-colors duration-200" href="#">Support</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-blue-800 hover:opacity-80 transition-all">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-blue-800 hover:opacity-80 transition-all">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Main App Shell -->
+<main class="pt-16 min-h-screen flex">
+<!-- SideNavBar (Shared Component) -->
+<aside class="h-[calc(100vh-64px)] w-64 fixed left-0 top-16 bg-slate-50 flex flex-col py-6 px-4 gap-2 font-['Inter'] text-sm antialiased border-r border-slate-100">
+<div class="mb-6 px-2">
+<h2 class="text-lg font-bold text-blue-900 font-headline">Support Portal</h2>
+<p class="text-xs text-slate-500">Concierge Level</p>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<button class="flex items-center gap-3 px-4 py-3 rounded-lg bg-white text-blue-700 font-semibold shadow-sm transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="chat_bubble" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+<span>Live Chat</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-200/50 transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
+<span>Tickets</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-200/50 transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="quiz">quiz</span>
+<span>FAQ Library</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-200/50 transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span>History</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-200/50 transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</button>
+</nav>
+<div class="mt-auto flex flex-col gap-4">
+<button class="kinetic-gradient text-white font-bold py-3 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                    New Inquiry
+                </button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-200/50 transition-all">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span>Help Center</span>
+</button>
+</div>
+</aside>
+<!-- Live Chat Canvas -->
+<section class="ml-64 flex-1 flex flex-col bg-surface overflow-hidden relative">
+<!-- Chat Header -->
+<header class="h-20 flex items-center justify-between px-10 bg-surface-container-lowest shadow-sm z-10">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img class="w-12 h-12 rounded-full object-cover border-2 border-primary-fixed" data-alt="A professional male concierge agent in a sharp, navy blue tailored suit, standing in a brightly lit, high-end corporate lobby. The lighting is soft and cinematic, highlighting his welcoming smile and attentive posture. The background features polished marble surfaces and minimalist architectural details in shades of cool grey and slate. The overall mood is sophisticated, reliable, and premium." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6PifjYJgs6G2JmX2YLLzb3DjSU_zjMEq32ZisGa6Kqc2oeuQxm6NMLhdYS4Hz3fcmqOdeUv88yQSCp4KuPDi9b6rI5kW6RK1-og51HQ3lYgn6s7zu8bfhr6DzlmRroNBEfFnORov_l1Cp-7Z0HoJATPNa6q5xg6VTC2wV6bP34VD2VXOzr7NVOLWRCQxqoZujd9Dcf_x0gN1OPGENsldpOEMIj6WmcRL-ZoDUjWmCR4Y95e7-56SaiZNGZFS9v9VBtksrK2QvNrk"/>
+<span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
+</div>
+<div>
+<h1 class="text-lg font-bold font-headline text-on-background">Support Agent - Concierge Level</h1>
+<p class="text-xs text-secondary font-medium uppercase tracking-wider flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                            Online • Typically replies in 2 mins
+                        </p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="p-2.5 rounded-full hover:bg-surface-container transition-colors text-secondary">
+<span class="material-symbols-outlined" data-icon="phone">phone</span>
+</button>
+<button class="p-2.5 rounded-full hover:bg-surface-container transition-colors text-secondary">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</header>
+<!-- Chat Area -->
+<div class="flex-1 overflow-y-auto p-10 space-y-8 hide-scrollbar bg-surface-container-low">
+<div class="flex justify-center">
+<span class="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary opacity-60">Yesterday, 4:20 PM</span>
+</div>
+<!-- Agent Message -->
+<div class="flex gap-4 max-w-[80%]">
+<img class="w-8 h-8 rounded-full object-cover self-end" data-alt="A headshot of a professional concierge representative in a minimalist, high-key setting. The lighting is diffused and modern, focusing on the agent's friendly and helpful demeanor. The aesthetic is clean and corporate, utilizing a tonal palette of soft blues and crisp whites." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcBaBgb-PLOrhHAa3e9WgpUsWJdiReSJv2zpB3cOXEMGu-ja2xaR2_bf7CwJlxwdFgz09FCJQwlYufGkpFKHWqh_CEvAbxDn9eOyl3cpzgxHOrqRxJOIV6jFLchYj-oGXpLfGtRmbeYe0A7oGZ2MzWSuAQOYaZzHt6lgGeilLhR2rBVLIfKpXSF2XpcfaEj0P1lI-1uahEpRQOzXbt7CAsBMj9h-2z6NNkd2JD8ikeXvQZ-RNnp8y_BXHyOWgBIs-Hxjb9FaJgS8o"/>
+<div class="space-y-2">
+<div class="bg-surface-container-lowest p-5 rounded-2xl rounded-bl-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-outline-variant/10">
+<p class="text-sm leading-relaxed text-on-surface">Good afternoon! I'm your dedicated Kinetic concierge. I see you're looking at the Mercedes S-Class for your trip to Geneva. How can I assist you with the booking today?</p>
+</div>
+<span class="text-[10px] text-secondary ml-1">4:21 PM</span>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex flex-row-reverse gap-4 max-w-[80%] ml-auto">
+<div class="w-8 h-8 rounded-full kinetic-gradient flex items-center justify-center self-end shadow-md">
+<span class="text-[10px] font-bold text-white">JD</span>
+</div>
+<div class="space-y-2 text-right">
+<div class="kinetic-gradient p-5 rounded-2xl rounded-br-none shadow-lg">
+<p class="text-sm leading-relaxed text-white">Hi! Yes, I was wondering if it's possible to have a child seat pre-installed and if the vehicle comes with a dedicated charging card for the local network?</p>
+</div>
+<span class="text-[10px] text-secondary mr-1">4:25 PM</span>
+</div>
+</div>
+<!-- Agent Message (Specs Highlight) -->
+<div class="flex gap-4 max-w-[80%]">
+<img class="w-8 h-8 rounded-full object-cover self-end" data-alt="Close up of a professional support agent in a modern workspace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuALMmeLk5ghdTulCQ1JDBE1afmLno0djR83mBFlc8-C7bJCPmEAOB5SYe0f7kt11husddnXy8NGTP37x4J2P18VfxVE5826SE2HqZGmEH_hOwKT_vGXcUp6bBCNzlBR1jTU_LRn_CBdaRHntsKmlP27jTdoYD1p17LaZ2jbJvmJwRDDZghU_oshr5ZTdGTy2DfUFx6YB3TMxG2105r-S1VoYg5Ea3JCEpzG2MqUQq_r9191TkJ9r1oGo8AtBVwta_CK7RtHw51OzTY"/>
+<div class="space-y-4">
+<div class="bg-surface-container-lowest p-5 rounded-2xl rounded-bl-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-outline-variant/10">
+<p class="text-sm leading-relaxed text-on-surface font-medium">Absolutely. All our premium EV fleet members include:</p>
+<ul class="mt-3 space-y-2">
+<li class="flex items-center gap-3 text-xs text-secondary-fixed-variant">
+<span class="material-symbols-outlined text-primary scale-75" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                    Complimentary ISOFIX child seat installation
+                                </li>
+<li class="flex items-center gap-3 text-xs text-secondary-fixed-variant">
+<span class="material-symbols-outlined text-primary scale-75" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                    Global Kinetic Charging Pass (Unlimited Access)
+                                </li>
+<li class="flex items-center gap-3 text-xs text-secondary-fixed-variant">
+<span class="material-symbols-outlined text-primary scale-75" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                    Priority airport lane access
+                                </li>
+</ul>
+</div>
+<div class="bg-white/40 p-4 rounded-xl border border-dashed border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 bg-primary-fixed rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+</div>
+<div class="flex-1">
+<p class="text-xs font-bold text-blue-900">EV_Guide_Geneva.pdf</p>
+<p class="text-[10px] text-slate-500">2.4 MB • PDF Document</p>
+</div>
+<button class="p-2 text-primary hover:bg-primary-fixed rounded-lg transition-colors">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+</button>
+</div>
+</div>
+<span class="text-[10px] text-secondary ml-1">4:28 PM</span>
+</div>
+</div>
+<div class="flex justify-center items-center gap-4 py-4">
+<div class="h-px flex-1 bg-outline-variant opacity-20"></div>
+<span class="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary opacity-60">Today</span>
+<div class="h-px flex-1 bg-outline-variant opacity-20"></div>
+</div>
+<div class="flex flex-row-reverse gap-4 max-w-[80%] ml-auto">
+<div class="w-8 h-8 rounded-full kinetic-gradient flex items-center justify-center self-end shadow-md">
+<span class="text-[10px] font-bold text-white">JD</span>
+</div>
+<div class="space-y-2 text-right">
+<div class="kinetic-gradient p-5 rounded-2xl rounded-br-none shadow-lg">
+<p class="text-sm leading-relaxed text-white">That sounds perfect. I'd like to proceed with the booking for Feb 12th to Feb 18th.</p>
+</div>
+<span class="text-[10px] text-secondary mr-1">10:12 AM</span>
+</div>
+</div>
+</div>
+<!-- Message Input Area -->
+<footer class="p-8 bg-surface-container-lowest">
+<div class="max-w-4xl mx-auto flex items-end gap-4">
+<div class="flex-1 bg-surface-container-high rounded-2xl p-2 focus-within:bg-white transition-all border border-transparent focus-within:border-primary-fixed/50 shadow-sm flex items-end">
+<button class="p-3 text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</button>
+<textarea class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-3 px-2 resize-none max-h-32 hide-scrollbar font-body" placeholder="Describe your request..." rows="1"></textarea>
+<button class="p-3 text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="mood">mood</span>
+</button>
+</div>
+<button class="kinetic-gradient w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-xl hover:shadow-primary-fixed/20 active:scale-90 transition-all">
+<span class="material-symbols-outlined" data-icon="send" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+<div class="mt-4 flex justify-center gap-6">
+<span class="text-[10px] text-slate-400 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="lock">lock</span>
+                        End-to-end encrypted
+                    </span>
+<span class="text-[10px] text-slate-400 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="timer">timer</span>
+                        Session active
+                    </span>
+</div>
+</footer>
+</section>
+</main>
+<!-- Mobile BottomNavBar (Shared Component) -->
+<div class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-safe bg-white/80 backdrop-blur-lg rounded-t-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
+<button class="flex flex-col items-center justify-center text-slate-400 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="text-[10px] uppercase tracking-widest mt-1">Explore</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="directions_car">directions_car</span>
+<span class="text-[10px] uppercase tracking-widest mt-1">Trips</span>
+</button>
+<button class="flex flex-col items-center justify-center text-blue-700 bg-blue-50 rounded-xl px-3 py-1 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="support_agent" style="font-variation-settings: 'FILL' 1;">support_agent</span>
+<span class="text-[10px] uppercase tracking-widest mt-1 font-bold">Support</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[10px] uppercase tracking-widest mt-1">Profile</span>
+</button>
+</div>
+</body></html>
