@@ -177,9 +177,17 @@
 </div>
 <div class="lg:w-80 w-full space-y-6">
 <h4 class="font-display font-bold text-on-surface flex items-center gap-2">
-<span class="material-symbols-outlined text-primary">auto_awesome</span>
-                            Quick Help
+                            <span class="material-symbols-outlined text-primary">forum</span>
+                            Conversaciones activas
                         </h4>
+<ul id="activeConversationsList" class="space-y-4">
+    <li class="text-sm text-on-surface-variant">Cargando conversaciones...</li>
+</ul>
+
+<h4 class="font-display font-bold text-on-surface flex items-center gap-2 mt-6">
+    <span class="material-symbols-outlined text-primary">auto_awesome</span>
+    Quick Help
+</h4>
 <ul class="space-y-4">
 <li>
 <a class="group block py-1 border-b border-outline-variant/10 hover:border-primary transition-all" href="#">
@@ -241,6 +249,62 @@
                 }, index * 100);
             });
         });
+    
+        // Fetch active support conversations for operator
+        async function loadActiveConversations() {
+            const apiBase = window.API_BASE || (location.origin + '') + '/chat';
+            try {
+                const token = localStorage.getItem('auth_token');
+                const resp = await fetch('/chat/soporte/lista', {
+                    headers: {
+                        'Authorization': token ? `Bearer ${token}` : ''
+                    }
+                });
+                if (!resp.ok) throw new Error('No se pudo obtener conversaciones');
+                const items = await resp.json();
+                const container = document.getElementById('activeConversationsList');
+                container.innerHTML = '';
+                if (!items || items.length === 0) {
+                    container.innerHTML = '<li class="text-sm text-on-surface-variant">No hay conversaciones activas</li>';
+                    return;
+                }
+                items.forEach(it => {
+                    const el = document.createElement('li');
+                    el.className = 'group block py-2 px-3 rounded-lg hover:bg-primary-fixed-dim hover:cursor-pointer border border-outline-variant/10';
+                    el.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-sm font-medium text-on-surface">${escapeHtml(it.cliente)}</div>
+                                <div class="text-xs text-on-surface-variant">${escapeHtml(it.last_message || 'Sin mensajes')}</div>
+                            </div>
+                            <div class="text-xs text-on-surface-variant">${it.last_message_at ? new Date(it.last_message_at).toLocaleString() : ''}</div>
+                        </div>
+                    `;
+                    el.addEventListener('click', () => {
+                        sessionStorage.setItem('support_chat_conversation_id', String(it.id));
+                        location.href = `/chat_soporte.html?conversation_id=${it.id}`;
+                    });
+                    container.appendChild(el);
+                });
+            } catch (err) {
+                const container = document.getElementById('activeConversationsList');
+                if (container) container.innerHTML = '<li class="text-sm text-error">Error cargando conversaciones</li>';
+                console.error(err);
+            }
+        }
+
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return String(unsafe)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Load conversations after DOM ready
+        window.addEventListener('DOMContentLoaded', loadActiveConversations);
         </script>
 
     <script src="/components/layout_shell.js"></script>

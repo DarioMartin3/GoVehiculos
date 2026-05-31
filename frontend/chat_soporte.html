@@ -107,10 +107,10 @@
 <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>
 </div>
 <div>
-<h1 class="text-lg font-bold font-headline text-on-background">Support Agent - Concierge Level</h1>
+<h1 class="text-lg font-bold font-headline text-on-background" id="support-chat-title">Chat de Soporte</h1>
 <p class="text-xs text-secondary font-medium uppercase tracking-wider flex items-center gap-1">
 <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                            Online • Typically replies in 2 mins
+                            <span id="support-chat-status">En línea • Responde un operador</span>
                         </p>
 </div>
 </div>
@@ -124,7 +124,7 @@
 </div>
 </header>
 <!-- Chat Area -->
-<div class="flex-1 overflow-y-auto p-10 space-y-8 hide-scrollbar bg-surface-container-low">
+<div class="flex-1 overflow-y-auto p-10 space-y-8 hide-scrollbar bg-surface-container-low" id="support-chat-messages">
 <div class="flex justify-center">
 <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary opacity-60">Yesterday, 4:20 PM</span>
 </div>
@@ -212,12 +212,12 @@
 <button class="p-3 text-secondary hover:text-primary transition-colors">
 <span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
 </button>
-<textarea class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-3 px-2 resize-none max-h-32 hide-scrollbar font-body" placeholder="Describe your request..." rows="1"></textarea>
+<textarea id="support-chat-input" class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-3 px-2 resize-none max-h-32 hide-scrollbar font-body" placeholder="Escribí tu mensaje..." rows="1"></textarea>
 <button class="p-3 text-secondary hover:text-primary transition-colors">
 <span class="material-symbols-outlined" data-icon="mood">mood</span>
 </button>
 </div>
-<button class="kinetic-gradient w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-xl hover:shadow-primary-fixed/20 active:scale-90 transition-all">
+<button id="support-chat-send" class="kinetic-gradient w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-xl hover:shadow-primary-fixed/20 active:scale-90 transition-all">
 <span class="material-symbols-outlined" data-icon="send" style="font-variation-settings: 'FILL' 1;">send</span>
 </button>
 </div>
@@ -253,6 +253,259 @@
 <span class="text-[10px] uppercase tracking-widest mt-1">Profile</span>
 </button>
 </div>
+
+<script>
+    (function () {
+        const API_BASE = 'http://localhost:8000';
+
+        function getToken() {
+            return localStorage.getItem('auth_token');
+        }
+
+        function getAuthUser() {
+            try {
+                return JSON.parse(localStorage.getItem('auth_user') || '{}');
+            } catch (error) {
+                return {};
+            }
+        }
+
+        function getCurrentUserId() {
+            const user = getAuthUser();
+            return Number(user.id || 0);
+        }
+
+        function getCurrentUserLabel() {
+            const user = getAuthUser();
+            const fullName = [user.nombre, user.apellido].filter(Boolean).join(' ').trim();
+            return fullName || 'Yo';
+        }
+
+        function getMessageTime(value) {
+            const date = value ? new Date(value) : new Date();
+            return date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function renderMessage(message, currentUserId) {
+            const isMine = Number(message.autor_id) === Number(currentUserId);
+            const wrapper = document.createElement('div');
+            wrapper.className = isMine ? 'flex flex-row-reverse gap-4 max-w-[80%] ml-auto' : 'flex gap-4 max-w-[80%]';
+            wrapper.innerHTML = isMine
+                ? `
+                    <div class="w-8 h-8 rounded-full kinetic-gradient flex items-center justify-center self-end shadow-md flex-shrink-0">
+                        <span class="text-[10px] font-bold text-white">${getCurrentUserLabel().slice(0, 2).toUpperCase()}</span>
+                    </div>
+                    <div class="space-y-2 text-right">
+                        <div class="kinetic-gradient p-5 rounded-2xl rounded-br-none shadow-lg">
+                            <p class="text-sm leading-relaxed text-white whitespace-pre-wrap">${escapeHtml(message.cuerpo)}</p>
+                        </div>
+                        <span class="text-[10px] text-secondary mr-1">${getMessageTime(message.enviado_at)}</span>
+                    </div>
+                `
+                : `
+                    <div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center self-end shadow-sm flex-shrink-0">
+                        <span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">support_agent</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="bg-surface-container-lowest p-5 rounded-2xl rounded-bl-none shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-outline-variant/10">
+                            <p class="text-sm leading-relaxed text-on-surface whitespace-pre-wrap">${escapeHtml(message.cuerpo)}</p>
+                        </div>
+                        <span class="text-[10px] text-secondary ml-1">${getMessageTime(message.enviado_at)}</span>
+                    </div>
+                `;
+            return wrapper;
+        }
+
+        function clearMessages() {
+            const container = document.getElementById('support-chat-messages');
+            if (!container) return;
+            container.innerHTML = '';
+        }
+
+        function ensureEmptyState(text) {
+            const container = document.getElementById('support-chat-messages');
+            if (!container) return;
+            clearMessages();
+            const empty = document.createElement('div');
+            empty.className = 'flex items-center justify-center py-16 text-center';
+            empty.innerHTML = `<p class="text-sm text-secondary max-w-md">${text}</p>`;
+            container.appendChild(empty);
+        }
+
+        async function loadConversation(conversationId) {
+            const response = await fetch(`${API_BASE}/chat/conversacion/${conversationId}`, {
+                headers: {
+                    Authorization: `Bearer ${getToken()}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('No se pudo cargar la conversación');
+            }
+
+            const data = await response.json();
+            document.getElementById('support-chat-title').textContent = `Conversación #${data.conversacion_id}`;
+            document.getElementById('support-chat-status').textContent = data.fase === 'operario' ? 'Conversación con persona de soporte' : 'Conversación activa';
+
+            clearMessages();
+            const container = document.getElementById('support-chat-messages');
+
+            const dateLabel = document.createElement('div');
+            dateLabel.className = 'flex justify-center';
+            dateLabel.innerHTML = '<span class="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary opacity-60">Conversación activa</span>';
+            container.appendChild(dateLabel);
+
+            if (!data.mensajes.length) {
+                const empty = document.createElement('div');
+                empty.className = 'flex items-center justify-center py-16 text-center';
+                empty.innerHTML = '<p class="text-sm text-secondary max-w-md">Todavía no hay mensajes en esta conversación.</p>';
+                container.appendChild(empty);
+                return;
+            }
+
+            data.mensajes.forEach((message) => container.appendChild(renderMessage(message, getCurrentUserId())));
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // WebSocket for real-time updates
+        let wsSupport = null;
+        function connectSupportWs(conversationId) {
+            try {
+                const token = getToken();
+                const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+                const url = `${protocol}://${location.host}/chat/ws/${conversationId}?token=${encodeURIComponent(token)}`;
+                wsSupport = new WebSocket(url);
+                wsSupport.onmessage = (evt) => {
+                    try {
+                        const data = JSON.parse(evt.data);
+                        // append the single incoming message to the UI
+                        const container = document.getElementById('support-chat-messages');
+                        if (container) container.appendChild(renderMessage(data, getCurrentUserId()));
+                        container.scrollTop = container.scrollHeight;
+                    } catch (err) {
+                        console.error('WS parse', err);
+                    }
+                };
+                wsSupport.onopen = () => console.debug('support ws open');
+                wsSupport.onclose = () => console.debug('support ws closed');
+            } catch (err) {
+                console.warn('support ws failed', err);
+            }
+        }
+
+        async function resolveConversationId() {
+            const params = new URLSearchParams(window.location.search);
+            const explicitId = params.get('conversation_id');
+            if (explicitId) {
+                try {
+                    sessionStorage.setItem('support_chat_conversation_id', explicitId);
+                } catch (error) {
+                    // ignore
+                }
+                return explicitId;
+            }
+
+            const storedId = sessionStorage.getItem('support_chat_conversation_id');
+            if (storedId) return storedId;
+
+            const response = await fetch(`${API_BASE}/chat/soporte/activa`, {
+                headers: {
+                    Authorization: `Bearer ${getToken()}`,
+                },
+            });
+
+            if (!response.ok) {
+                return null;
+            }
+
+            const data = await response.json();
+            try {
+                sessionStorage.setItem('support_chat_conversation_id', String(data.conversacion_id));
+            } catch (error) {
+                // ignore
+            }
+            return String(data.conversacion_id);
+        }
+
+        async function sendMessage(conversationId) {
+            const input = document.getElementById('support-chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const response = await fetch(`${API_BASE}/chat/mensaje`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${getToken()}`,
+                },
+                body: JSON.stringify({
+                    conversacion_id: Number(conversationId),
+                    pregunta: text,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('No se pudo enviar el mensaje');
+            }
+
+            input.value = '';
+            input.style.height = 'auto';
+            await loadConversation(conversationId);
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const conversationId = await resolveConversationId();
+            const sendBtn = document.getElementById('support-chat-send');
+            const input = document.getElementById('support-chat-input');
+
+            if (!conversationId) {
+                ensureEmptyState('No hay una conversación activa disponible todavía. Cuando el bot derive una consulta, aparecerá acá.');
+                sendBtn.disabled = true;
+                input.disabled = true;
+                return;
+            }
+
+            try {
+                await loadConversation(conversationId);
+            } catch (error) {
+                ensureEmptyState('No se pudo cargar la conversación. Recargá la página e intentá nuevamente.');
+            }
+
+            sendBtn.addEventListener('click', async () => {
+                try {
+                    await sendMessage(conversationId);
+                } catch (error) {
+                    ensureEmptyState('No se pudo enviar el mensaje. Recargá la página e intentá nuevamente.');
+                }
+            });
+
+            input.addEventListener('keydown', async (event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    try {
+                        await sendMessage(conversationId);
+                    } catch (error) {
+                        ensureEmptyState('No se pudo enviar el mensaje. Recargá la página e intentá nuevamente.');
+                    }
+                }
+            });
+
+            input.addEventListener('input', () => {
+                input.style.height = 'auto';
+                input.style.height = Math.min(input.scrollHeight, 128) + 'px';
+            });
+        });
+    })();
+</script>
 
 <script src="/components/layout_shell.js"></script>
 <script src="/components/layout_ui.js"></script>

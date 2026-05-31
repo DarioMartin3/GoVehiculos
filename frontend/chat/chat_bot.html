@@ -151,12 +151,15 @@
           rows="1"
         ></textarea>
       </div>
-      <button
-        id="send-btn"
-        class="kinetic-gradient w-14 h-14 rounded-xl flex items-center justify-center text-white shadow-lg hover:opacity-90 active:scale-90 transition-all"
-      >
-        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
-      </button>
+      <div class="flex items-center gap-3">
+        <button id="request-human-btn" title="Hablar con una persona" class="px-3 py-2 rounded-lg border border-outline-variant/10 text-sm text-secondary hover:bg-surface-container-lowest">Hablar con persona</button>
+        <button
+          id="send-btn"
+          class="kinetic-gradient w-14 h-14 rounded-xl flex items-center justify-center text-white shadow-lg hover:opacity-90 active:scale-90 transition-all"
+        >
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+        </button>
+      </div>
     </div>
     <div class="mt-3 flex justify-center gap-6">
       <span class="text-[10px] text-slate-400 flex items-center gap-1">
@@ -261,6 +264,43 @@
     container.scrollTop = container.scrollHeight;
   }
 
+  async function requestHuman() {
+    if (!conversacionId) {
+      appendMessage('No hay una conversación activa. Por favor, envía un mensaje primero.', false);
+      return;
+    }
+    setSendingState(true);
+    appendTypingIndicator();
+    try {
+      const res = await fetch(`${API_BASE}/chat/mensaje`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({
+          conversacion_id: conversacionId,
+          pregunta: 'Quiero hablar con una persona, por favor.',
+          prompt_key: promptKey,
+        }),
+      });
+      removeTypingIndicator();
+      if (!res.ok) throw new Error('Error al solicitar soporte humano');
+      const data = await res.json();
+      appendMessage(data.cuerpo, false);
+      if (data.requiere_soporte) {
+        try { sessionStorage.setItem('support_conversation_id', String(data.conversacion_id)); } catch (e) {}
+        const redirectTo = data.redireccionar_a || `/chat_soporte.html?conversation_id=${data.conversacion_id}`;
+        setTimeout(() => { window.location.href = redirectTo; }, 800);
+      }
+    } catch (err) {
+      removeTypingIndicator();
+      appendMessage('No se pudo solicitar la derivación. Intentá nuevamente.', false);
+    } finally {
+      setSendingState(false);
+    }
+  }
+
   function removeTypingIndicator() {
     document.getElementById('typing-indicator')?.remove();
   }
@@ -286,6 +326,31 @@
     if (!res.ok) throw new Error('No se pudo iniciar la conversación');
     const data = await res.json();
     conversacionId = data.conversacion_id;
+    connectWebsocket(conversacionId);
+  }
+
+  let ws = null;
+  function connectWebsocket(conversacionId) {
+    try {
+      const token = getToken();
+      const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+      const url = `${protocol}://${location.host}/chat/ws/${conversacionId}?token=${encodeURIComponent(token)}`;
+      ws = new WebSocket(url);
+      ws.onmessage = (evt) => {
+        try {
+          const data = JSON.parse(evt.data);
+          const currentUserId = JSON.parse(localStorage.getItem('auth_user') || '{}').id;
+          const isUser = Number(data.autor_id) === Number(currentUserId);
+          appendMessage(data.cuerpo, isUser);
+        } catch (e) {
+          console.error('WS parse', e);
+        }
+      };
+      ws.onopen = () => console.debug('ws open');
+      ws.onclose = () => console.debug('ws closed');
+    } catch (e) {
+      console.warn('WS failed', e);
+    }
   }
 
   async function sendMessage() {
@@ -320,6 +385,18 @@
 
       const data = await res.json();
       appendMessage(data.cuerpo, false);
+
+      if (data.requiere_soporte) {
+        try {
+          sessionStorage.setItem('support_conversation_id', String(data.conversacion_id));
+        } catch (e) {
+          // ignore
+        }
+        const redirectTo = data.redireccionar_a || `/chat_soporte.html?conversation_id=${data.conversacion_id}`;
+        setTimeout(() => {
+          window.location.href = redirectTo;
+        }, 900);
+      }
     } catch (err) {
       removeTypingIndicator();
       appendMessage('Ocurrió un error al contactar al asistente. Por favor, intentá nuevamente.', false);
@@ -352,6 +429,7 @@
 
     const sendBtn = document.getElementById('send-btn');
     const input = document.getElementById('chat-input');
+    const requestHumanBtn = document.getElementById('request-human-btn');
 
     sendBtn.addEventListener('click', sendMessage);
     input.addEventListener('keydown', (e) => {
@@ -364,6 +442,7 @@
       input.style.height = 'auto';
       input.style.height = Math.min(input.scrollHeight, 128) + 'px';
     });
+    requestHumanBtn.addEventListener('click', requestHuman);
   });
 </script>
 
