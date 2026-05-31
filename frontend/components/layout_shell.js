@@ -77,16 +77,26 @@
     const role = (authUser?.rol || '').toString().trim().toLowerCase();
     const isAdmin = role === 'administrador' || role === 'admin';
     const isSocio = role === 'socio';
+    const isSoporte = role === 'soporte' || role.includes('soporte');
 
     const sidebarDashboardLink = document.getElementById('sidebar-dashboard');
     const sidebarUsersLink = document.getElementById('sidebar-users');
     const sidebarVehiculosLink = document.getElementById('sidebar-vehiculos');
     const sidebarTuVehiculoLink = document.getElementById('sidebar-tu-vehiculo');
+    const sidebarLiveChat = document.getElementById('sidebar-livechat');
+    const sidebarTickets = document.getElementById('sidebar-tickets');
+    const sidebarFaq = document.getElementById('sidebar-faq');
+    const sidebarSupportSettings = document.getElementById('sidebar-support-settings');
 
     setElementHidden(sidebarDashboardLink, !isAdmin);
     setElementHidden(sidebarUsersLink, !isAdmin);
     setElementHidden(sidebarVehiculosLink, !isAdmin);
     setElementHidden(sidebarTuVehiculoLink, !isSocio);
+    // Mostrar enlaces de soporte solo para el rol 'soporte'
+    setElementHidden(sidebarLiveChat, !isSoporte);
+    setElementHidden(sidebarTickets, !isSoporte);
+    setElementHidden(sidebarFaq, !isSoporte);
+    setElementHidden(sidebarSupportSettings, !isSoporte);
   }
 
   function applySidebarUserName() {
@@ -116,6 +126,8 @@
       'dashboard_tecnico.html',
       'crear_rol_empleado.html',
       'perfil_view.html',
+      'menu_soporte.html',
+      'chat_soporte.html',
       'select_topic_chat.html',
       'chat_bot.html',
     ];

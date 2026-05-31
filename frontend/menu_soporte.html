@@ -90,22 +90,11 @@
     </style>
 </head>
 <body class="bg-surface font-body text-on-surface selection:bg-primary-fixed">
-<!-- TopNavBar -->
-<nav class="fixed top-0 w-full z-50 bg-surface/70 backdrop-blur-xl dark:bg-surface-dim/70 shadow-sm dark:shadow-none h-20 flex justify-between items-center px-8">
-<div class="font-display text-2xl font-black italic text-primary dark:text-primary-fixed">Executive Kinetic</div>
-<div class="hidden md:flex items-center gap-8">
-<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors font-label font-medium" href="#">Fleet</a>
-<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors font-label font-medium" href="#">Bookings</a>
-<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors font-label font-medium" href="#">Concierge</a>
-<a class="text-primary dark:text-primary-fixed border-b-2 border-primary dark:border-primary-fixed pb-1 font-label font-medium" href="#">Support</a>
-</div>
-<div class="flex items-center gap-4">
-<button class="material-symbols-outlined text-primary dark:text-primary-fixed p-2 hover:opacity-80 transition-opacity active:scale-95">account_circle</button>
-</div>
-</nav>
+<!-- Shared TopNavBar -->
+<div id="header-placeholder"></div>
 <div class="flex min-h-screen pt-20">
-<!-- SideNavBar -->
-<aside class="h-screen w-72 sticky left-0 top-20 bg-surface-container-low dark:bg-surface-container flex flex-col p-6 gap-4 border-r border-outline-variant/10">
+<!-- Shared SideNavBar -->
+<div id="sidebar-placeholder"></div>
 <div class="mb-6">
 <div class="flex items-center gap-3 mb-2">
 <div class="w-10 h-10 rounded-full overflow-hidden bg-primary-fixed flex items-center justify-center">
@@ -116,29 +105,7 @@
 <p class="text-xs text-on-surface-variant font-medium uppercase tracking-widest">Precision Assistance</p>
 </div>
 </div>
-<button class="w-full mt-4 bg-primary text-on-primary py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all">
-<span class="material-symbols-outlined text-sm">add</span>
-                    New Ticket
-                </button>
 </div>
-<nav class="flex flex-col gap-1">
-<a class="flex items-center gap-3 px-4 py-3 bg-surface-container-lowest dark:bg-surface-container-high text-primary dark:text-primary-fixed rounded-xl font-medium transition-all duration-300 ease-in-out active:translate-x-1" href="/chat_soporte.html">
-<span class="material-symbols-outlined">forum</span>
-                    Live Chat
-                </a>
-<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-xl font-medium transition-all duration-300 ease-in-out active:translate-x-1" href="#">
-<span class="material-symbols-outlined">confirmation_number</span>
-                    Ticket Management
-                </a>
-<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-xl font-medium transition-all duration-300 ease-in-out active:translate-x-1" href="#">
-<span class="material-symbols-outlined">library_books</span>
-                    FAQ Library
-                </a>
-<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-xl font-medium transition-all duration-300 ease-in-out active:translate-x-1" href="#">
-<span class="material-symbols-outlined">settings</span>
-                    Settings
-                </a>
-</nav>
 </aside>
 <!-- Main Content Canvas -->
 <main class="flex-1 bg-surface-container-low/30 px-12 py-16">
@@ -274,5 +241,12 @@
                 }, index * 100);
             });
         });
-    </script>
-</body></html>
+        </script>
+
+    <script src="/components/layout_shell.js"></script>
+    <script src="/components/layout_ui.js"></script>
+    <script src="/components/layout_profile.js"></script>
+    <script src="/components/layout_users.js"></script>
+    <script src="/components/layout_vehicles.js"></script>
+    <script src="/components/layout.js"></script>
+    </body></html>
