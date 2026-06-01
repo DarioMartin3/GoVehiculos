@@ -113,7 +113,14 @@ class ConversacionRepository:
                 ORDER BY m.enviado_at DESC, m.id DESC
                 LIMIT 1
             ) lm ON TRUE
-            LEFT JOIN usuario u ON u.id = lm.autor_id
+            LEFT JOIN LATERAL (
+                SELECT m.autor_id
+                FROM mensaje m
+                WHERE m.conversacion_id = c.id
+                ORDER BY m.enviado_at ASC, m.id ASC
+                LIMIT 1
+            ) fm ON TRUE
+            LEFT JOIN usuario u ON u.id = fm.autor_id
             LEFT JOIN persona p ON p.id = u.persona_id
             WHERE c.cerrada_at IS NULL
               AND LOWER(fc.estado) = 'operario'
