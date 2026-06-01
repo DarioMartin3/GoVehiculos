@@ -252,10 +252,10 @@
     
         // Fetch active support conversations for operator
         async function loadActiveConversations() {
-            const apiBase = window.API_BASE || (location.origin + '') + '/chat';
+            const apiBase = 'http://localhost:8000';
             try {
                 const token = localStorage.getItem('auth_token');
-                const resp = await fetch('/chat/soporte/lista', {
+                const resp = await fetch(`${apiBase}/chat/soporte/lista`, {
                     headers: {
                         'Authorization': token ? `Bearer ${token}` : ''
                     }

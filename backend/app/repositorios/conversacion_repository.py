@@ -102,8 +102,8 @@ class ConversacionRepository:
                 fc.estado,
                 lm.cuerpo AS last_message,
                 lm.enviado_at AS last_message_at,
-                p.nombres AS persona_nombres,
-                p.apellidos AS persona_apellidos
+                p.nombre AS persona_nombre,
+                p.apellido AS persona_apellido
             FROM conversacion c
             INNER JOIN fase_conversacion fc ON fc.id = c.fase_id
             LEFT JOIN LATERAL (
@@ -125,9 +125,9 @@ class ConversacionRepository:
         rows = cursor.fetchall()
         results: list[dict] = []
         for row in rows:
-            persona_nombres = row[5] or ""
-            persona_apellidos = row[6] or ""
-            cliente = (persona_nombres + " " + persona_apellidos).strip() or "Cliente"
+            persona_nombre = row[5] or ""
+            persona_apellido = row[6] or ""
+            cliente = (persona_nombre + " " + persona_apellido).strip() or "Cliente"
             results.append(
                 {
                     "id": row[0],
