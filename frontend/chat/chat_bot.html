@@ -182,6 +182,8 @@
 
   let conversacionId = null;
   let promptKey = null;
+  const renderedMessageIds = new Set();
+  const pendingOwnMessages = [];
 
   function getToken() {
     return localStorage.getItem('auth_token');
@@ -207,7 +209,14 @@
     return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  function appendMessage(text, isUser) {
+  function appendMessage(text, isUser, messageId = null) {
+    if (messageId !== null && renderedMessageIds.has(String(messageId))) {
+      return;
+    }
+    if (messageId !== null) {
+      renderedMessageIds.add(String(messageId));
+    }
+
     const container = document.getElementById('chat-messages');
     const wrapper = document.createElement('div');
 
@@ -245,6 +254,21 @@
     container.scrollTop = container.scrollHeight;
   }
 
+  function rememberOwnMessage(text) {
+    pendingOwnMessages.push({ text, createdAt: Date.now() });
+  }
+
+  function shouldSkipOwnEcho(text) {
+    const now = Date.now();
+    const index = pendingOwnMessages.findIndex((message) => {
+      return message.text === text && now - message.createdAt < 15000;
+    });
+
+    if (index === -1) return false;
+    pendingOwnMessages.splice(index, 1);
+    return true;
+  }
+
   function appendTypingIndicator() {
     const container = document.getElementById('chat-messages');
     const indicator = document.createElement('div');
@@ -269,6 +293,9 @@
       appendMessage('No hay una conversación activa. Por favor, envía un mensaje primero.', false);
       return;
     }
+    const handoffText = 'Quiero hablar con una persona, por favor.';
+    appendMessage(handoffText, true, `local-${Date.now()}`);
+    rememberOwnMessage(handoffText);
     setSendingState(true);
     appendTypingIndicator();
     try {
@@ -280,16 +307,16 @@
         },
         body: JSON.stringify({
           conversacion_id: conversacionId,
-          pregunta: 'Quiero hablar con una persona, por favor.',
+          pregunta: handoffText,
           prompt_key: promptKey,
         }),
       });
       removeTypingIndicator();
       if (!res.ok) throw new Error('Error al solicitar soporte humano');
       const data = await res.json();
-      appendMessage(data.cuerpo, false);
+      appendMessage(data.cuerpo, false, data.id);
       if (data.requiere_soporte) {
-        try { sessionStorage.setItem('support_conversation_id', String(data.conversacion_id)); } catch (e) {}
+        try { sessionStorage.setItem('support_chat_conversation_id', String(data.conversacion_id)); } catch (e) {}
         const redirectTo = data.redireccionar_a || `/chat_soporte.html?conversation_id=${data.conversacion_id}`;
         setTimeout(() => { window.location.href = redirectTo; }, 800);
       }
@@ -333,15 +360,24 @@
   function connectWebsocket(conversacionId) {
     try {
       const token = getToken();
-      const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-      const url = `${protocol}://${location.host}/chat/ws/${conversacionId}?token=${encodeURIComponent(token)}`;
+      const apiUrl = new URL(API_BASE, window.location.origin);
+      apiUrl.protocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+      apiUrl.pathname = `/chat/ws/${conversacionId}`;
+      apiUrl.search = `?token=${encodeURIComponent(token)}`;
+      const url = apiUrl.toString();
       ws = new WebSocket(url);
       ws.onmessage = (evt) => {
         try {
           const data = JSON.parse(evt.data);
           const currentUserId = JSON.parse(localStorage.getItem('auth_user') || '{}').id;
           const isUser = Number(data.autor_id) === Number(currentUserId);
-          appendMessage(data.cuerpo, isUser);
+          if (isUser && shouldSkipOwnEcho(data.cuerpo)) {
+            if (data.id !== null && data.id !== undefined) {
+              renderedMessageIds.add(String(data.id));
+            }
+            return;
+          }
+          appendMessage(data.cuerpo, isUser, data.id);
         } catch (e) {
           console.error('WS parse', e);
         }
@@ -358,7 +394,8 @@
     const text = input.value.trim();
     if (!text || !conversacionId) return;
 
-    appendMessage(text, true);
+    appendMessage(text, true, `local-${Date.now()}`);
+    rememberOwnMessage(text);
     input.value = '';
     input.style.height = 'auto';
 
@@ -384,11 +421,11 @@
       if (!res.ok) throw new Error('Error al obtener respuesta del asistente');
 
       const data = await res.json();
-      appendMessage(data.cuerpo, false);
+      appendMessage(data.cuerpo, false, data.id);
 
       if (data.requiere_soporte) {
         try {
-          sessionStorage.setItem('support_conversation_id', String(data.conversacion_id));
+          sessionStorage.setItem('support_chat_conversation_id', String(data.conversacion_id));
         } catch (e) {
           // ignore
         }

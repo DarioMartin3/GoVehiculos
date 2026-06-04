@@ -176,10 +176,13 @@
 <p class="mt-4 text-sm text-secondary font-medium" id="selectionHint">Please select a topic above to initiate the live concierge session.</p>
 </div>
 <div class="lg:w-80 w-full space-y-6">
+<div class="flex items-center justify-between">
 <h4 class="font-display font-bold text-on-surface flex items-center gap-2">
                             <span class="material-symbols-outlined text-primary">forum</span>
-                            Conversaciones activas
+                            Bandeja de soporte
                         </h4>
+<span id="activeConversationsCount" class="text-[10px] font-bold uppercase tracking-widest text-secondary">0 activas</span>
+</div>
 <ul id="activeConversationsList" class="space-y-4">
     <li class="text-sm text-on-surface-variant">Cargando conversaciones...</li>
 </ul>
@@ -265,19 +268,31 @@
                 const container = document.getElementById('activeConversationsList');
                 container.innerHTML = '';
                 if (!items || items.length === 0) {
+                    document.getElementById('activeConversationsCount').textContent = '0 activas';
                     container.innerHTML = '<li class="text-sm text-on-surface-variant">No hay conversaciones activas</li>';
                     return;
                 }
+                document.getElementById('activeConversationsCount').textContent = `${items.length} activas`;
                 items.forEach(it => {
                     const el = document.createElement('li');
-                    el.className = 'group block py-2 px-3 rounded-lg hover:bg-primary-fixed-dim hover:cursor-pointer border border-outline-variant/10';
+                    el.className = 'group block p-4 rounded-lg hover:bg-primary-fixed-dim hover:cursor-pointer border border-outline-variant/10 bg-surface-container-lowest transition-colors';
+                    const motivo = getMotivoLabel(it.motivo_derivacion);
+                    const lastMessage = truncateText(it.last_message || 'Sin mensajes', 92);
+                    const lastTime = it.last_message_at ? new Date(it.last_message_at).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) : '';
                     el.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <div class="text-sm font-medium text-on-surface">${escapeHtml(it.cliente)}</div>
-                                <div class="text-xs text-on-surface-variant">${escapeHtml(it.last_message || 'Sin mensajes')}</div>
+                        <div class="space-y-2">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <div class="text-sm font-bold text-on-surface">${escapeHtml(it.cliente)}</div>
+                                    <div class="text-[11px] uppercase tracking-wider text-primary font-bold">${escapeHtml(it.tema || 'Soporte')}</div>
+                                </div>
+                                <span class="text-[10px] px-2 py-1 rounded bg-primary-fixed text-primary font-bold uppercase">Activa</span>
                             </div>
-                            <div class="text-xs text-on-surface-variant">${it.last_message_at ? new Date(it.last_message_at).toLocaleString() : ''}</div>
+                            <p class="text-xs text-on-surface-variant leading-relaxed">${escapeHtml(lastMessage)}</p>
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="text-[10px] text-secondary">${escapeHtml(motivo)}</span>
+                                <span class="text-[10px] text-on-surface-variant whitespace-nowrap">${escapeHtml(lastTime)}</span>
+                            </div>
                         </div>
                     `;
                     el.addEventListener('click', () => {
@@ -303,8 +318,23 @@
                 .replace(/'/g, '&#039;');
         }
 
+        function truncateText(text, maxLength) {
+            const value = String(text || '').trim();
+            if (value.length <= maxLength) return value;
+            return `${value.slice(0, maxLength - 3).trim()}...`;
+        }
+
+        function getMotivoLabel(motivo) {
+            const labels = {
+                solicitud_usuario: 'Solicitó persona',
+                bot_no_resolvio: 'Bot no resolvió'
+            };
+            return labels[motivo] || 'Derivada';
+        }
+
         // Load conversations after DOM ready
         window.addEventListener('DOMContentLoaded', loadActiveConversations);
+        window.setInterval(loadActiveConversations, 5000);
         </script>
 
     <script src="/components/layout_shell.js"></script>

@@ -118,13 +118,52 @@
 <button class="p-2.5 rounded-full hover:bg-surface-container transition-colors text-secondary">
 <span class="material-symbols-outlined" data-icon="phone">phone</span>
 </button>
+<button id="support-chat-close" title="Cerrar conversación" class="p-2.5 rounded-full hover:bg-surface-container transition-colors text-secondary">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+</button>
 <button class="p-2.5 rounded-full hover:bg-surface-container transition-colors text-secondary">
 <span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
 </button>
 </div>
 </header>
+<aside id="support-context-panel" class="hidden lg:flex absolute right-0 top-20 bottom-0 w-80 bg-surface-container-lowest border-l border-outline-variant/20 z-10 flex-col">
+<div class="p-6 border-b border-outline-variant/20">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary mb-2">Contexto</p>
+<h2 id="support-context-client" class="font-headline text-lg font-bold text-on-surface">Cliente</h2>
+<p id="support-context-topic" class="text-xs text-primary font-bold uppercase tracking-wider mt-1">Soporte</p>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-6 hide-scrollbar">
+<section>
+<h3 class="text-xs font-bold uppercase tracking-widest text-secondary mb-2">Derivación</h3>
+<p id="support-context-reason" class="text-sm text-on-surface leading-relaxed">Cargando contexto...</p>
+</section>
+<section>
+<h3 class="text-xs font-bold uppercase tracking-widest text-secondary mb-2">Resumen</h3>
+<p id="support-context-summary" class="text-sm text-on-surface-variant leading-relaxed">Cargando resumen...</p>
+</section>
+<section>
+<h3 class="text-xs font-bold uppercase tracking-widest text-secondary mb-2">Datos del cliente</h3>
+<dl class="space-y-2 text-sm">
+<div>
+<dt class="text-[10px] uppercase tracking-wider text-secondary">Email</dt>
+<dd id="support-context-email" class="text-on-surface break-words">-</dd>
+</div>
+<div>
+<dt class="text-[10px] uppercase tracking-wider text-secondary">Teléfono</dt>
+<dd id="support-context-phone" class="text-on-surface">-</dd>
+</div>
+</dl>
+</section>
+<section>
+<h3 class="text-xs font-bold uppercase tracking-widest text-secondary mb-2">Últimos mensajes</h3>
+<ul id="support-context-last-messages" class="space-y-3 text-xs text-on-surface-variant">
+<li>Cargando mensajes...</li>
+</ul>
+</section>
+</div>
+</aside>
 <!-- Chat Area -->
-<div class="flex-1 overflow-y-auto p-10 space-y-8 hide-scrollbar bg-surface-container-low" id="support-chat-messages">
+<div class="flex-1 overflow-y-auto p-10 space-y-8 hide-scrollbar bg-surface-container-low lg:mr-80" id="support-chat-messages">
 <div class="flex justify-center">
 <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary opacity-60">Yesterday, 4:20 PM</span>
 </div>
@@ -206,7 +245,7 @@
 </div>
 </div>
 <!-- Message Input Area -->
-<footer class="p-8 bg-surface-container-lowest">
+<footer class="p-8 bg-surface-container-lowest lg:mr-80">
 <div class="max-w-4xl mx-auto flex items-end gap-4">
 <div class="flex-1 bg-surface-container-high rounded-2xl p-2 focus-within:bg-white transition-all border border-transparent focus-within:border-primary-fixed/50 shadow-sm flex items-end">
 <button class="p-3 text-secondary hover:text-primary transition-colors">
@@ -257,6 +296,11 @@
 <script>
     (function () {
         const API_BASE = 'http://localhost:8000';
+        const renderedMessageIds = new Set();
+        let activeConversationId = null;
+        let pollTimer = null;
+        let reconnectTimer = null;
+        let conversationClosed = false;
 
         function getToken() {
             return localStorage.getItem('auth_token');
@@ -281,9 +325,33 @@
             return fullName || 'Yo';
         }
 
+        function isSupportUser() {
+            const role = String(getAuthUser().rol || '').toLowerCase().trim();
+            return ['soporte', 'operador', 'administrador', 'admin'].includes(role);
+        }
+
+        function configureRoleUi() {
+            if (isSupportUser()) return;
+
+            const contextPanel = document.getElementById('support-context-panel');
+            const messages = document.getElementById('support-chat-messages');
+            const footer = document.querySelector('footer');
+            const closeBtn = document.getElementById('support-chat-close');
+
+            if (contextPanel) contextPanel.style.display = 'none';
+            if (messages) messages.classList.remove('lg:mr-80');
+            if (footer) footer.classList.remove('lg:mr-80');
+            if (closeBtn) closeBtn.classList.add('hidden');
+        }
+
         function getMessageTime(value) {
             const date = value ? new Date(value) : new Date();
             return date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function getDateTime(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
         }
 
         function escapeHtml(text) {
@@ -296,6 +364,10 @@
         }
 
         function renderMessage(message, currentUserId) {
+            if (message.id !== null && message.id !== undefined) {
+                renderedMessageIds.add(String(message.id));
+            }
+
             const isMine = Number(message.autor_id) === Number(currentUserId);
             const wrapper = document.createElement('div');
             wrapper.className = isMine ? 'flex flex-row-reverse gap-4 max-w-[80%] ml-auto' : 'flex gap-4 max-w-[80%]';
@@ -325,10 +397,67 @@
             return wrapper;
         }
 
+        function appendConversationMessage(message) {
+            if (message.id !== null && message.id !== undefined && renderedMessageIds.has(String(message.id))) {
+                return;
+            }
+
+            const container = document.getElementById('support-chat-messages');
+            if (!container) return;
+
+            container.appendChild(renderMessage(message, getCurrentUserId()));
+            container.scrollTop = container.scrollHeight;
+            if (activeConversationId && isSupportUser()) {
+                loadSupportContext(activeConversationId).catch(() => {});
+            }
+        }
+
+        async function loadSupportContext(conversationId) {
+            if (!isSupportUser()) return;
+
+            const response = await fetch(`${API_BASE}/chat/soporte/contexto/${conversationId}`, {
+                headers: {
+                    Authorization: `Bearer ${getToken()}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('No se pudo cargar el contexto');
+            }
+
+            const data = await response.json();
+            document.getElementById('support-context-client').textContent = data.cliente?.nombre || 'Cliente';
+            document.getElementById('support-context-topic').textContent = data.tema || 'Soporte';
+            document.getElementById('support-context-reason').textContent = data.motivo_derivacion_label || 'Derivación a soporte';
+            document.getElementById('support-context-summary').textContent = data.resumen || 'Sin resumen disponible.';
+            document.getElementById('support-context-email').textContent = data.cliente?.email || '-';
+            document.getElementById('support-context-phone').textContent = data.cliente?.telefono || '-';
+
+            const lastMessages = document.getElementById('support-context-last-messages');
+            lastMessages.innerHTML = '';
+            if (!data.ultimos_mensajes?.length) {
+                lastMessages.innerHTML = '<li>Sin mensajes todavía.</li>';
+            } else {
+                data.ultimos_mensajes.forEach((message) => {
+                    const item = document.createElement('li');
+                    item.className = 'border-b border-outline-variant/10 pb-3';
+                    item.innerHTML = `
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <span class="font-bold text-on-surface">${escapeHtml(message.autor || 'usuario')}</span>
+                            <span class="text-[10px] text-secondary whitespace-nowrap">${escapeHtml(getDateTime(message.enviado_at))}</span>
+                        </div>
+                        <p class="leading-relaxed">${escapeHtml(truncateText(message.cuerpo || '', 120))}</p>
+                    `;
+                    lastMessages.appendChild(item);
+                });
+            }
+        }
+
         function clearMessages() {
             const container = document.getElementById('support-chat-messages');
             if (!container) return;
             container.innerHTML = '';
+            renderedMessageIds.clear();
         }
 
         function ensureEmptyState(text) {
@@ -374,6 +503,48 @@
 
             data.mensajes.forEach((message) => container.appendChild(renderMessage(message, getCurrentUserId())));
             container.scrollTop = container.scrollHeight;
+
+            if (data.fase === 'cerrada') {
+                setConversationClosed();
+            }
+
+            if (isSupportUser()) {
+                loadSupportContext(conversationId).catch(() => {});
+            }
+        }
+
+        async function syncConversationMessages(conversationId) {
+            if (conversationClosed) return;
+
+            const response = await fetch(`${API_BASE}/chat/conversacion/${conversationId}`, {
+                headers: {
+                    Authorization: `Bearer ${getToken()}`,
+                },
+            });
+
+            if (!response.ok) return;
+
+            const data = await response.json();
+            data.mensajes.forEach(appendConversationMessage);
+
+            if (data.fase === 'cerrada') {
+                setConversationClosed();
+            }
+        }
+
+        function startPolling(conversationId) {
+            if (pollTimer) return;
+            pollTimer = setInterval(() => {
+                syncConversationMessages(conversationId).catch((error) => {
+                    console.warn('No se pudo sincronizar la conversación', error);
+                });
+            }, 3000);
+        }
+
+        function stopPolling() {
+            if (!pollTimer) return;
+            clearInterval(pollTimer);
+            pollTimer = null;
         }
 
         // WebSocket for real-time updates
@@ -381,24 +552,40 @@
         function connectSupportWs(conversationId) {
             try {
                 const token = getToken();
-                const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-                const url = `${protocol}://${location.host}/chat/ws/${conversationId}?token=${encodeURIComponent(token)}`;
+                const apiUrl = new URL(API_BASE, window.location.origin);
+                apiUrl.protocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+                apiUrl.pathname = `/chat/ws/${conversationId}`;
+                apiUrl.search = `?token=${encodeURIComponent(token)}`;
+                const url = apiUrl.toString();
                 wsSupport = new WebSocket(url);
                 wsSupport.onmessage = (evt) => {
                     try {
                         const data = JSON.parse(evt.data);
-                        // append the single incoming message to the UI
-                        const container = document.getElementById('support-chat-messages');
-                        if (container) container.appendChild(renderMessage(data, getCurrentUserId()));
-                        container.scrollTop = container.scrollHeight;
+                        appendConversationMessage(data);
                     } catch (err) {
                         console.error('WS parse', err);
                     }
                 };
-                wsSupport.onopen = () => console.debug('support ws open');
-                wsSupport.onclose = () => console.debug('support ws closed');
+                wsSupport.onopen = () => {
+                    console.debug('support ws open');
+                    if (reconnectTimer) {
+                        clearTimeout(reconnectTimer);
+                        reconnectTimer = null;
+                    }
+                    syncConversationMessages(conversationId).catch(() => {});
+                };
+                wsSupport.onclose = () => {
+                    console.debug('support ws closed');
+                    if (!conversationClosed && activeConversationId) {
+                        startPolling(activeConversationId);
+                        reconnectTimer = setTimeout(() => connectSupportWs(activeConversationId), 2000);
+                    }
+                };
             } catch (err) {
                 console.warn('support ws failed', err);
+                if (activeConversationId) {
+                    startPolling(activeConversationId);
+                }
             }
         }
 
@@ -459,23 +646,76 @@
 
             input.value = '';
             input.style.height = 'auto';
-            await loadConversation(conversationId);
+            const data = await response.json();
+            appendConversationMessage(data);
+            if (isSupportUser()) {
+                await loadSupportContext(conversationId);
+            }
+        }
+
+        function setConversationClosed() {
+            conversationClosed = true;
+            const input = document.getElementById('support-chat-input');
+            const sendBtn = document.getElementById('support-chat-send');
+            const closeBtn = document.getElementById('support-chat-close');
+            document.getElementById('support-chat-status').textContent = 'Conversación cerrada';
+            if (input) {
+                input.disabled = true;
+                input.placeholder = 'Conversación cerrada';
+            }
+            if (sendBtn) sendBtn.disabled = true;
+            if (closeBtn) closeBtn.disabled = true;
+            stopPolling();
+            if (reconnectTimer) {
+                clearTimeout(reconnectTimer);
+                reconnectTimer = null;
+            }
+        }
+
+        async function closeConversation(conversationId) {
+            const response = await fetch(`${API_BASE}/chat/conversacion/${conversationId}/cerrar`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${getToken()}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('No se pudo cerrar la conversación');
+            }
+
+            setConversationClosed();
+            if (isSupportUser()) {
+                await loadSupportContext(conversationId);
+            }
+            if (wsSupport) {
+                wsSupport.close();
+            }
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
+            configureRoleUi();
             const conversationId = await resolveConversationId();
+            activeConversationId = conversationId;
             const sendBtn = document.getElementById('support-chat-send');
+            const closeBtn = document.getElementById('support-chat-close');
             const input = document.getElementById('support-chat-input');
 
             if (!conversationId) {
                 ensureEmptyState('No hay una conversación activa disponible todavía. Cuando el bot derive una consulta, aparecerá acá.');
                 sendBtn.disabled = true;
+                closeBtn.disabled = true;
                 input.disabled = true;
                 return;
             }
 
             try {
                 await loadConversation(conversationId);
+                if (isSupportUser()) {
+                    await loadSupportContext(conversationId);
+                }
+                connectSupportWs(conversationId);
+                startPolling(conversationId);
             } catch (error) {
                 ensureEmptyState('No se pudo cargar la conversación. Recargá la página e intentá nuevamente.');
             }
@@ -485,6 +725,14 @@
                     await sendMessage(conversationId);
                 } catch (error) {
                     ensureEmptyState('No se pudo enviar el mensaje. Recargá la página e intentá nuevamente.');
+                }
+            });
+
+            closeBtn.addEventListener('click', async () => {
+                try {
+                    await closeConversation(conversationId);
+                } catch (error) {
+                    ensureEmptyState('No se pudo cerrar la conversación. Recargá la página e intentá nuevamente.');
                 }
             });
 
@@ -504,6 +752,12 @@
                 input.style.height = Math.min(input.scrollHeight, 128) + 'px';
             });
         });
+
+        function truncateText(text, maxLength) {
+            const value = String(text || '').trim();
+            if (value.length <= maxLength) return value;
+            return `${value.slice(0, maxLength - 3).trim()}...`;
+        }
     })();
 </script>
 
