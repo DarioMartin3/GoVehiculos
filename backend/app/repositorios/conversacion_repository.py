@@ -39,7 +39,30 @@ class ConversacionRepository:
             raise ValueError(f"Conversación '{conversacion_id}' no encontrada")
         return row[0]
 
-    def crear_conversacion(self, cursor, tema_id: int, fase_id: int) -> int:
+    def conversacion_tiene_usuario_id(self, cursor) -> bool:
+        cursor.execute(
+            """
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name = 'conversacion'
+              AND column_name = 'usuario_id'
+            LIMIT 1
+            """
+        )
+        return cursor.fetchone() is not None
+
+    def crear_conversacion(self, cursor, tema_id: int, fase_id: int, usuario_id: int | None = None) -> int:
+        if self.conversacion_tiene_usuario_id(cursor):
+            cursor.execute(
+                """
+                INSERT INTO conversacion (fase_id, tema_id, usuario_id)
+                VALUES (%s, %s, %s)
+                RETURNING id
+                """,
+                (fase_id, tema_id, usuario_id),
+            )
+            return cursor.fetchone()[0]
+
         cursor.execute(
             """
             INSERT INTO conversacion (fase_id, tema_id)
@@ -103,9 +126,13 @@ class ConversacionRepository:
                 lm.cuerpo AS last_message,
                 lm.enviado_at AS last_message_at,
                 p.nombre AS persona_nombre,
-                p.apellido AS persona_apellido
+                p.apellido AS persona_apellido,
+                bt.nombre AS tema_nombre,
+                d.motivo AS motivo_derivacion,
+                d.asignada_at
             FROM conversacion c
             INNER JOIN fase_conversacion fc ON fc.id = c.fase_id
+            INNER JOIN bot_tema bt ON bt.id = c.tema_id
             LEFT JOIN LATERAL (
                 SELECT m.cuerpo, m.enviado_at, m.autor_id
                 FROM mensaje m
@@ -117,9 +144,23 @@ class ConversacionRepository:
                 SELECT m.autor_id
                 FROM mensaje m
                 WHERE m.conversacion_id = c.id
+                  AND m.autor_id <> (
+                    SELECT ub.id
+                    FROM usuario ub
+                    WHERE ub.persona_id IS NULL AND ub.password IS NULL
+                    LIMIT 1
+                  )
                 ORDER BY m.enviado_at ASC, m.id ASC
                 LIMIT 1
             ) fm ON TRUE
+            LEFT JOIN LATERAL (
+                SELECT de.motivo, de.asignada_at
+                FROM derivacion de
+                WHERE de.conversacion_id = c.id
+                  AND de.liberada_at IS NULL
+                ORDER BY de.asignada_at DESC, de.id DESC
+                LIMIT 1
+            ) d ON TRUE
             LEFT JOIN usuario u ON u.id = fm.autor_id
             LEFT JOIN persona p ON p.id = u.persona_id
             WHERE c.cerrada_at IS NULL
@@ -143,9 +184,149 @@ class ConversacionRepository:
                     "last_message": row[3],
                     "last_message_at": row[4],
                     "cliente": cliente,
+                    "tema": row[7],
+                    "motivo_derivacion": row[8],
+                    "asignada_at": row[9],
                 }
             )
         return results
+
+    def get_contexto_soporte(self, cursor, conversacion_id: int) -> dict | None:
+        cursor.execute(
+            """
+            SELECT
+                c.id,
+                fc.estado,
+                c.abierta_at,
+                c.cerrada_at,
+                bt.nombre AS tema_nombre,
+                bt.prompt_key,
+                d.motivo,
+                d.asignada_at,
+                p.nombre AS persona_nombre,
+                p.apellido AS persona_apellido,
+                p.email AS persona_email,
+                p.telefono AS persona_telefono
+            FROM conversacion c
+            INNER JOIN fase_conversacion fc ON fc.id = c.fase_id
+            INNER JOIN bot_tema bt ON bt.id = c.tema_id
+            LEFT JOIN LATERAL (
+                SELECT de.motivo, de.asignada_at
+                FROM derivacion de
+                WHERE de.conversacion_id = c.id
+                ORDER BY de.asignada_at DESC, de.id DESC
+                LIMIT 1
+            ) d ON TRUE
+            LEFT JOIN LATERAL (
+                SELECT m.autor_id
+                FROM mensaje m
+                WHERE m.conversacion_id = c.id
+                  AND m.autor_id <> (
+                    SELECT ub.id
+                    FROM usuario ub
+                    WHERE ub.persona_id IS NULL AND ub.password IS NULL
+                    LIMIT 1
+                  )
+                ORDER BY m.enviado_at ASC, m.id ASC
+                LIMIT 1
+            ) fm ON TRUE
+            LEFT JOIN usuario u ON u.id = fm.autor_id
+            LEFT JOIN persona p ON p.id = u.persona_id
+            WHERE c.id = %s
+            LIMIT 1
+            """,
+            (conversacion_id,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return None
+
+        cliente_nombre = ((row[8] or "") + " " + (row[9] or "")).strip() or "Cliente"
+        return {
+            "conversacion_id": row[0],
+            "fase": row[1],
+            "abierta_at": row[2],
+            "cerrada_at": row[3],
+            "tema": row[4],
+            "prompt_key": row[5],
+            "motivo_derivacion": row[6],
+            "asignada_at": row[7],
+            "cliente": {
+                "nombre": cliente_nombre,
+                "email": row[10],
+                "telefono": row[11],
+            },
+        }
+
+    def user_participa_en_conversacion(self, cursor, conversacion_id: int, usuario_id: int) -> bool:
+        cursor.execute(
+            """
+            SELECT 1
+            FROM mensaje
+            WHERE conversacion_id = %s
+              AND autor_id = %s
+            LIMIT 1
+            """,
+            (conversacion_id, usuario_id),
+        )
+        return cursor.fetchone() is not None
+
+    def conversacion_pertenece_a_usuario(self, cursor, conversacion_id: int, usuario_id: int) -> bool:
+        if not self.conversacion_tiene_usuario_id(cursor):
+            return False
+
+        cursor.execute(
+            """
+            SELECT 1
+            FROM conversacion
+            WHERE id = %s
+              AND usuario_id = %s
+            LIMIT 1
+            """,
+            (conversacion_id, usuario_id),
+        )
+        return cursor.fetchone() is not None
+
+    def conversacion_tiene_mensajes(self, cursor, conversacion_id: int) -> bool:
+        cursor.execute(
+            """
+            SELECT 1
+            FROM mensaje
+            WHERE conversacion_id = %s
+            LIMIT 1
+            """,
+            (conversacion_id,),
+        )
+        return cursor.fetchone() is not None
+
+    def conversacion_esta_derivada_a_soporte(self, cursor, conversacion_id: int) -> bool:
+        cursor.execute(
+            """
+            SELECT 1
+            FROM conversacion c
+            INNER JOIN fase_conversacion fc ON fc.id = c.fase_id
+            LEFT JOIN derivacion d ON d.conversacion_id = c.id
+            WHERE c.id = %s
+              AND (LOWER(fc.estado) = 'operario' OR d.id IS NOT NULL)
+            LIMIT 1
+            """,
+            (conversacion_id,),
+        )
+        return cursor.fetchone() is not None
+
+    def conversacion_esta_cerrada(self, cursor, conversacion_id: int) -> bool:
+        cursor.execute(
+            """
+            SELECT 1
+            FROM conversacion c
+            INNER JOIN fase_conversacion fc ON fc.id = c.fase_id
+            WHERE c.id = %s
+              AND (c.cerrada_at IS NOT NULL OR LOWER(fc.estado) = 'cerrada')
+            LIMIT 1
+            """,
+            (conversacion_id,),
+        )
+        return cursor.fetchone() is not None
 
     def get_fase_estado_by_conversacion_id(self, cursor, conversacion_id: int) -> str:
         cursor.execute(
@@ -172,6 +353,19 @@ class ConversacionRepository:
             """,
             (fase_id, conversacion_id),
         )
+
+    def cerrar_conversacion(self, cursor, conversacion_id: int, fase_id: int) -> bool:
+        cursor.execute(
+            """
+            UPDATE conversacion
+            SET fase_id = %s,
+                cerrada_at = NOW()
+            WHERE id = %s
+              AND cerrada_at IS NULL
+            """,
+            (fase_id, conversacion_id),
+        )
+        return cursor.rowcount > 0
 
     def get_support_operator_id(self, cursor) -> int:
         cursor.execute(

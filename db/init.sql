@@ -134,6 +134,7 @@ CREATE TABLE conversacion (
     id         SERIAL PRIMARY KEY,
     fase_id    INT       NOT NULL REFERENCES fase_conversacion(id),
     abierta_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    usuario_id INT       REFERENCES usuario(id),
     tema_id         INT       NOT NULL REFERENCES bot_tema(id),
     cerrada_at TIMESTAMP           -- NULL = conversación activa
 );

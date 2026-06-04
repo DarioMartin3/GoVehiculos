@@ -7,12 +7,12 @@ from app.repositorios.conversacion_repository import ConversacionRepository
 _repo = ConversacionRepository()
 
 
-def iniciar_conversacion(prompt_key: str) -> dict:
+def iniciar_conversacion(prompt_key: str, usuario_id: int | None = None) -> dict:
     with get_connection() as conn:
         with conn.cursor() as cursor:
             fase_id = _repo.get_fase_id(cursor, "bot_libre")
             tema_id = _repo.get_tema_id_by_prompt_key(cursor, prompt_key)
-            conversacion_id = _repo.crear_conversacion(cursor, tema_id, fase_id)
+            conversacion_id = _repo.crear_conversacion(cursor, tema_id, fase_id, usuario_id)
         conn.commit()
 
     return {"conversacion_id": conversacion_id, "tema_id": tema_id, "fase": "bot_libre"}
@@ -71,3 +71,14 @@ def derivar_conversacion_a_soporte(conversacion_id: int, motivo: str) -> dict:
         "derivacion_id": derivacion_id,
         "operario_id": operario_id,
     }
+
+
+def cerrar_conversacion(conversacion_id: int) -> None:
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            fase_id = _repo.get_fase_id(cursor, "cerrada")
+            updated = _repo.cerrar_conversacion(cursor, conversacion_id, fase_id)
+        conn.commit()
+
+    if not updated:
+        raise ValueError(f"Conversación '{conversacion_id}' no encontrada o ya cerrada")
