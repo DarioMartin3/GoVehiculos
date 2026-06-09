@@ -158,6 +158,70 @@ CREATE TABLE derivacion (
 );
 
 
+-- -------------------------------------------------------
+-- FUNCIONES Y PROCEDIMIENTOS
+-- -------------------------------------------------------
+CREATE OR REPLACE FUNCTION consultar_vehiculos_usuario(p_usuario_id INT)
+RETURNS TABLE (
+    vehiculo_id INT,
+    patente TEXT,
+    anio INT,
+    fecha_ingreso DATE,
+    estado TEXT,
+    modelo TEXT,
+    marca TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        v.id,
+        v.patente,
+        v.anio,
+        v.fecha_ingreso,
+        ev.nombre AS estado,
+        m.nombre AS modelo,
+        ma.nombre AS marca
+    FROM vehiculo v
+    INNER JOIN modelo m ON m.id = v.modelo_id
+    INNER JOIN marca ma ON ma.id = m.marca_id
+    LEFT JOIN estado_vehiculo ev ON ev.id = v.estado_vehiculo_id
+    WHERE v.usuario_id = p_usuario_id
+    ORDER BY v.fecha_ingreso DESC, v.id DESC;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE actualizar_estado_vehiculo(
+    p_vehiculo_id INT,
+    p_estado_nombre TEXT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_estado_id INT;
+BEGIN
+    SELECT id
+    INTO v_estado_id
+    FROM estado_vehiculo
+    WHERE LOWER(nombre) = LOWER(p_estado_nombre)
+    LIMIT 1;
+
+    IF v_estado_id IS NULL THEN
+        RAISE EXCEPTION 'El estado del vehículo no existe: %', p_estado_nombre;
+    END IF;
+
+    UPDATE vehiculo
+    SET estado_vehiculo_id = v_estado_id
+    WHERE id = p_vehiculo_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El vehículo no existe: %', p_vehiculo_id;
+    END IF;
+END;
+$$;
+
+
 --Inserccion de datos
 INSERT INTO pais (nombre) VALUES 
 ('Argentina'), ('Chile'), ('Uruguay'), ('Paraguay'), ('Brasil');

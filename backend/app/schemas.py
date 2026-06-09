@@ -122,6 +122,10 @@ class VehicleUpdateRequest(BaseModel):
     anio: int | None = None
 
 
+class VehicleStatusUpdateRequest(BaseModel):
+    estado: str
+
+
 class VehicleResponse(BaseModel):
     id: int
     usuario_id: int
@@ -137,6 +141,16 @@ class VehicleResponse(BaseModel):
 
 class VehicleRegisterResponse(VehicleResponse):
     nuevo_token: str | None = None
+
+
+class VehicleStoredFunctionResponse(BaseModel):
+    vehiculo_id: int
+    patente: str
+    anio: int
+    fecha_ingreso: str | None = None
+    estado: str | None = None
+    modelo: str
+    marca: str
 
 
 class CedulaVehiculoExtractResponse(BaseModel):

@@ -7,6 +7,11 @@ from app.servicios.bot_service import BotService
 _bot_service = BotService()
 _groq = GroqChatAdapter()
 
+
+class BotExternalServiceError(RuntimeError):
+    pass
+
+
 _SOLICITUD_PERSONA_PATTERNS = [
     r"\b(persona|humano|operador|asesor|agente|representante|soporte)\b",
     r"hablar con (una )?(persona|humano|operador|asesor|agente|representante)",
@@ -43,7 +48,10 @@ def mensaje_derivacion(motivo: str) -> str:
 
 def ask_bot(pregunta: str, prompt_key: str) -> dict:
     system_prompt = _bot_service.get_system_prompt(prompt_key)
-    cuerpo = _groq.chat(system_prompt, pregunta)
+    try:
+        cuerpo = _groq.chat(system_prompt, pregunta)
+    except Exception as error:
+        raise BotExternalServiceError("No se pudo conectar con el servicio del chatbot") from error
 
     return {
         "cuerpo": cuerpo,

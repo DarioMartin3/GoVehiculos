@@ -145,6 +145,14 @@ class VehiculoService:
 
         raise ValueError("Permiso denegado")
 
+    def consultar_vehiculos_usuario_desde_funcion(self, token: str, usuario_id: int) -> list[dict]:
+        requester_id, role = self._get_request_context(token)
+
+        if role not in {"administrador", "admin", "operador", "soporte"} and requester_id != usuario_id:
+            raise ValueError("Permiso denegado")
+
+        return self.vehiculo_repository.consultar_vehiculos_usuario_funcion(usuario_id)
+
     def register_vehicle(self, token: str, patente: str, modelo_id: int, anio: int) -> dict:
         usuario_id, role = self._get_request_context(token)
 
@@ -238,6 +246,38 @@ class VehiculoService:
                     updated = self.vehiculo_repository.update_vehicle_by_id(cursor, vehicle_id, payload)
                     if not updated:
                         raise ValueError("Vehículo no encontrado")
+                    connection.commit()
+                except Exception:
+                    connection.rollback()
+                    raise
+
+        updated_vehicle = self.vehiculo_repository.get_vehicle_by_id(vehicle_id)
+        if not updated_vehicle:
+            raise ValueError("Vehículo no encontrado")
+
+        return self._vehicle_to_dict(updated_vehicle)
+
+    def actualizar_estado_desde_procedimiento(self, token: str, vehicle_id: int, estado: str) -> dict:
+        usuario_id, role = self._get_request_context(token)
+
+        estado_normalizado = estado.strip()
+        if not estado_normalizado:
+            raise ValueError("El estado del vehículo es requerido")
+
+        vehicle = self.vehiculo_repository.get_vehicle_by_id(vehicle_id)
+        if not vehicle:
+            raise ValueError("Vehículo no encontrado")
+
+        self._validate_vehicle_access(role, vehicle, usuario_id)
+
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                try:
+                    self.vehiculo_repository.actualizar_estado_vehiculo_procedimiento(
+                        cursor,
+                        vehicle_id,
+                        estado_normalizado,
+                    )
                     connection.commit()
                 except Exception:
                     connection.rollback()

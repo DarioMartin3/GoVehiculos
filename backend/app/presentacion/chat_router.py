@@ -12,6 +12,7 @@ from app.schemas import (
 )
 from app.servicios.auth_service import AuthService
 from app.servicios.chat_service import (
+    BotExternalServiceError,
     ask_bot,
     mensaje_derivacion,
     requiere_soporte_por_pregunta,
@@ -218,7 +219,36 @@ async def enviar_mensaje(payload: EnviarMensajeRequest, authorization: str | Non
         if not prompt_key:
             raise ValueError("No se pudo determinar el tema de la conversación")
 
-        respuesta = ask_bot(payload.pregunta, prompt_key)
+        try:
+            respuesta = ask_bot(payload.pregunta, prompt_key)
+        except BotExternalServiceError:
+            handoff = mensaje_derivacion("bot_no_resolvio")
+            data = derivar_conversacion_a_soporte(payload.conversacion_id, "bot_no_resolvio")
+            mensaje_bot = guardar_mensaje(
+                conversacion_id=payload.conversacion_id,
+                autor_id=bot_id,
+                mensaje={
+                    "cuerpo": handoff,
+                    "autor": "bot",
+                    "enviado_at": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+            await _broadcast_message(payload.conversacion_id, mensaje_bot)
+
+            return _mensaje_response_from_dict(
+                {
+                    "id": mensaje_bot.id,
+                    "conversacion_id": mensaje_bot.conversacion_id,
+                    "autor_id": mensaje_bot.autor_id,
+                    "autor": mensaje_bot.autor,
+                    "cuerpo": mensaje_bot.cuerpo,
+                    "enviado_at": mensaje_bot.enviado_at,
+                },
+                requiere_soporte=True,
+                fase=data["fase"],
+                motivo_derivacion="bot_no_resolvio",
+                redireccionar_a=f"/chat_soporte.html?conversation_id={payload.conversacion_id}",
+            )
 
         if requiere_soporte_por_respuesta(respuesta["cuerpo"]):
             handoff = mensaje_derivacion("bot_no_resolvio")

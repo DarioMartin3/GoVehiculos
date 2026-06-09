@@ -192,6 +192,31 @@ class VehiculoRepository:
 
         return vehicles
 
+    def consultar_vehiculos_usuario_funcion(self, usuario_id: int) -> list[dict]:
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT vehiculo_id, patente, anio, fecha_ingreso, estado, modelo, marca
+                    FROM consultar_vehiculos_usuario(%s)
+                    """,
+                    (usuario_id,),
+                )
+                rows = cursor.fetchall()
+
+        return [
+            {
+                "vehiculo_id": row[0],
+                "patente": row[1],
+                "anio": row[2],
+                "fecha_ingreso": row[3].isoformat() if row[3] else None,
+                "estado": row[4],
+                "modelo": row[5],
+                "marca": row[6],
+            }
+            for row in rows
+        ]
+
     def find_or_create_marca(self, cursor, nombre: str) -> int:
         cursor.execute(
             "SELECT id FROM marca WHERE LOWER(nombre) = LOWER(%s) LIMIT 1",
@@ -258,3 +283,9 @@ class VehiculoRepository:
             (estado_id, vehicle_id),
         )
         return cursor.rowcount > 0
+
+    def actualizar_estado_vehiculo_procedimiento(self, cursor, vehicle_id: int, estado_nombre: str) -> None:
+        cursor.execute(
+            "CALL actualizar_estado_vehiculo(%s, %s)",
+            (vehicle_id, estado_nombre),
+        )
