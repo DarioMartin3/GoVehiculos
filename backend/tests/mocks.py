@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from unittest.mock import MagicMock, Mock
 
+from app.entidades.user_account import UserAccount
 from app.entidades.vehiculo import Vehiculo, VehiculoPatente
 
 
@@ -114,6 +115,19 @@ def build_all_app_mocks(include_private: bool = False) -> dict[str, dict[str, Ma
     }
 
 
+_VEHICULO_DEFAULT = Vehiculo(
+    id=7,
+    usuario_id=11,
+    patente="AA123BB",
+    anio=2018,
+    fecha_ingreso="2026-06-09",
+    estado_vehiculo="En validacion",
+    modelo_id=1,
+    modelo_nombre="Corolla",
+    marca_nombre="Toyota",
+)
+
+
 class VehiculoRepositoryMock:
     def __init__(
         self,
@@ -121,7 +135,11 @@ class VehiculoRepositoryMock:
         patente_existente: bool = False,
         modelo_existente: bool = True,
         vehiculo_creado: Vehiculo | None = None,
+        vehiculo_existente: bool = True,
+        vehiculos_lista: list[Vehiculo] | None = None,
+        update_ok: bool = True,
     ):
+        _vehiculo = vehiculo_creado or _VEHICULO_DEFAULT
         self.create_vehicle = Mock(return_value=7)
         self.get_vehicle_by_patente = Mock(
             return_value=VehiculoPatente(id=99, patente="AA123BB") if patente_existente else None
@@ -131,20 +149,12 @@ class VehiculoRepositoryMock:
             if modelo_existente
             else None
         )
-        self.get_vehicle_by_id = Mock(
-            return_value=vehiculo_creado
-            or Vehiculo(
-                id=7,
-                usuario_id=11,
-                patente="AA123BB",
-                anio=2018,
-                fecha_ingreso="2026-06-09",
-                estado_vehiculo="En validacion",
-                modelo_id=1,
-                modelo_nombre="Corolla",
-                marca_nombre="Toyota",
-            )
+        self.get_vehicle_by_id = Mock(return_value=_vehiculo if vehiculo_existente else None)
+        self.list_vehicles = Mock(
+            return_value=vehiculos_lista if vehiculos_lista is not None else [_vehiculo]
         )
+        self.update_vehicle_by_id = Mock(return_value=update_ok)
+        self.update_vehicle_status_by_id = Mock(return_value=update_ok)
 
 
 class CursorMock:
@@ -185,22 +195,37 @@ class ConversacionRepositoryMock:
         soporte_error: Exception | None = None,
         derivacion_error: Exception | None = None,
     ):
-        self.fase_error = fase_error
-        self.soporte_error = soporte_error
-        self.derivacion_error = derivacion_error
         self.actualizar_fase_conversacion = Mock()
+        self.get_fase_id = Mock(side_effect=fase_error, return_value=3)
+        self.get_support_operator_id = Mock(side_effect=soporte_error, return_value=5)
+        self.crear_derivacion = Mock(side_effect=derivacion_error, return_value=10)
 
-    def get_fase_id(self, cursor, estado: str) -> int:
-        if self.fase_error:
-            raise self.fase_error
-        return 3
 
-    def get_support_operator_id(self, cursor) -> int:
-        if self.soporte_error:
-            raise self.soporte_error
-        return 5
+class UsuarioRepositoryMock:
+    def __init__(
+        self,
+        *,
+        usuario_existente: UserAccount | None = None,
+        crear_retorna: int = 20,
+        password_hash: str | None = "password_vieja",
+        perfil: dict | None = None,
+        update_password_ok: bool = True,
+        update_perfil_ok: bool = True,
+    ):
+        _perfil = perfil if perfil is not None else {
+            "id": 20,
+            "email": "juan@test.com",
+            "nombre": "Juan",
+            "apellido": "Pérez",
+        }
+        self.get_by_email = Mock(return_value=usuario_existente)
+        self.create = Mock(return_value=crear_retorna)
+        self.get_password_hash_by_user_id = Mock(return_value=password_hash)
+        self.update_password_by_user_id = Mock(return_value=update_password_ok)
+        self.get_profile_by_user_id = Mock(return_value=_perfil)
+        self.update_persona_by_user_id = Mock(return_value=update_perfil_ok)
 
-    def crear_derivacion(self, cursor, conversacion_id: int, operario_id: int, motivo: str) -> int:
-        if self.derivacion_error:
-            raise self.derivacion_error
-        return 10
+
+class PersonaRepositoryMock:
+    def __init__(self, *, crear_retorna: int = 10):
+        self.create = Mock(return_value=crear_retorna)

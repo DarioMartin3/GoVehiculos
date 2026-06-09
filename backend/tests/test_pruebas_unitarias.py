@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 import sys
 import types
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
 sys.modules.setdefault("psycopg2", types.SimpleNamespace(connect=Mock()))
 sys.modules.setdefault(
@@ -13,6 +13,7 @@ sys.modules.setdefault(
         jwt=types.SimpleNamespace(encode=Mock(return_value="token"), decode=Mock(return_value={})),
     ),
 )
+sys.modules.setdefault("requests", types.SimpleNamespace(post=Mock()))
 
 from app.servicios.chat_service import BotExternalServiceError
 from app.servicios.licencia_validation_service import LicenciaValidationService
@@ -23,6 +24,10 @@ from tests.mocks import (
     VehiculoRepositoryMock,
 )
 
+
+# ---------------------------------------------------------------------------
+# VehiculoService — registrar vehículo
+# ---------------------------------------------------------------------------
 
 class RegistrarVehiculoTests(unittest.TestCase):
     def _service(self, repo: VehiculoRepositoryMock, context=(11, "cliente")) -> VehiculoService:
@@ -38,7 +43,14 @@ class RegistrarVehiculoTests(unittest.TestCase):
 
         self.assertEqual(result["patente"], "AA123BB")
         self.assertEqual(result["modelo_nombre"], "Corolla")
-        repo.create_vehicle.assert_called_once()
+        repo.create_vehicle.assert_called_once_with(
+            _connection.return_value.cursor_instance,
+            usuario_id=11,
+            modelo_id=1,
+            anio=2018,
+            patente="AA123BB",
+        )
+        self.assertTrue(_connection.return_value.committed)
 
     def test_rechaza_patente_invalida(self):
         with self.assertRaisesRegex(ValueError, "La patente debe tener entre 6 y 10 caracteres"):
@@ -73,6 +85,99 @@ class RegistrarVehiculoTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Token inválido"):
             service.register_vehicle("token-invalido", "AA123BB", 1, 2018)
 
+    # -- límites de patente --------------------------------------------------
+
+    def test_rechaza_patente_de_5_caracteres(self):
+        with self.assertRaisesRegex(ValueError, "La patente debe tener"):
+            self._service(VehiculoRepositoryMock()).register_vehicle("token-cliente", "AB123", 1, 2018)
+
+    @patch("app.servicios.vehiculo_service.get_connection", return_value=ConnectionMock())
+    def test_acepta_patente_de_6_caracteres(self, _conn):
+        result = self._service(VehiculoRepositoryMock()).register_vehicle("token-cliente", "AB1234", 1, 2018)
+        self.assertIsNotNone(result)
+
+    @patch("app.servicios.vehiculo_service.get_connection", return_value=ConnectionMock())
+    def test_acepta_patente_de_10_caracteres(self, _conn):
+        result = self._service(VehiculoRepositoryMock()).register_vehicle("token-cliente", "AB12345678", 1, 2018)
+        self.assertIsNotNone(result)
+
+    # -- límite de año -------------------------------------------------------
+
+    @patch("app.servicios.vehiculo_service.get_connection", return_value=ConnectionMock())
+    def test_acepta_anio_limite_1980(self, _conn):
+        result = self._service(VehiculoRepositoryMock()).register_vehicle("token-cliente", "AA123BB", 1, 1980)
+        self.assertIsNotNone(result)
+
+
+# ---------------------------------------------------------------------------
+# VehiculoService — listar vehículos
+# ---------------------------------------------------------------------------
+
+class ListarVehiculosTests(unittest.TestCase):
+    def _service(self, repo: VehiculoRepositoryMock, context=(11, "cliente")) -> VehiculoService:
+        service = VehiculoService(vehiculo_repository=repo)
+        service.token_service = Mock()
+        service.token_service.get_context = Mock(return_value=context)
+        return service
+
+    def test_admin_ve_todos_los_vehiculos(self):
+        repo = VehiculoRepositoryMock()
+        service = self._service(repo, context=(1, "admin"))
+        result = service.list_vehicles("token-admin")
+        repo.list_vehicles.assert_called_once_with()
+        self.assertEqual(len(result), 1)
+
+    def test_cliente_ve_solo_sus_vehiculos(self):
+        repo = VehiculoRepositoryMock()
+        service = self._service(repo, context=(11, "cliente"))
+        service.list_vehicles("token-cliente")
+        repo.list_vehicles.assert_called_once_with(usuario_id=11)
+
+    def test_rol_desconocido_denegado(self):
+        service = self._service(VehiculoRepositoryMock(), context=(1, "desconocido"))
+        with self.assertRaisesRegex(ValueError, "Permiso denegado"):
+            service.list_vehicles("token")
+
+
+# ---------------------------------------------------------------------------
+# VehiculoService — actualizar vehículo
+# ---------------------------------------------------------------------------
+
+class ActualizarVehiculoTests(unittest.TestCase):
+    def _service(self, repo: VehiculoRepositoryMock, context=(11, "socio")) -> VehiculoService:
+        service = VehiculoService(vehiculo_repository=repo)
+        service.token_service = Mock()
+        service.token_service.get_context = Mock(return_value=context)
+        return service
+
+    @patch("app.servicios.vehiculo_service.get_connection", return_value=ConnectionMock())
+    def test_actualiza_exitoso_y_hace_commit(self, _connection):
+        repo = VehiculoRepositoryMock()
+        self._service(repo, context=(11, "socio")).update_vehicle("token", 7, {"anio": 2020})
+        repo.update_vehicle_by_id.assert_called_once()
+        self.assertTrue(_connection.return_value.committed)
+
+    def test_rechaza_vehiculo_no_encontrado(self):
+        repo = VehiculoRepositoryMock(vehiculo_existente=False)
+        service = self._service(repo, context=(1, "admin"))
+        with self.assertRaisesRegex(ValueError, "Vehículo no encontrado"):
+            service.update_vehicle("token", 999, {"anio": 2020})
+
+    def test_rechaza_sin_campos_para_actualizar(self):
+        service = self._service(VehiculoRepositoryMock(), context=(11, "socio"))
+        with self.assertRaisesRegex(ValueError, "Debe proporcionar al menos un campo"):
+            service.update_vehicle("token", 7, {})
+
+    def test_rechaza_acceso_de_socio_ajeno(self):
+        # vehicle.usuario_id=11, el requester es usuario_id=99
+        service = self._service(VehiculoRepositoryMock(), context=(99, "socio"))
+        with self.assertRaisesRegex(ValueError, "Permiso denegado"):
+            service.update_vehicle("token", 7, {"anio": 2020})
+
+
+# ---------------------------------------------------------------------------
+# ChatBot
+# ---------------------------------------------------------------------------
 
 class ChatBotTests(unittest.TestCase):
     @patch("app.servicios.chat_service._groq")
@@ -112,6 +217,10 @@ class ChatBotTests(unittest.TestCase):
             ask_bot("¿Cómo pago mi reserva?", "pagos")
 
 
+# ---------------------------------------------------------------------------
+# conversacion_service — derivar a soporte
+# ---------------------------------------------------------------------------
+
 class DerivarConversacionTests(unittest.TestCase):
     @patch("app.servicios.conversacion_service.get_connection", return_value=ConnectionMock())
     def test_deriva_conversacion_a_soporte(self, _connection):
@@ -129,10 +238,12 @@ class DerivarConversacionTests(unittest.TestCase):
     def test_deriva_con_motivo_bot_no_resolvio(self, _connection):
         from app.servicios import conversacion_service
 
-        with patch.object(conversacion_service, "_repo", ConversacionRepositoryMock()):
+        repo = ConversacionRepositoryMock()
+        with patch.object(conversacion_service, "_repo", repo):
             result = conversacion_service.derivar_conversacion_a_soporte(1, "bot_no_resolvio")
 
         self.assertEqual(result["fase"], "operario")
+        repo.crear_derivacion.assert_called_once_with(ANY, 1, 5, "bot_no_resolvio")
 
     @patch("app.servicios.conversacion_service.get_connection", return_value=ConnectionMock())
     def test_deriva_propaga_error_si_no_existe_fase(self, _connection):
@@ -161,6 +272,10 @@ class DerivarConversacionTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Conversación"):
                 conversacion_service.derivar_conversacion_a_soporte(999, "solicitud_usuario")
 
+
+# ---------------------------------------------------------------------------
+# LicenciaValidationService
+# ---------------------------------------------------------------------------
 
 class ValidarLicenciaTests(unittest.TestCase):
     def _service(self, extracted: dict) -> LicenciaValidationService:
@@ -257,6 +372,44 @@ class ValidarLicenciaTests(unittest.TestCase):
 
         with self.assertRaisesRegex(RuntimeError, "OCR no disponible"):
             service.validate(b"imagen", "Juan", "Pérez", "1990-05-14")
+
+    # -- límites de vencimiento (date patched para resultados deterministas) -
+
+    @patch("app.servicios.licencia_validation_service.date")
+    def test_licencia_vence_exactamente_hoy_no_esta_vencida(self, mock_date):
+        from datetime import date as real_date
+        mock_date.today.return_value = real_date(2026, 6, 9)
+        mock_date.fromisoformat.side_effect = real_date.fromisoformat
+
+        result = self._service(
+            {
+                "nombre": "Juan",
+                "apellido": "Pérez",
+                "fecha_nacimiento": "1990-05-14",
+                "fecha_vencimiento": "2026-06-09",
+            }
+        ).validate(b"imagen", "Juan", "Pérez", "1990-05-14")
+
+        self.assertFalse(result["vencida"])
+        self.assertTrue(result["valido"])
+
+    @patch("app.servicios.licencia_validation_service.date")
+    def test_licencia_vencio_ayer(self, mock_date):
+        from datetime import date as real_date
+        mock_date.today.return_value = real_date(2026, 6, 9)
+        mock_date.fromisoformat.side_effect = real_date.fromisoformat
+
+        result = self._service(
+            {
+                "nombre": "Juan",
+                "apellido": "Pérez",
+                "fecha_nacimiento": "1990-05-14",
+                "fecha_vencimiento": "2026-06-08",
+            }
+        ).validate(b"imagen", "Juan", "Pérez", "1990-05-14")
+
+        self.assertTrue(result["vencida"])
+        self.assertFalse(result["valido"])
 
 
 if __name__ == "__main__":
