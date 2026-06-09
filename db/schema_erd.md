@@ -6,6 +6,10 @@ Renderizable en GitHub, GitLab, Notion, o cualquier editor que soporte Mermaid.
 ```mermaid
 erDiagram
 
+    %% =====================================================================
+    %% DOMINIO: USUARIOS
+    %% =====================================================================
+
     PAIS {
         int id PK
         text nombre
@@ -17,16 +21,6 @@ erDiagram
     }
 
     ESTADO {
-        int id PK
-        text nombre
-    }
-
-    ESTADO_VEHICULO {
-        int id PK
-        text nombre
-    }
-
-    ESTADO_VALIDACION {
         int id PK
         text nombre
     }
@@ -50,6 +44,15 @@ erDiagram
         int estado_id FK
     }
 
+    PAIS              ||--o{ PERSONA   : "país de"
+    PERSONA           ||--o{ USUARIO   : "tiene cuenta"
+    ROL               ||--o{ USUARIO   : "tiene rol"
+    ESTADO            ||--o{ USUARIO   : "tiene estado"
+
+    %%  =====================================================================
+    %% DOMINIO: VEHÍCULOS
+    %% =====================================================================
+
     MARCA {
         int id PK
         text nombre
@@ -61,6 +64,11 @@ erDiagram
         int marca_id FK
     }
 
+    ESTADO_VEHICULO {
+        int id PK
+        text nombre
+    }
+
     VEHICULO {
         int id PK
         int usuario_id FK
@@ -70,6 +78,46 @@ erDiagram
         text patente
         int estado_vehiculo_id FK
     }
+
+    MARCA             ||--o{ MODELO    : "fabrica"
+    MODELO            ||--o{ VEHICULO  : "define modelo"
+    ESTADO_VEHICULO   ||--o{ VEHICULO  : "estado de"
+    USUARIO           ||--o{ VEHICULO  : "posee"
+
+    %% =====================================================================
+    %% DOMINIO: DOCUMENTOS DE VEHÍCULO
+    %% =====================================================================
+
+    TIPO_DOCUMENTO_VEHICULO {
+        int id PK
+        text nombre
+    }
+
+    ESTADO_VALIDACION {
+        int id PK
+        text nombre
+    }
+
+    DOCUMENTO_VEHICULO {
+        int id PK
+        int vehiculo_id FK
+        int tipo_id FK
+        text nombre_titular
+        date fecha_vencimiento
+        text imagen
+        int estado_validacion_id FK
+        text motivo_rechazo
+        int estado_id FK
+    }
+
+    VEHICULO                 ||--o{ DOCUMENTO_VEHICULO : "tiene documentos"
+    TIPO_DOCUMENTO_VEHICULO  ||--o{ DOCUMENTO_VEHICULO : "tipo de doc"
+    ESTADO_VALIDACION        ||--o{ DOCUMENTO_VEHICULO : "valida doc"
+    ESTADO                   ||--o{ DOCUMENTO_VEHICULO : "estado de doc"
+
+    %% =====================================================================
+    %% DOMINIO: LICENCIA DE CONDUCIR
+    %% =====================================================================
 
     TIPO_LICENCIA {
         int id PK
@@ -95,22 +143,14 @@ erDiagram
         date fecha_vencimiento
     }
 
-    TIPO_DOCUMENTO_VEHICULO {
-        int id PK
-        text nombre
-    }
+    USUARIO           ||--o{ CARNET_CONDUCIR : "tiene carnet"
+    ESTADO_VALIDACION ||--o{ CARNET_CONDUCIR : "valida carnet"
+    CARNET_CONDUCIR   ||--o{ CARNET_CLASE    : "contiene clases"
+    TIPO_LICENCIA     ||--o{ CARNET_CLASE    : "tipo de clase"
 
-    DOCUMENTO_VEHICULO {
-        int id PK
-        int vehiculo_id FK
-        int tipo_id FK
-        text nombre_titular
-        date fecha_vencimiento
-        text imagen
-        int estado_validacion_id FK
-        text motivo_rechazo
-        int estado_id FK
-    }
+    %% =====================================================================
+    %% DOMINIO: CONVERSACIONES Y SOPORTE
+    %% =====================================================================
 
     BOT_TEMA {
         int id PK
@@ -129,9 +169,9 @@ erDiagram
     CONVERSACION {
         int id PK
         int fase_id FK
-        timestamp abierta_at
         int usuario_id FK
         int tema_id FK
+        timestamp abierta_at
         timestamp cerrada_at
     }
 
@@ -152,33 +192,11 @@ erDiagram
         timestamp liberada_at
     }
 
-    %% Relaciones
-
-    PAIS               ||--o{ PERSONA            : "país de"
-    PERSONA            ||--o{ USUARIO            : "tiene cuenta"
-    ROL                ||--o{ USUARIO            : "tiene rol"
-    ESTADO             ||--o{ USUARIO            : "tiene estado"
-
-    USUARIO            ||--o{ VEHICULO           : "posee"
-    MARCA              ||--o{ MODELO             : "fabrica"
-    MODELO             ||--o{ VEHICULO           : "define modelo"
-    ESTADO_VEHICULO    ||--o{ VEHICULO           : "estado de"
-
-    USUARIO            ||--o{ CARNET_CONDUCIR    : "tiene carnet"
-    ESTADO_VALIDACION  ||--o{ CARNET_CONDUCIR    : "valida carnet"
-    CARNET_CONDUCIR    ||--o{ CARNET_CLASE       : "contiene clases"
-    TIPO_LICENCIA      ||--o{ CARNET_CLASE       : "tipo de clase"
-
-    VEHICULO           ||--o{ DOCUMENTO_VEHICULO : "tiene documentos"
-    TIPO_DOCUMENTO_VEHICULO ||--o{ DOCUMENTO_VEHICULO : "tipo de doc"
-    ESTADO_VALIDACION  ||--o{ DOCUMENTO_VEHICULO : "valida doc"
-    ESTADO             ||--o{ DOCUMENTO_VEHICULO : "estado de doc"
-
-    FASE_CONVERSACION  ||--o{ CONVERSACION       : "fase actual"
-    USUARIO            ||--o{ CONVERSACION       : "inicia"
-    BOT_TEMA           ||--o{ CONVERSACION       : "tema de"
-    CONVERSACION       ||--o{ MENSAJE            : "contiene"
-    USUARIO            ||--o{ MENSAJE            : "envía"
-    CONVERSACION       ||--o{ DERIVACION         : "se deriva"
-    USUARIO            ||--o{ DERIVACION         : "atiende"
+    FASE_CONVERSACION ||--o{ CONVERSACION : "fase actual"
+    BOT_TEMA          ||--o{ CONVERSACION : "tema de"
+    USUARIO           ||--o{ CONVERSACION : "inicia"
+    CONVERSACION      ||--o{ MENSAJE      : "contiene"
+    USUARIO           ||--o{ MENSAJE      : "envía"
+    CONVERSACION      ||--o{ DERIVACION   : "se deriva"
+    USUARIO           ||--o{ DERIVACION   : "atiende"
 ```
