@@ -1,4 +1,8 @@
+import os
+from datetime import datetime
+
 from app.adaptadores.groq_adapter import GroqDocumentAdapter
+from app.core.config import DOCS_UPLOAD_DIR
 from app.core.database import get_connection
 from app.repositorios.licencia_repository import LicenciaRepository
 from app.repositorios.usuario_repository import UsuarioRepository
@@ -29,14 +33,21 @@ class LicenciaService:
 
         if result["valido"]:
             datos = result["datos_extraidos"]
+            os.makedirs(DOCS_UPLOAD_DIR, exist_ok=True)
+            imagen = f"licencia_{user_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
+            with open(os.path.join(DOCS_UPLOAD_DIR, imagen), "wb") as file:
+                file.write(image_bytes)
+
             with get_connection() as connection:
                 with connection.cursor() as cursor:
                     try:
                         self.licencia_repository.crear_carnet(
                             cursor,
                             usuario_id=user_id,
+                            nombre_titular=f"{persona['nombre']} {persona['apellido']}".strip(),
                             fecha_emision=datos.get("fecha_emision"),
                             fecha_vencimiento=datos.get("fecha_vencimiento"),
+                            imagen=imagen,
                             clases=datos.get("clases", []),
                         )
                         connection.commit()

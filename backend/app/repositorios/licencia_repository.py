@@ -18,15 +18,17 @@ class LicenciaRepository:
         self,
         cursor,
         usuario_id: int,
+        nombre_titular: str,
         fecha_emision: str | None,
         fecha_vencimiento: str | None,
+        imagen: str,
         clases: list[dict],
     ) -> int:
         cursor.execute(
             """INSERT INTO carnet_conducir
-               (usuario_id, fecha_emision, fecha_vencimiento, estado_validacion)
-               VALUES (%s, %s, %s, 1) RETURNING id""",
-            (usuario_id, fecha_emision or None, fecha_vencimiento or None),
+               (usuario_id, nombre_titular, fecha_emision, fecha_vencimiento, imagen, estado_validacion_id)
+               VALUES (%s, %s, %s, %s, %s, 2) RETURNING id""",
+            (usuario_id, nombre_titular, fecha_emision or None, fecha_vencimiento or None, imagen),
         )
         carnet_id = cursor.fetchone()[0]
 
@@ -51,7 +53,7 @@ class LicenciaRepository:
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    """SELECT id, fecha_emision, fecha_vencimiento, estado_validacion
+                    """SELECT id, fecha_emision, fecha_vencimiento, estado_validacion_id
                        FROM carnet_conducir WHERE usuario_id = %s ORDER BY id DESC LIMIT 1""",
                     (usuario_id,),
                 )
