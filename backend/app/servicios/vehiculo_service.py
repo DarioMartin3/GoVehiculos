@@ -470,12 +470,12 @@ class VehiculoService:
         apellido_part = _sanitize_filename_part(perfil.get("apellido") or "")
         nombre_part   = _sanitize_filename_part(perfil.get("nombre")   or "")
 
-        # estado_validacion: 1 = validado, 0 = pendiente
+        # estado_validacion: 1 = pendiente, 2 = aprobado, 3 = rechazado
         tipos_config = {
-            "cedula_delantera": 1,
-            "cedula_trasera":   1,
-            "seguro":           1,
-            "foto_vehiculo":    0,
+            "cedula_delantera": 2,
+            "cedula_trasera":   2,
+            "seguro":           2,
+            "foto_vehiculo":    1,
         }
 
         os.makedirs(DOCS_UPLOAD_DIR, exist_ok=True)
@@ -489,15 +489,16 @@ class VehiculoService:
                         if not archivo:
                             continue
                         content, ext = archivo
+                        tipo_id = self.documento_repository.get_or_create_tipo_id(cursor, tipo)
                         if tipo == "foto_vehiculo":
-                            n = self.documento_repository.count_by_vehiculo_tipo(cursor, vehicle_id, tipo) + 1
+                            n = self.documento_repository.count_by_vehiculo_tipo(cursor, vehicle_id, tipo_id) + 1
                             filename = f"foto_vehiculo_{apellido_part}_{nombre_part}_{vehicle_id}_{n}.{ext}"
                         else:
                             filename = f"{tipo}_{apellido_part}_{nombre_part}.{ext}"
                         with open(os.path.join(DOCS_UPLOAD_DIR, filename), "wb") as f:
                             f.write(content)
                         doc_id = self.documento_repository.save(
-                            cursor, vehicle_id, tipo, nombre_titular, filename, estado_val
+                            cursor, vehicle_id, tipo_id, nombre_titular, filename, estado_val
                         )
                         saved.append({"id": doc_id, "tipo": tipo, "imagen": filename})
                     connection.commit()

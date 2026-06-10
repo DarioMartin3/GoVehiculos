@@ -125,7 +125,7 @@ class VehiculoRepository:
         estado_vehiculo_id = self._get_estado_vehiculo_id(cursor, "En validacion")
         cursor.execute(
             """
-            INSERT INTO vehiculo (usuario_id, modelo, anio, fecha_ingreso, patente, estado_vehiculo)
+            INSERT INTO vehiculo (usuario_id, modelo_id, anio, fecha_ingreso, patente, estado_vehiculo_id)
             VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING id
             """,
@@ -253,7 +253,7 @@ class VehiculoRepository:
             updates.append("anio = %s")
             values.append(data["anio"])
         if data.get("modelo_id") is not None:
-            updates.append("modelo = %s")
+            updates.append("modelo_id = %s")
             values.append(data["modelo_id"])
 
         if not updates:
@@ -277,7 +277,7 @@ class VehiculoRepository:
         cursor.execute(
             """
             UPDATE vehiculo
-            SET estado_vehiculo = %s
+            SET estado_vehiculo_id = %s
             WHERE id = %s
             """,
             (estado_id, vehicle_id),

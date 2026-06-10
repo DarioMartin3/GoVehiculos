@@ -176,12 +176,14 @@ async def guardar_documentos_vehiculo(
 
     allowed_types = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
 
-    async def _read(upload: UploadFile | None) -> tuple[bytes, str] | None:
+    async def _read(upload: UploadFile | None, max_mb: int = 10) -> tuple[bytes, str] | None:
         if not upload or not upload.filename:
             return None
         if upload.content_type not in allowed_types:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Formato no soportado en {upload.filename}. Usá JPG, PNG o WEBP.")
         content = await upload.read()
+        if len(content) > max_mb * 1024 * 1024:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"El archivo supera los {max_mb}MB")
         ext = upload.filename.rsplit(".", 1)[-1].lower() if "." in upload.filename else "jpg"
         return content, ext
 
@@ -189,7 +191,7 @@ async def guardar_documentos_vehiculo(
         "cedula_delantera": await _read(cedula_delantera),
         "cedula_trasera":   await _read(cedula_trasera),
         "seguro":           await _read(seguro),
-        "foto_vehiculo":    await _read(foto_vehiculo),
+        "foto_vehiculo":    await _read(foto_vehiculo, max_mb=5),
     }
 
     try:
