@@ -77,16 +77,26 @@
     const role = (authUser?.rol || '').toString().trim().toLowerCase();
     const isAdmin = role === 'administrador' || role === 'admin';
     const isSocio = role === 'socio';
+    const isSoporte = role === 'soporte' || role.includes('soporte');
 
     const sidebarDashboardLink = document.getElementById('sidebar-dashboard');
     const sidebarUsersLink = document.getElementById('sidebar-users');
     const sidebarVehiculosLink = document.getElementById('sidebar-vehiculos');
     const sidebarTuVehiculoLink = document.getElementById('sidebar-tu-vehiculo');
+    const sidebarLiveChat = document.getElementById('sidebar-livechat');
+    const sidebarTickets = document.getElementById('sidebar-tickets');
+    const sidebarFaq = document.getElementById('sidebar-faq');
+    const sidebarSupportSettings = document.getElementById('sidebar-support-settings');
 
     setElementHidden(sidebarDashboardLink, !isAdmin);
     setElementHidden(sidebarUsersLink, !isAdmin);
     setElementHidden(sidebarVehiculosLink, !isAdmin);
     setElementHidden(sidebarTuVehiculoLink, !isSocio);
+    // Mostrar enlaces de soporte solo para el rol 'soporte'
+    setElementHidden(sidebarLiveChat, !isSoporte);
+    setElementHidden(sidebarTickets, !isSoporte);
+    setElementHidden(sidebarFaq, !isSoporte);
+    setElementHidden(sidebarSupportSettings, !isSoporte);
   }
 
   function applySidebarUserName() {
@@ -116,6 +126,10 @@
       'dashboard_tecnico.html',
       'crear_rol_empleado.html',
       'perfil_view.html',
+      'menu_soporte.html',
+      'chat_soporte.html',
+      'select_topic_chat.html',
+      'chat_bot.html',
     ];
 
     const navActionsPages = [...dashboardPages, 'index_registrar_vehiculo.html'];
@@ -141,6 +155,22 @@
       setElementHidden(btnSocio, true);
     } else {
       const rolSeguro = userRole.toLowerCase().trim();
+      // Si el usuario es soporte, mostrar 'Menu Soporte' y apuntar a la vista correspondiente
+      try {
+        if (rolSeguro.includes('soporte')) {
+          if (btnDashboard) {
+            btnDashboard.classList.remove('hidden');
+            btnDashboard.textContent = 'Menu Soporte';
+            btnDashboard.setAttribute('href', '/menu_soporte.html');
+          }
+        } else {
+          if (btnDashboard) {
+            btnDashboard.textContent = 'Dashboard';
+            btnDashboard.setAttribute('href', '/dashboard_general_tecnico.html');
+          }
+        }
+      } catch (e) {}
+
       setElementHidden(btnDashboard, ['cliente', 'socio'].includes(rolSeguro));
       setElementHidden(btnSocio, rolSeguro !== 'cliente');
     }

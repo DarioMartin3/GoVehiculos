@@ -77,6 +77,31 @@ function setSeguroStatus(text, isError = false) {
   el.classList.toggle('text-primary', !isError);
 }
 
+function setFotoVehiculoStatus(text, isError = false) {
+  const el = document.getElementById('foto-vehiculo-status');
+  if (!el) return;
+  if (!text) {
+    el.classList.add('hidden');
+    el.textContent = '';
+    return;
+  }
+  el.textContent = text;
+  el.classList.remove('hidden');
+  el.classList.toggle('text-error', isError);
+  el.classList.toggle('text-primary', !isError);
+}
+
+function validateFotoVehiculo(file) {
+  const allowed = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
+  if (!allowed.has(file.type)) {
+    setFotoVehiculoStatus('Formato no soportado. Usá JPG, PNG o WEBP.', true);
+    const input = document.getElementById('foto-vehiculo');
+    if (input) input.value = '';
+    return;
+  }
+  setFotoVehiculoStatus('');
+}
+
 function setCedulaTitularStatus(text, isError = false) {
   const el = document.getElementById('cedula-titular-status');
   if (!el) return;
@@ -408,6 +433,7 @@ function setupUploadZones() {
       if (zoneId === 'cedula-frente') extractCedulaData(file);
       if (zoneId === 'cedula-trasera') validateCedulaTrasera(file);
       if (zoneId === 'seguro-pdf') validateSeguro(file);
+      if (zoneId === 'foto-vehiculo') validateFotoVehiculo(file);
     });
 
     zone.addEventListener('dragover', (e) => {
@@ -431,6 +457,7 @@ function setupUploadZones() {
       if (zoneId === 'cedula-frente') extractCedulaData(file);
       if (zoneId === 'cedula-trasera') validateCedulaTrasera(file);
       if (zoneId === 'seguro-pdf') validateSeguro(file);
+      if (zoneId === 'foto-vehiculo') validateFotoVehiculo(file);
     });
   }
 }

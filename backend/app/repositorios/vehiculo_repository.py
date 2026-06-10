@@ -125,7 +125,7 @@ class VehiculoRepository:
         estado_vehiculo_id = self._get_estado_vehiculo_id(cursor, "En validacion")
         cursor.execute(
             """
-            INSERT INTO vehiculo (usuario_id, modelo, anio, fecha_ingreso, patente, estado_vehiculo)
+            INSERT INTO vehiculo (usuario_id, modelo_id, anio, fecha_ingreso, patente, estado_vehiculo_id)
             VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING id
             """,
@@ -142,12 +142,12 @@ class VehiculoRepository:
                            ev.nombre AS estado_vehiculo,
                            m.id AS modelo_id, m.nombre AS modelo_nombre, ma.nombre AS marca_nombre,
                            (SELECT dv.imagen FROM documento_vehiculo dv
-                            WHERE dv.vehiculo_id = v.id AND dv.tipo = 'foto_vehiculo'
+                            WHERE dv.vehiculo_id = v.id AND dv.tipo_id = 1
                             ORDER BY dv.id DESC LIMIT 1) AS foto_vehiculo
                     FROM vehiculo v
-                    INNER JOIN modelo m ON m.id = v.modelo
+                    INNER JOIN modelo m ON m.id = v.modelo_id
                     INNER JOIN marca ma ON ma.id = m.marca_id
-                    LEFT JOIN estado_vehiculo ev ON ev.id = v.estado_vehiculo
+                    LEFT JOIN estado_vehiculo ev ON ev.id = v.estado_vehiculo_id
                     WHERE v.id = %s
                     LIMIT 1
                     """,
@@ -166,12 +166,12 @@ class VehiculoRepository:
                    ev.nombre AS estado_vehiculo,
                    m.id AS modelo_id, m.nombre AS modelo_nombre, ma.nombre AS marca_nombre,
                    (SELECT dv.imagen FROM documento_vehiculo dv
-                    WHERE dv.vehiculo_id = v.id AND dv.tipo = 'foto_vehiculo'
+                    WHERE dv.vehiculo_id = v.id AND dv.tipo_id = 1
                     ORDER BY dv.id DESC LIMIT 1) AS foto_vehiculo
             FROM vehiculo v
-            INNER JOIN modelo m ON m.id = v.modelo
+            INNER JOIN modelo m ON m.id = v.modelo_id
             INNER JOIN marca ma ON ma.id = m.marca_id
-            LEFT JOIN estado_vehiculo ev ON ev.id = v.estado_vehiculo
+            LEFT JOIN estado_vehiculo ev ON ev.id = v.estado_vehiculo_id
         """
         params: tuple[object, ...] = ()
 
@@ -191,6 +191,31 @@ class VehiculoRepository:
             vehicles.append(self._build_vehicle_entity_from_row(row))
 
         return vehicles
+
+    def consultar_vehiculos_usuario_funcion(self, usuario_id: int) -> list[dict]:
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT vehiculo_id, patente, anio, fecha_ingreso, estado, modelo, marca
+                    FROM consultar_vehiculos_usuario(%s)
+                    """,
+                    (usuario_id,),
+                )
+                rows = cursor.fetchall()
+
+        return [
+            {
+                "vehiculo_id": row[0],
+                "patente": row[1],
+                "anio": row[2],
+                "fecha_ingreso": row[3].isoformat() if row[3] else None,
+                "estado": row[4],
+                "modelo": row[5],
+                "marca": row[6],
+            }
+            for row in rows
+        ]
 
     def find_or_create_marca(self, cursor, nombre: str) -> int:
         cursor.execute(
@@ -228,7 +253,7 @@ class VehiculoRepository:
             updates.append("anio = %s")
             values.append(data["anio"])
         if data.get("modelo_id") is not None:
-            updates.append("modelo = %s")
+            updates.append("modelo_id = %s")
             values.append(data["modelo_id"])
 
         if not updates:
@@ -252,9 +277,15 @@ class VehiculoRepository:
         cursor.execute(
             """
             UPDATE vehiculo
-            SET estado_vehiculo = %s
+            SET estado_vehiculo_id = %s
             WHERE id = %s
             """,
             (estado_id, vehicle_id),
         )
         return cursor.rowcount > 0
+
+    def actualizar_estado_vehiculo_procedimiento(self, cursor, vehicle_id: int, estado_nombre: str) -> None:
+        cursor.execute(
+            "CALL actualizar_estado_vehiculo(%s, %s)",
+            (vehicle_id, estado_nombre),
+        )

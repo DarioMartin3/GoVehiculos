@@ -122,6 +122,10 @@ class VehicleUpdateRequest(BaseModel):
     anio: int | None = None
 
 
+class VehicleStatusUpdateRequest(BaseModel):
+    estado: str
+
+
 class VehicleResponse(BaseModel):
     id: int
     usuario_id: int
@@ -137,6 +141,16 @@ class VehicleResponse(BaseModel):
 
 class VehicleRegisterResponse(VehicleResponse):
     nuevo_token: str | None = None
+
+
+class VehicleStoredFunctionResponse(BaseModel):
+    vehiculo_id: int
+    patente: str
+    anio: int
+    fecha_ingreso: str | None = None
+    estado: str | None = None
+    modelo: str
+    marca: str
 
 
 class CedulaVehiculoExtractResponse(BaseModel):
@@ -165,3 +179,48 @@ class DocumentoVehiculoResponse(BaseModel):
     id: int
     tipo: str
     imagen: str
+
+
+class IniciarConversacionRequest(BaseModel):
+    prompt_key: str
+
+
+class IniciarConversacionResponse(BaseModel):
+    conversacion_id: int
+    tema_id: int
+    fase: str
+
+
+class EnviarMensajeRequest(BaseModel):
+    conversacion_id: int
+    pregunta: str
+    prompt_key: str | None = None
+
+
+class MensajeResponse(BaseModel):
+    id: int | None = None
+    conversacion_id: int
+    autor_id: int
+    autor: str
+    cuerpo: str
+    enviado_at: str
+    requiere_soporte: bool = False
+    fase: str | None = None
+    motivo_derivacion: str | None = None
+    redireccionar_a: str | None = None
+
+
+class ConversacionMensajeResponse(BaseModel):
+    id: int | None = None
+    conversacion_id: int
+    autor_id: int
+    autor: str
+    cuerpo: str
+    enviado_at: str
+
+
+class ConversacionResponse(BaseModel):
+    conversacion_id: int
+    tema_id: int
+    fase: str
+    mensajes: list[ConversacionMensajeResponse]

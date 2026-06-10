@@ -140,10 +140,18 @@ class VehiculoService:
         if role in {"administrador", "admin", "operador", "soporte"}:
             return self._vehicles_to_dict(self.vehiculo_repository.list_vehicles())
 
-        if role == "socio":
+        if role in {"socio", "cliente"}:
             return self._vehicles_to_dict(self.vehiculo_repository.list_vehicles(usuario_id=usuario_id))
 
         raise ValueError("Permiso denegado")
+
+    def consultar_vehiculos_usuario_desde_funcion(self, token: str, usuario_id: int) -> list[dict]:
+        requester_id, role = self._get_request_context(token)
+
+        if role not in {"administrador", "admin", "operador", "soporte"} and requester_id != usuario_id:
+            raise ValueError("Permiso denegado")
+
+        return self.vehiculo_repository.consultar_vehiculos_usuario_funcion(usuario_id)
 
     def register_vehicle(self, token: str, patente: str, modelo_id: int, anio: int) -> dict:
         usuario_id, role = self._get_request_context(token)
@@ -238,6 +246,38 @@ class VehiculoService:
                     updated = self.vehiculo_repository.update_vehicle_by_id(cursor, vehicle_id, payload)
                     if not updated:
                         raise ValueError("Vehículo no encontrado")
+                    connection.commit()
+                except Exception:
+                    connection.rollback()
+                    raise
+
+        updated_vehicle = self.vehiculo_repository.get_vehicle_by_id(vehicle_id)
+        if not updated_vehicle:
+            raise ValueError("Vehículo no encontrado")
+
+        return self._vehicle_to_dict(updated_vehicle)
+
+    def actualizar_estado_desde_procedimiento(self, token: str, vehicle_id: int, estado: str) -> dict:
+        usuario_id, role = self._get_request_context(token)
+
+        estado_normalizado = estado.strip()
+        if not estado_normalizado:
+            raise ValueError("El estado del vehículo es requerido")
+
+        vehicle = self.vehiculo_repository.get_vehicle_by_id(vehicle_id)
+        if not vehicle:
+            raise ValueError("Vehículo no encontrado")
+
+        self._validate_vehicle_access(role, vehicle, usuario_id)
+
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                try:
+                    self.vehiculo_repository.actualizar_estado_vehiculo_procedimiento(
+                        cursor,
+                        vehicle_id,
+                        estado_normalizado,
+                    )
                     connection.commit()
                 except Exception:
                     connection.rollback()
@@ -430,12 +470,12 @@ class VehiculoService:
         apellido_part = _sanitize_filename_part(perfil.get("apellido") or "")
         nombre_part   = _sanitize_filename_part(perfil.get("nombre")   or "")
 
-        # estado_validacion: 1 = validado, 0 = pendiente
+        # estado_validacion: 1 = pendiente, 2 = aprobado, 3 = rechazado
         tipos_config = {
-            "cedula_delantera": 1,
-            "cedula_trasera":   1,
-            "seguro":           1,
-            "foto_vehiculo":    0,
+            "cedula_delantera": 2,
+            "cedula_trasera":   2,
+            "seguro":           2,
+            "foto_vehiculo":    1,
         }
 
         os.makedirs(DOCS_UPLOAD_DIR, exist_ok=True)
@@ -449,15 +489,16 @@ class VehiculoService:
                         if not archivo:
                             continue
                         content, ext = archivo
+                        tipo_id = self.documento_repository.get_or_create_tipo_id(cursor, tipo)
                         if tipo == "foto_vehiculo":
-                            n = self.documento_repository.count_by_vehiculo_tipo(cursor, vehicle_id, tipo) + 1
+                            n = self.documento_repository.count_by_vehiculo_tipo(cursor, vehicle_id, tipo_id) + 1
                             filename = f"foto_vehiculo_{apellido_part}_{nombre_part}_{vehicle_id}_{n}.{ext}"
                         else:
                             filename = f"{tipo}_{apellido_part}_{nombre_part}.{ext}"
                         with open(os.path.join(DOCS_UPLOAD_DIR, filename), "wb") as f:
                             f.write(content)
                         doc_id = self.documento_repository.save(
-                            cursor, vehicle_id, tipo, nombre_titular, filename, estado_val
+                            cursor, vehicle_id, tipo_id, nombre_titular, filename, estado_val
                         )
                         saved.append({"id": doc_id, "tipo": tipo, "imagen": filename})
                     connection.commit()

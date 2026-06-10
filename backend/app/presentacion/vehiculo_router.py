@@ -1,7 +1,20 @@
 from fastapi import APIRouter, File, Form, Header, HTTPException, UploadFile, status
 
 from app.adaptadores.groq_adapter import GroqDocumentAdapter
-from app.schemas import CedulaTitularValidacionResponse, CedulaVehiculoExtractResponse, DocumentoVehiculoResponse, SeguroValidacionResponse, VehicleBrandResponse, VehicleCreateRequest, VehicleModelResponse, VehicleRegisterResponse, VehicleResponse, VehicleUpdateRequest
+from app.schemas import (
+    CedulaTitularValidacionResponse,
+    CedulaVehiculoExtractResponse,
+    DocumentoVehiculoResponse,
+    SeguroValidacionResponse,
+    VehicleBrandResponse,
+    VehicleCreateRequest,
+    VehicleModelResponse,
+    VehicleRegisterResponse,
+    VehicleResponse,
+    VehicleStatusUpdateRequest,
+    VehicleStoredFunctionResponse,
+    VehicleUpdateRequest,
+)
 from app.servicios.socio_service import SocioService
 from app.servicios.vehiculo_service import VehiculoService
 
@@ -127,6 +140,26 @@ def list_vehicles(authorization: str | None = Header(default=None)):
     return [VehicleResponse(**item) for item in result]
 
 
+@router.get("/usuario/{usuario_id}/consulta-funcion", response_model=list[VehicleStoredFunctionResponse])
+def consultar_vehiculos_usuario_funcion(usuario_id: int, authorization: str | None = Header(default=None)):
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token requerido")
+
+    token = authorization.split(" ", 1)[1].strip()
+
+    try:
+        result = VehiculoService().consultar_vehiculos_usuario_desde_funcion(token, usuario_id)
+    except ValueError as error:
+        message = str(error)
+        if message == "Permiso denegado":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=message) from error
+        if message == "Token inválido":
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=message) from error
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message) from error
+
+    return [VehicleStoredFunctionResponse(**item) for item in result]
+
+
 @router.post("/{vehicle_id}/documentos", response_model=list[DocumentoVehiculoResponse])
 async def guardar_documentos_vehiculo(
     vehicle_id: int,
@@ -143,12 +176,14 @@ async def guardar_documentos_vehiculo(
 
     allowed_types = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
 
-    async def _read(upload: UploadFile | None) -> tuple[bytes, str] | None:
+    async def _read(upload: UploadFile | None, max_mb: int = 10) -> tuple[bytes, str] | None:
         if not upload or not upload.filename:
             return None
         if upload.content_type not in allowed_types:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Formato no soportado en {upload.filename}. Usá JPG, PNG o WEBP.")
         content = await upload.read()
+        if len(content) > max_mb * 1024 * 1024:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"El archivo supera los {max_mb}MB")
         ext = upload.filename.rsplit(".", 1)[-1].lower() if "." in upload.filename else "jpg"
         return content, ext
 
@@ -156,7 +191,7 @@ async def guardar_documentos_vehiculo(
         "cedula_delantera": await _read(cedula_delantera),
         "cedula_trasera":   await _read(cedula_trasera),
         "seguro":           await _read(seguro),
-        "foto_vehiculo":    await _read(foto_vehiculo),
+        "foto_vehiculo":    await _read(foto_vehiculo, max_mb=5),
     }
 
     try:
@@ -215,6 +250,39 @@ def update_vehicle(vehicle_id: int, payload: VehicleUpdateRequest, authorization
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=message) from error
         if message == "Token inválido":
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=message) from error
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message) from error
+
+    return VehicleResponse(**result)
+
+
+@router.patch("/{vehicle_id}/estado-procedimiento", response_model=VehicleResponse)
+def actualizar_estado_vehiculo_procedimiento(
+    vehicle_id: int,
+    payload: VehicleStatusUpdateRequest,
+    authorization: str | None = Header(default=None),
+):
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token requerido")
+
+    token = authorization.split(" ", 1)[1].strip()
+
+    try:
+        result = VehiculoService().actualizar_estado_desde_procedimiento(token, vehicle_id, payload.estado)
+    except ValueError as error:
+        message = str(error)
+        if message == "Permiso denegado":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=message) from error
+        if message == "Vehículo no encontrado":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=message) from error
+        if message == "Token inválido":
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=message) from error
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message) from error
+    except Exception as error:
+        message = str(error)
+        if "El estado del vehículo no existe" in message:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El estado del vehículo no existe") from error
+        if "El vehículo no existe" in message:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehículo no encontrado") from error
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message) from error
 
     return VehicleResponse(**result)

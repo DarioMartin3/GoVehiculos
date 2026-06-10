@@ -25,8 +25,8 @@ class AuthService:
         if not user:
             raise ValueError("Credenciales inválidas")
 
-        # 2) Validar si el usuario está activo (estado=1).
-        if user.estado is not None and user.estado != 1:
+        # 2) Validar si el usuario está activo.
+        if user.estado is not None and str(user.estado).lower() != 'activo':
             raise ValueError("Usuario inactivo")
 
         # 3) Validar contraseña.
